@@ -2219,31 +2219,7 @@ export default function Cart() {
                     </button>
                   )}
 
-                  <button
-                    onClick={() => setShowNoteInput(!showNoteInput)}
-                    className="flex-shrink-0 snap-center flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1a1a1a] rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <FileText className="h-4 w-4 md:h-5 md:w-5" />
-                    <span className="whitespace-nowrap max-w-[150px] sm:max-w-[200px] truncate">{note || "Add a note for the delivery partner"}</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowRestaurantNoteInput(!showRestaurantNoteInput)}
-                    className="flex-shrink-0 snap-center flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1a1a1a] rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <Utensils className="h-4 w-4 md:h-5 md:w-5" />
-                    <span className="whitespace-nowrap max-w-[150px] sm:max-w-[200px] truncate">{restaurantNote || "Add cooking instructions"}</span>
-                  </button>
 
-                  <button
-                    onClick={() => setSendCutlery(!sendCutlery)}
-                    className={`flex-shrink-0 snap-center flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${sendCutlery ? 'bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-300' : 'bg-red-50 text-[#DC021B] dark:text-[#DC021B] dark:bg-[#DC021B]/10'}`}
-                  >
-                    <Utensils className="h-4 w-4 md:h-5 md:w-5" />
-                    <span className="whitespace-nowrap">
-                      {sendCutlery ? "Send cutlery" : "Don't send cutlery"}
-                    </span>
-                  </button>
                 </div>
 
               </div>
@@ -3400,7 +3376,7 @@ export default function Cart() {
                   </div>
                   
                   {/* Tip for Partner */}
-                  <div className="px-5 py-4 bg-white dark:bg-[#1a1a1a] mt-2">
+                  <div className="px-5 py-4 bg-pink-50 dark:bg-pink-900/20 mt-2">
                     <div className="flex items-center gap-2 mb-3">
                       <Heart size={18} className="text-pink-500 fill-pink-500" />
                       <h3 className="font-bold text-gray-800 dark:text-gray-200">
