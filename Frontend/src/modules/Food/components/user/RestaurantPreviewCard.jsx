@@ -211,7 +211,7 @@ export default function RestaurantPreviewCard({
           name: dish.name,
           imageUrl: dish.image,
         });
-        toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
+        // toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
       } else {
         const result = addToCart(
           {
@@ -232,7 +232,7 @@ export default function RestaurantPreviewCard({
             toast.error(result.error || "Cannot add item from different restaurant. Please clear cart first.");
           }
         } else {
-          toast.success(`Added ${dish.name} to cart!`);
+          // toast.success(`Added ${dish.name} to cart!`);
         }
       }
     }
@@ -268,9 +268,9 @@ export default function RestaurantPreviewCard({
           imageUrl: dish.image,
         });
         if (existing.quantity - 1 === 0) {
-          toast.success(`Removed ${dish.name} from cart`);
+          // toast.success(`Removed ${dish.name} from cart`);
         } else {
-          toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
+          // toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
         }
       }
     }

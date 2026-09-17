@@ -2097,35 +2097,15 @@ export default function Cart() {
     )
   }
 
-  // Empty cart state - but don't show if order success or placing order modal is active
+  // Empty cart state - redirect directly to home
+  useEffect(() => {
+    if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
+      navigate("/food/user", { replace: true })
+    }
+  }, [cart.length, showOrderSuccess, showPlacingOrder, navigate])
+
   if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
-    return (
-      <AnimatedPage className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
-        <div className="bg-white dark:bg-[#1a1a1a] border-b dark:border-gray-800 sticky top-0 z-10">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <span className="font-semibold text-gray-800 dark:text-white">Cart</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Utensils className="h-10 w-10 text-gray-400" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">Your cart is empty</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">Add items from a restaurant to start a new order</p>
-          <Link to="/user">
-            <Button className="bg-primary-orange hover:opacity-90 text-white">Browse Restaurants</Button>
-          </Link>
-        </div>
-      </AnimatedPage>
-    )
+    return null
   }
 
   return (

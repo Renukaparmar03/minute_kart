@@ -510,9 +510,9 @@ export function CartProvider({ children }) {
       });
 
       if (itemToDecrement.quantity - 1 === 0) {
-        toast.success(`Removed ${itemToDecrement.variantName || dish.name} from cart`);
+        // toast.success(`Removed ${itemToDecrement.variantName || dish.name} from cart`);
       } else {
-        toast.success(`Decreased ${itemToDecrement.variantName || dish.name} quantity to ${itemToDecrement.quantity - 1}`);
+        // toast.success(`Decreased ${itemToDecrement.variantName || dish.name} quantity to ${itemToDecrement.quantity - 1}`);
       }
     }
   };
@@ -664,9 +664,9 @@ export function CartProvider({ children }) {
                                     imageUrl: variantSelector.dish.image || variantSelector.dish.imageUrl,
                                   });
                                   if (quantity - 1 === 0) {
-                                    toast.success(`Removed ${variant.name} from cart`);
+                                    // toast.success(`Removed ${variant.name} from cart`);
                                   } else {
-                                    toast.success(`Decreased ${variant.name} quantity to ${quantity - 1}`);
+                                    // toast.success(`Decreased ${variant.name} quantity to ${quantity - 1}`);
                                   }
                                 }}
                                 className="w-5 h-5 flex items-center justify-center text-gray-550 hover:opacity-80 active:scale-75 dark:text-gray-300"
@@ -684,7 +684,7 @@ export function CartProvider({ children }) {
                                     name: variantSelector.dish.name,
                                     imageUrl: variantSelector.dish.image || variantSelector.dish.imageUrl,
                                   });
-                                  toast.success(`Increased ${variant.name} quantity to ${quantity + 1}`);
+                                  // toast.success(`Increased ${variant.name} quantity to ${quantity + 1}`);
                                   setVariantSelector(prev => ({ ...prev, isOpen: false })); // Close on increase!
                                 }}
                                 className="w-5 h-5 flex items-center justify-center text-gray-550 hover:opacity-80 active:scale-75 dark:text-gray-300"
@@ -717,7 +717,7 @@ export function CartProvider({ children }) {
                                     toast.error(result.error || "Failed to add item.");
                                   }
                                 } else {
-                                  toast.success(`Added ${variantSelector.dish.name} (${variant.name}) to cart!`);
+                                  // toast.success(`Added ${variantSelector.dish.name} (${variant.name}) to cart!`);
                                   setVariantSelector(prev => ({ ...prev, isOpen: false })); // Close on add!
                                 }
                               }}

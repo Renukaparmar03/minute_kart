@@ -1513,7 +1513,7 @@ const CheckoutPage = () => {
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    showToast(`${product.name} added to cart!`, "success");
+    // showToast(`${product.name} added to cart!`, "success");
   };
 
   const getCartItem = (productId) => cart.find((item) => item.id === productId);
