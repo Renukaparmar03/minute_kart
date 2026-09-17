@@ -16,7 +16,7 @@ const DraggableModuleSwitcher = () => {
 
     if (pathname.startsWith('/food')) {
         targetPath = "/quick/user";
-        targetName = "Instamart";
+        targetName = "Minutemart";
         themeColor = "text-green-600";
         bgColor = "bg-green-50";
         icon = <ShoppingBag className="h-3 w-3" strokeWidth={2.6} />;

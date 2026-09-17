@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, CreditCard, MapPin, ShoppingBag, Truck, Zap } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@food/components/ui/button";
@@ -123,6 +123,7 @@ function DeliveryOptionCard({ option, active, onSelect, description }) {
 
 export default function MixedSharedCart({ initialAddress = null, addressMode = "saved" }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const companyName = useCompanyName();
   const { cart, updateQuantity, clearCart } = useCart();
   const { addresses = [], getDefaultAddress, userProfile } = useProfile();
@@ -234,7 +235,7 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
     }
     if (!defaultAddress) {
       toast.error("Please select a delivery address first");
-      navigate("/food/user/cart/address-selector");
+      navigate("/cart/address-selector", { state: { from: location.pathname } });
       return;
     }
 
@@ -399,7 +400,7 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
                   variant="outline"
                   className="rounded-full border-slate-200"
                 >
-                  <Link to="/food/user/cart/address-selector">
+                  <Link to="/cart/address-selector" state={{ from: location.pathname }}>
                     <MapPin className="mr-2 h-4 w-4" />
                     Change
                   </Link>

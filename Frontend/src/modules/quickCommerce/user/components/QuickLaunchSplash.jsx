@@ -1,4 +1,4 @@
-import InstamartSplashImage from "@/assets/de267d90-912f-46de-92e0-61e09f1b7cd3.png";
+import MinutemartSplashImage from "@/assets/de267d90-912f-46de-92e0-61e09f1b7cd3.png";
 import { createPortal } from "react-dom";
 
 export default function QuickLaunchSplash({ className = "" }) {
@@ -11,7 +11,7 @@ export default function QuickLaunchSplash({ className = "" }) {
   return createPortal(
     <div className={classes}>
       <img
-        src={InstamartSplashImage}
+        src={MinutemartSplashImage}
         alt="Minutekart quick splash"
         className="h-full w-full object-cover object-top"
       />

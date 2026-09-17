@@ -287,7 +287,7 @@ export default function RestaurantPreviewCard({
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight truncate group-hover:text-[#DC021B] transition-colors duration-200">
+              <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white truncate group-hover:text-[#DC021B] transition-colors duration-200">
                 {restaurant.name}
               </h3>
               <span

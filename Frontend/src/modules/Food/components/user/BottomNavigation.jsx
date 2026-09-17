@@ -122,12 +122,12 @@ export default function BottomNavigation() {
           </span>
         </Link>
 
-        {/* Instamart Link Button */}
+        {/* Minutemart Link Button */}
         <Link
           to="/quick"
           className="flex items-center gap-0.5 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
         >
-          <span>Instamart</span>
+          <span>Minutemart</span>
           <ChevronRight className="h-3 w-3" strokeWidth={4} />
         </Link>
       </div>

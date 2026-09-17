@@ -4,7 +4,7 @@ import bagImage from '@/assets/Gemini_Generated_Image_i9f6i1i9f6i1i9f6-removebg-
 
 const MobileFooterMessage = () => {
     const { settings } = useSettings();
-    const appName = settings?.appName || 'Instamart';
+    const appName = settings?.appName || 'Minutemart';
     return (
         <div className="md:hidden w-full flex flex-col items-center mt-8 pt-0 pb-32 px-6 bg-transparent">
             <div className="w-full flex flex-col items-center">

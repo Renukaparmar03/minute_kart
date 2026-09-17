@@ -45,7 +45,7 @@ const tabs = [
   },
   {
     id: "quick",
-    name: "Instamart",
+    name: "Minutemart",
     icon: "https://cdn-icons-png.flaticon.com/512/3724/3724720.png",
     badge: "15 mins",
   },

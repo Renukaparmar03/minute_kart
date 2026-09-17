@@ -788,7 +788,7 @@ export default function Home() {
                         <div className="flex flex-col gap-1 min-w-0 mt-2.5">
                           {/* Restaurant */}
                           <div className="flex items-center min-w-0">
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-extrabold truncate">
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-black truncate">
                               {dish.restaurant}
                             </span>
                           </div>

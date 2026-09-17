@@ -849,7 +849,7 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
                           : "text-neutral-400 hover:text-white"
                       )}
                     >
-                      Instamart
+                      Minutemart
                     </button>
                   )}
 

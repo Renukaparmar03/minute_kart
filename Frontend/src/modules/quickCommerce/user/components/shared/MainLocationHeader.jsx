@@ -83,7 +83,7 @@ const ICON_COMPONENTS = {
 
 const serviceTabs = [
   { name: "Food" },
-  { name: "Instamart" },
+  { name: "Minutemart" },
 ];
 
 const isMeaningfulLocationValue = (value) => {

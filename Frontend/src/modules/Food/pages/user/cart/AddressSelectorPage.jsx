@@ -369,11 +369,10 @@ export default function AddressSelectorPage() {
           toast.success("Location updated", { id: "geo" })
           // Don't redirect if they are explicitly in the "Add Address" form
         } else {
-          toast.success("Location updated", { id: "geo" })
-          // Redirect if they are on the main selection page
+          const from = location?.state?.from || "/food/user"
           setTimeout(() => {
-            navigate("/food/user")
-          }, 800)
+            navigate(from, { replace: true })
+          }, 500)
         }
       } else {
         toast.error("Could not determine location", { id: "geo" })
@@ -392,7 +391,6 @@ export default function AddressSelectorPage() {
         localStorage.setItem("deliveryAddressMode", "saved");
         window.dispatchEvent(new Event("deliveryAddressModeChanged"));
       } catch {}
-      toast.success("Address selected")
       
       // Use "from" state if available, otherwise default to home page
       const from = location?.state?.from || "/food/user"
@@ -570,7 +568,6 @@ export default function AddressSelectorPage() {
           localStorage.setItem("deliveryAddressMode", "saved");
           window.dispatchEvent(new Event("deliveryAddressModeChanged"));
         } catch {}
-        toast.success(editingAddressId ? "Address updated" : "Address saved")
         setShowAddressForm(false)
         setEditingAddressId(null)
         setAddressAutocompleteValue("")

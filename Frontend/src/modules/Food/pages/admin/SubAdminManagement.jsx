@@ -48,7 +48,7 @@ export default function SubAdminManagement() {
 
   const availableModules = [
     { id: "food", label: "Food" },
-    { id: "quickCommerce", label: "Instamart" },
+    { id: "quickCommerce", label: "Minutemart" },
   ];
 
   const fetchSubAdmins = async () => {

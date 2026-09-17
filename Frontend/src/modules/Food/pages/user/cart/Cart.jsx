@@ -865,6 +865,35 @@ export default function Cart() {
 
         if (data.length === 0) {
           debugWarn("?? No addons returned from API. Response:", response?.data)
+          try {
+            const menuResponse = await restaurantAPI.getMenuByRestaurantId(idString)
+            if (menuResponse?.data?.success && menuResponse?.data?.data?.menu?.sections) {
+              const rawSections = menuResponse.data.data.menu.sections || []
+              let allItems = []
+              rawSections.forEach(section => {
+                if (Array.isArray(section.items)) {
+                  allItems.push(...section.items)
+                }
+              })
+              const cartItemIds = cart.map(item => item.itemId || item.id)
+              const availableItems = allItems.filter(item => {
+                 const itemId = item._id || item.id
+                 return itemId && !cartItemIds.includes(itemId)
+              })
+              const fallbackAddons = availableItems.slice(0, 8).map(item => ({
+                id: item._id || item.id,
+                name: item.name,
+                price: item.price || item.basePrice,
+                image: item.image || (item.images && item.images[0]),
+                description: item.description,
+                isVeg: item.isVeg !== false
+              }))
+              setAddons(fallbackAddons)
+              return
+            }
+          } catch (e) {
+             debugError("Error fetching fallback menu items", e)
+          }
         } else {
           debugLog("? Successfully fetched", data.length, "addons:", data.map(a => a.name))
         }
@@ -2388,8 +2417,8 @@ export default function Cart() {
               </div>
 
               {/* Coupon Section */}
-              <div className="bg-[#fff6f0] dark:bg-[#f97316]/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm flex flex-col relative z-10 p-4 md:p-5">
-                <div className="flex justify-between items-center mb-3">
+              <div className="bg-[#fff6f0] dark:bg-[#f97316]/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm flex flex-col relative z-10 px-3 py-2.5 md:px-4 md:py-3">
+                <div className="flex justify-between items-center mb-1.5">
                   <h4 className="text-[13px] font-bold text-gray-800 dark:text-gray-200">Special offer for you</h4>
                   <span className="text-base leading-none">🎁</span>
                 </div>

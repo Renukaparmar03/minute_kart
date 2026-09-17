@@ -51,7 +51,7 @@ export default function PromoRow({ handleVegModeChange, navigate, isVegMode, tog
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2.5 px-3.5 pt-4 pb-8 bg-white">
+    <div className="grid grid-cols-4 gap-2.5 px-3.5 pt-4 pb-4 bg-white">
       {promoCardsData.map((promo) => (
         <div
           key={promo.id}
@@ -60,7 +60,7 @@ export default function PromoRow({ handleVegModeChange, navigate, isVegMode, tog
           style={{
             background: promo.gradient,
             boxShadow: `0 6px 20px ${promo.shadowColor}, 0 2px 8px rgba(0,0,0,0.12)`,
-            minHeight: '168px',
+            minHeight: '85px',
             border: promo.id === 'pure-veg' && isVegMode ? '2.5px solid rgba(165,214,167,0.7)' : '2px solid rgba(255,255,255,0.10)',
           }}
           onClick={() => {
