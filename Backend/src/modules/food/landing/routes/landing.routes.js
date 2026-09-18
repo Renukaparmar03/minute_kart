@@ -161,5 +161,10 @@ router.delete('/hero-banners/landing/settings/header-video', deleteAdminLandingH
 router.post('/hero-banners/landing/settings/header-images', upload.array('images'), uploadAdminLandingHeaderImagesController);
 router.delete('/hero-banners/landing/settings/header-images/:index', deleteAdminLandingHeaderImageController);
 
+// Admin cart banner setting
+import { uploadAdminCartBannerController, deleteAdminCartBannerController } from '../controllers/landingSettings.controller.js';
+router.post('/hero-banners/landing/settings/cart-banner', upload.single('image'), uploadAdminCartBannerController);
+router.delete('/hero-banners/landing/settings/cart-banner', deleteAdminCartBannerController);
+
 export default router;
 

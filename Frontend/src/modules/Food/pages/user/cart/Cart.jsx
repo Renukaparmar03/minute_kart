@@ -17,7 +17,7 @@ import { useSettings } from "@core/context/SettingsContext";
 import { useLocation as useUserLocation } from "@food/hooks/useLocation"
 import { useZone } from "@food/hooks/useZone"
 import { useLocationSelector } from "@food/components/user/UserLayout"
-import { orderAPI, restaurantAPI, adminAPI, userAPI, API_ENDPOINTS } from "@food/api"
+import { orderAPI, restaurantAPI, adminAPI, userAPI, API_ENDPOINTS, publicGetOnce } from "@food/api"
 import { API_BASE_URL } from "@food/api/config"
 import { initRazorpayPayment } from "@food/utils/razorpay"
 import { sanitizeOrderImage, sanitizeOrderNotes } from "@food/utils/orderPayload"
@@ -286,6 +286,20 @@ export default function Cart() {
   }, [settings?.codEnabled, settings?.onlinePaymentEnabled, selectedPaymentMethod])
   const [scheduledDate, setScheduledDate] = useState("")
   const [scheduledTime, setScheduledTime] = useState("")
+  const [cartBannerUrl, setCartBannerUrl] = useState("")
+  
+  useEffect(() => {
+    publicGetOnce("/food/landing/settings/public")
+      .then(res => {
+        if (res.data?.success && res.data?.data?.cartBannerImage) {
+          setCartBannerUrl(res.data.data.cartBannerImage)
+        }
+      })
+      .catch(err => {
+        debugError("Failed to load cart banner", err)
+      })
+  }, [])
+  
   const [orderProgress, setOrderProgress] = useState(0)
   const [addressFilter, setAddressFilter] = useState(null)
   const [showOrderSuccess, setShowOrderSuccess] = useState(false)
@@ -3386,15 +3400,24 @@ export default function Cart() {
                   
                   {/* Tip for Partner */}
                   <div className="px-5 py-4 bg-pink-50 dark:bg-pink-900/20 mt-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Heart size={18} className="text-pink-500 fill-pink-500" />
-                      <h3 className="font-bold text-gray-800 dark:text-gray-200">
-                        Tip your delivery partner
-                      </h3>
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Heart size={18} className="text-pink-500 fill-pink-500" />
+                          <h3 className="font-bold text-gray-800 dark:text-gray-200">
+                            Tip your delivery partner
+                          </h3>
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          100% of the tip goes to them
+                        </p>
+                      </div>
+                      {cartBannerUrl && (
+                        <div className="w-[85px] h-[85px] flex-shrink-0 -mt-2 flex items-center justify-center">
+                          <img src={cartBannerUrl} alt="Tip Banner" className="w-full h-full object-contain" />
+                        </div>
+                      )}
                     </div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 -mt-1">
-                      100% of the tip goes to them
-                    </p>
                     <div className="grid grid-cols-4 gap-2 mb-3">
                       {tipAmounts.map((tip) => (
                         <button

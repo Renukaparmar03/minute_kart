@@ -112,4 +112,42 @@ export const deleteLandingHeaderImage = async (imageIndex) => {
     });
 };
 
+export const uploadCartBanner = async (file) => {
+    if (!file?.buffer) {
+        throw new Error('Image file is required');
+    }
+
+    const existing = await getLandingSettings();
+    const uploaded = await uploadBufferDetailed(file.buffer, {
+        folder: 'food/landing/cart-banner',
+        resourceType: 'image'
+    });
+
+    if (existing?.cartBannerImagePublicId) {
+        await cloudinary.uploader
+            .destroy(existing.cartBannerImagePublicId, { resource_type: 'image' })
+            .catch(() => {});
+    }
+
+    return updateLandingSettings({
+        cartBannerImage: uploaded?.secure_url || '',
+        cartBannerImagePublicId: uploaded?.public_id || ''
+    });
+};
+
+export const deleteCartBanner = async () => {
+    const existing = await getLandingSettings();
+
+    if (existing?.cartBannerImagePublicId) {
+        await cloudinary.uploader
+            .destroy(existing.cartBannerImagePublicId, { resource_type: 'image' })
+            .catch(() => {});
+    }
+
+    return updateLandingSettings({
+        cartBannerImage: '',
+        cartBannerImagePublicId: ''
+    });
+};
+
 

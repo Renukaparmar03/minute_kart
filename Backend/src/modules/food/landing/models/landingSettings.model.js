@@ -50,6 +50,14 @@ const foodLandingSettingsSchema = new mongoose.Schema(
         showGourmet: {
             type: Boolean,
             default: true
+        },
+        cartBannerImage: {
+            type: String,
+            default: ''
+        },
+        cartBannerImagePublicId: {
+            type: String,
+            default: ''
         }
     },
     {

@@ -449,11 +449,11 @@ export const useFoodHomeData = ({
       });
     }
 
-    // Compute availability status for sorting rather than strictly filtering out closed ones
+    // Compute availability status and filter out closed ones
     filtered = filtered.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
       return { ...r, _isOpen: status.isOpen };
-    });
+    }).filter(r => r._isOpen);
 
     // Apply sorting: Open restaurants first, then by rating
     filtered.sort((a, b) => {
@@ -490,16 +490,30 @@ export const useFoodHomeData = ({
     if (vegMode === "pure") {
       list = list.filter(r => r.pureVegRestaurant);
     }
+    
+    // Filter out offline restaurants
+    list = list.filter(r => {
+      const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
+      return status.isOpen;
+    });
+    
     return list.slice(0, 12);
-  }, [restaurantsData, recommendedRestaurantsFromSettings, vegMode]);
+  }, [restaurantsData, recommendedRestaurantsFromSettings, vegMode, availabilityTick]);
 
   const popularForYouRestaurants = useMemo(() => {
     let list = popularRestaurantsFromSettings;
     if (vegMode === "pure") {
       list = list.filter(r => r.pureVegRestaurant);
     }
+    
+    // Filter out offline restaurants
+    list = list.filter(r => {
+      const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
+      return status.isOpen;
+    });
+    
     return list.slice(0, 12);
-  }, [popularRestaurantsFromSettings, vegMode]);
+  }, [popularRestaurantsFromSettings, vegMode, availabilityTick]);
 
   // --- Actions ---
   const toggleFilter = useCallback((filterId) => {

@@ -119,6 +119,10 @@ export default function LandingPageManagement() {
   const [headerImagesRemovingIndex, setHeaderImagesRemovingIndex] = useState(null)
   const [recommendedSearchQuery, setRecommendedSearchQuery] = useState("")
 
+  const [cartBannerUploading, setCartBannerUploading] = useState(false)
+  const [cartBannerRemoving, setCartBannerRemoving] = useState(false)
+  const cartBannerInputRef = useRef(null)
+
   // Popular Restaurants tab states
   const [popularRestaurants, setPopularRestaurants] = useState([])
   const [popularLoading, setPopularLoading] = useState(true)
@@ -1453,6 +1457,62 @@ export default function LandingPageManagement() {
     }
   }
 
+  const handleCartBannerFileSelect = async (e) => {
+    const file = e.target?.files?.[0]
+    if (!file) return
+
+    if (!file.type?.startsWith('image/')) {
+      setErrorSafely('Please select a valid image file.')
+      e.target.value = ''
+      return
+    }
+
+    try {
+      setCartBannerUploading(true)
+      setError(null)
+      setSuccess(null)
+
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await api.post('/food/hero-banners/landing/settings/cart-banner', formData, getAuthConfig())
+      if (response.data.success) {
+        const savedSettings = response.data.data?.settings || response.data.data || {}
+        setSettings((prev) => ({
+          ...prev,
+          cartBannerImage: savedSettings.cartBannerImage || ""
+        }))
+        setSuccess('Cart banner uploaded successfully!')
+        setTimeout(() => setSuccess(null), 3000)
+      }
+    } catch (err) {
+      setErrorSafely(err.response?.data?.message || 'Failed to upload cart banner.')
+    } finally {
+      if (e.target) e.target.value = ''
+      setCartBannerUploading(false)
+    }
+  }
+
+  const handleRemoveCartBanner = async () => {
+    if (!window.confirm('Remove the current cart banner image?')) return
+
+    try {
+      setCartBannerRemoving(true)
+      setError(null)
+      setSuccess(null)
+      const response = await api.delete('/food/hero-banners/landing/settings/cart-banner', getAuthConfig())
+      if (response.data.success) {
+        setSettings((prev) => ({ ...prev, cartBannerImage: "" }))
+        setSuccess('Cart banner removed successfully!')
+        setTimeout(() => setSuccess(null), 3000)
+      }
+    } catch (err) {
+      setErrorSafely(err.response?.data?.message || 'Failed to remove cart banner.')
+    } finally {
+      setCartBannerRemoving(false)
+    }
+  }
+
   // ==================== ALL RESTAURANTS ====================
   const fetchAllRestaurants = async () => {
     try {
@@ -1583,6 +1643,7 @@ export default function LandingPageManagement() {
     { id: 'homepage-video', label: 'Hero video and banner', icon: Layout },
     { id: 'explore-more', label: 'Explore More', icon: Layout },
     { id: 'popular-restaurants', label: 'Popular Restaurant', icon: ChefHat },
+    { id: 'cart-banner', label: 'Cart Banner', icon: ImageIcon },
   ]
 
   const exploreMoreTabs = [
@@ -2721,6 +2782,79 @@ export default function LandingPageManagement() {
               )}
             </div>
           </>
+        )}
+
+        {activeTab === 'cart-banner' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Cart Banner Management</h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Upload the banner image to be displayed in the tip section of the cart page.
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-4 sm:p-6 space-y-8">
+              <div className="max-w-2xl">
+                <div className="mb-6">
+                  {settings.cartBannerImage ? (
+                    <div className="relative rounded-xl overflow-hidden border border-slate-200 group bg-slate-50 p-2">
+                      <img
+                        src={settings.cartBannerImage}
+                        alt="Cart Banner"
+                        className="w-full h-auto object-contain rounded-lg max-h-64"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleRemoveCartBanner}
+                          disabled={cartBannerRemoving}
+                          className="flex items-center gap-2"
+                        >
+                          {cartBannerRemoving ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                          Remove Banner
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => !cartBannerUploading && cartBannerInputRef.current?.click()}
+                    >
+                      <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                        {cartBannerUploading ? (
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                        ) : (
+                          <Upload className="w-8 h-8" />
+                        )}
+                      </div>
+                      <h3 className="text-sm font-semibold text-slate-900 mb-1">
+                        {cartBannerUploading ? 'Uploading Banner...' : 'Click to Upload Cart Banner'}
+                      </h3>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        PNG, JPG or WEBP (Max 5MB). Recommended size: 600x200px
+                      </p>
+                    </div>
+                  )}
+                  
+                  <input
+                    type="file"
+                    ref={cartBannerInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleCartBannerFileSelect}
+                    disabled={cartBannerUploading}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Restaurant Selection Modal */}

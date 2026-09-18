@@ -75,4 +75,24 @@ export const deleteAdminLandingHeaderImageController = async (req, res, next) =>
     }
 };
 
+export const uploadAdminCartBannerController = async (req, res, next) => {
+    try {
+        const { uploadCartBanner } = await import('../services/landingSettings.service.js');
+        const updated = await uploadCartBanner(req.file);
+        invalidateLandingSettingsCache();
+        return sendResponse(res, 200, 'Cart banner uploaded successfully', { settings: updated });
+    } catch (error) {
+        next(error);
+    }
+};
 
+export const deleteAdminCartBannerController = async (req, res, next) => {
+    try {
+        const { deleteCartBanner } = await import('../services/landingSettings.service.js');
+        const updated = await deleteCartBanner();
+        invalidateLandingSettingsCache();
+        return sendResponse(res, 200, 'Cart banner removed successfully', { settings: updated });
+    } catch (error) {
+        next(error);
+    }
+};
