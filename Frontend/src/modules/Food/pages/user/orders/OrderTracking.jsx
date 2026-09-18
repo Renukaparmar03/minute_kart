@@ -2145,7 +2145,7 @@ export default function OrderTracking() {
     <div className="min-h-screen bg-gray-100 dark:bg-[#0a0a0a]">
       {/* Order Confirmed Modal */}
       <AnimatePresence>
-        {showConfirmation && (
+        {false && showConfirmation && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -3017,7 +3017,7 @@ export default function OrderTracking() {
 
       {/* Rating & Feedback Modal */}
       <AnimatePresence>
-        {ratingModal.open && ratingModal.order && (
+        {false && ratingModal.open && ratingModal.order && (
           <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}

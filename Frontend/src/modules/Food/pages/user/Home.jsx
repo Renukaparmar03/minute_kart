@@ -993,7 +993,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Veg Mode Popups (Enable / Switch Off) */}
-      <VegModePopups
+      {false && <VegModePopups
         showVegModePopup={showVegModePopup}
         showSwitchOffPopup={showSwitchOffPopup}
         onCloseVegPopup={(level) => {

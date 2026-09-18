@@ -1097,7 +1097,7 @@ Order again from this restaurant in the ${companyName} app.`
       </div>
 
       {/* Rating & Feedback Modal */}
-      {ratingModal.open && ratingModal.order && (
+      {false && ratingModal.open && ratingModal.order && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             {/* Header with gradient */}
