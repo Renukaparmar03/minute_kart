@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation as useRouterLocation } from "react-router-dom"
 import { ChevronLeft, ChevronRight, Plus, MapPin, MoreHorizontal, Navigation, Home, Building2, Briefcase, Phone, X, Crosshair, Search, Edit2, Trash2 } from "lucide-react"
 import { Button } from "@food/components/ui/button"
 import { Input } from "@food/components/ui/input"
@@ -99,6 +99,7 @@ const persistSelectedLocation = (locationData) => {
 
 export default function AddressSelectorPage() {
   const navigate = useNavigate()
+  const routerLocation = useRouterLocation()
   const goBack = useAppBackNavigation()
   const { location, loading, requestLocation } = useGeoLocation()
   const { addresses = [], addAddress, updateAddress, deleteAddress, setDefaultAddress, userProfile } = useProfile()
@@ -369,7 +370,7 @@ export default function AddressSelectorPage() {
           toast.success("Location updated", { id: "geo" })
           // Don't redirect if they are explicitly in the "Add Address" form
         } else {
-          const from = location?.state?.from || "/food/user"
+          const from = routerLocation.state?.from || "/food/user"
           setTimeout(() => {
             navigate(from, { replace: true })
           }, 500)
@@ -393,7 +394,7 @@ export default function AddressSelectorPage() {
       } catch {}
       
       // Use "from" state if available, otherwise default to home page
-      const from = location?.state?.from || "/food/user"
+      const from = routerLocation.state?.from || "/food/user"
       setTimeout(() => {
         navigate(from, { replace: true })
       }, 500)
@@ -574,7 +575,7 @@ export default function AddressSelectorPage() {
         setKeywordAddressSuggestions([])
         
         // Use "from" state if available, otherwise default to home page
-        const from = location?.state?.from || "/food/user"
+        const from = routerLocation.state?.from || "/food/user"
         setTimeout(() => {
           navigate(from, { replace: true })
         }, 500)
