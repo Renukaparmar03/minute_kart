@@ -257,14 +257,14 @@ export default function UserRouter() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="profile/refer-earn"
             element={
               <ProtectedRoute requiredRole="user" loginPath="/user/auth/login">
                 <ReferEarn />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           {/* Public Legal Policies (stay public) */}
           <Route path="profile/terms" element={<Terms />} />
