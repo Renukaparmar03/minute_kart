@@ -1011,7 +1011,7 @@ export default function Home() {
           setShowSwitchOffPopup(false);
           isHandlingSwitchOff.current = false;
         }}
-      />
+      />}
 
       {/* Category Modal */}
       <AnimatePresence>
