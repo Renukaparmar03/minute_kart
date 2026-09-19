@@ -2626,128 +2626,54 @@ export default function Cart() {
 
 
               {/* Delivery Address */}
-              <div className="bg-white dark:bg-[#1a1a1a] px-4 md:px-6 py-5 rounded-2xl shadow-sm border border-slate-100 dark:border-gray-800">
-                <div className="flex items-start justify-between w-full text-left">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-xl mt-0.5">
-                      <MapPin className="h-5 w-5 text-[#DC021B]" />
+              <div className="bg-white dark:bg-[#1a1a1a] px-4 md:px-5 py-5 rounded-2xl shadow-sm border border-slate-100 dark:border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="text-[#DC021B]" size={20} />
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-[14px]">
+                      Delivery Address
+                    </h3>
+                  </div>
+                  {addresses?.length > 0 && (
+                    <button
+                      onClick={openLocationSelector}
+                      className="text-xs font-bold text-[#DC021B] hover:underline cursor-pointer bg-transparent border-0"
+                    >
+                      Change
+                    </button>
+                  )}
+                </div>
+
+                {defaultAddress || (deliveryAddressMode === "current" && (currentLocationLoading || currentLocationAddress)) ? (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                        {deliveryAddressMode === "current" ? "Current location" : (getDisplayAddressLabel(defaultAddress?.label) || "Location")}
+                      </p>
                     </div>
-                    <div className="flex-1">
-                        <div className="flex flex-col">
-                          <p className="text-sm md:text-base text-gray-800 dark:text-gray-200">
-                            Delivery at{" "}
-                            <span className="font-semibold">
-                              {deliveryAddressMode === "current" ? "Current location" : "Location"}
-                            </span>
-                          </p>
-                          {deliveryAddressMode === "current" ? (
-                            <div className="mt-1">
-                              {currentLocationLoading || !currentLocationAddress ? (
-                                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 animate-pulse">
-                                  Finding your current address...
-                                </p>
-                              ) : (
-                                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                                  {formatFullAddress(currentLocationAddress) ||
-                                    currentLocationAddress?.formattedAddress ||
-                                    currentLocationAddress?.address ||
-                                    "Add delivery address"}
-                                </p>
-                              )}
-                              <div className="mt-1 flex items-center gap-2">
-                                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] md:text-[11px] font-semibold bg-[#FFF2EB] text-[#DC021B] dark:bg-[#DC021B]/10 dark:text-[#DC021B] border border-[#DC021B]/30">
-                                  GPS enabled
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 pr-4">
-                              {defaultAddress ? (formatFullAddress(defaultAddress) || defaultAddress?.formattedAddress || defaultAddress?.address || "Add delivery address") : "Add delivery address"}
-                            </p>
-                          )}
-                        </div>
-                        {!hasSavedAddress && (
-                          <p className="text-sm text-[#DC021B] mt-2 font-medium">
-                            Select a delivery location to continue
-                          </p>
-                        )}
-                        {/* Address Selection Buttons */}
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {["Home", "Work", "Other"].map((label) => {
-                            const normalizedLabel = normalizeAddressLabel(label)
-                            const addressExists = addresses.some(addr => normalizeAddressLabel(addr.label) === normalizedLabel)
-                            const isFilterActive = addressFilter === label
-                            return (
-                              <button
-                                key={label}
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  setAddressFilter(isFilterActive ? null : label)
-                                }}
-                                disabled={!addressExists}
-                                className={`text-xs px-4 py-1.5 rounded-full font-semibold transition-all ${!addressExists
-                                  ? 'bg-gray-50 text-gray-400 border border-gray-100 cursor-not-allowed dark:bg-gray-900'
-                                  : isFilterActive
-                                    ? 'bg-[#DC021B] text-white shadow-sm'
-                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-gray-800 dark:text-gray-300'
-                                  }`}
-                              >
-                                {label}
-                              </button>
-                            )
-                          })}
-                        </div>
-                        {addresses.length > 0 && addressFilter && (
-                          <div className="mt-4 space-y-3">
-                            {addresses.filter(address => normalizeAddressLabel(address.label) === normalizeAddressLabel(addressFilter)).map((address) => {
-                              const addressId = getAddressId(address)
-                              const isSelected = addressId && addressId === selectedAddressId
-                              return (
-                                <button
-                                  key={addressId || `${address.label}-${address.street}-${address.city}`}
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    handleSelectSavedAddress(address)
-                                  }}
-                                  className={`w-full text-left rounded-xl border-2 p-3 transition-colors ${isSelected
-                                    ? "border-[#DC021B] bg-orange-50/50 dark:bg-[#DC021B]/5"
-                                    : "border-slate-100 dark:border-gray-800 hover:border-slate-200"
-                                    }`}
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                        {getDisplayAddressLabel(address.label)}
-                                      </p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">
-                                        {formatFullAddress(address) || address.address || "Address details"}
-                                      </p>
-                                    </div>
-                                    {isSelected && (
-                                      <span className="text-[10px] bg-[#DC021B] text-white px-2 py-0.5 rounded uppercase font-bold tracking-wider whitespace-nowrap">
-                                        Selected
-                                      </span>
-                                    )}
-                                  </div>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        )}
+                    {deliveryAddressMode === "current" && (currentLocationLoading || !currentLocationAddress) ? (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 animate-pulse">
+                        Finding your current address...
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        {formatFullAddress(defaultAddress) || defaultAddress?.formattedAddress || defaultAddress?.address || "Add delivery address"}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-2">
+                    <p className="text-xs text-slate-500">No saved addresses found.</p>
+                    <div className="flex flex-col gap-2 mt-3">
+                      <button
+                        onClick={openLocationSelector}
+                        className="w-full py-2.5 text-xs font-bold text-white bg-[#DC021B] rounded-xl hover:bg-[#b50015] transition-colors"
+                      >
+                        + Add Address
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={openLocationSelector}
-                    className="p-2 text-[#DC021B] bg-orange-50 rounded-full hover:bg-orange-100 transition-colors dark:bg-orange-900/20 dark:hover:bg-orange-900/40"
-                    aria-label="Open location selector"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
+                )}
               </div>
 
               {/* Contact */}

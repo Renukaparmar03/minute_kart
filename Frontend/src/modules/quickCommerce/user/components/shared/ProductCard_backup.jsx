@@ -597,40 +597,16 @@ const ProductCard = React.memo(
           <div
             className={cn(
               "flex flex-col h-full w-full rounded-[12px] transition-all duration-300 product-card-container overflow-hidden relative",
-              "bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800",
+              "bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-2",
               "hover:shadow-sm",
             )}>
             {/* Image Section */}
-            <div className="relative w-full h-[120px] md:h-[140px] bg-transparent flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-300 p-2 pb-0">
-              {/* Heart Icon Overlay */}
-              <button
-                onClick={toggleWishlist}
-                className="absolute top-2 right-2 z-10 w-6 h-6 md:w-7 md:h-7 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-all active:scale-90 border border-slate-100/50 dark:border-neutral-700">
-                <motion.div
-                  whileTap={{ scale: 0.8 }}
-                  animate={isWishlisted ? { scale: [1, 1.3, 1] } : {}}>
-                  <Heart
-                    size={window.innerWidth < 768 ? 12 : 14}
-                    className={cn(
-                      isWishlisted ? "text-red-500 fill-red-500" : "text-slate-300 dark:text-slate-500 group-hover:text-slate-400 dark:group-hover:text-slate-300",
-                    )}
-                  />
-                </motion.div>
-              </button>
-
-              <AnimatePresence>
-                {showHeartPopup && (
-                  <motion.div
-                    initial={{ scale: 0.5, opacity: 1, y: 0 }}
-                    animate={{ scale: 2.5, opacity: 0, y: -60 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none text-red-500/30">
-                    <Heart size={48} fill="currentColor" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
+            <div className="relative w-full h-[120px] md:h-[140px] bg-transparent flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-300">
+              {/* Time Badge Overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border border-gray-100 dark:border-neutral-800 shadow-sm text-gray-700 dark:text-gray-300 font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center justify-center leading-tight">
+                <Clock size={10} className="mr-1" />
+                {product.deliveryTime ? product.deliveryTime.toUpperCase() : "10 MINS"}
+              </div>
               {allImages.length > 1 ? (
                 <>
                   <div className="w-full h-full relative overflow-hidden">
@@ -661,15 +637,15 @@ const ProductCard = React.memo(
                   </div>
 
                   {/* Dot Indicators */}
-                  <div className="absolute bottom-1 left-2 flex items-center gap-1 z-10 pointer-events-none">
+                  <div className="absolute bottom-[-4px] left-2 flex items-center gap-1 z-10 pointer-events-none">
                     {allImages.map((_, dotIdx) => (
                       <div
                         key={dotIdx}
                         className={cn(
                           "rounded-full transition-all duration-300",
                           dotIdx === currentImgIdx
-                            ? "w-2 h-2 bg-slate-800 dark:bg-white shadow-sm"
-                            : "w-1.5 h-1.5 bg-slate-300 dark:bg-neutral-600"
+                            ? "w-2.5 h-2.5 bg-white border border-[#8FA8B8] dark:border-neutral-500 shadow-sm"
+                            : "w-1.5 h-1.5 bg-[#8FA8B8] dark:bg-neutral-600"
                         )}
                       />
                     ))}
@@ -689,80 +665,53 @@ const ProductCard = React.memo(
             </div>
 
             {/* Content Section */}
-            <div className="flex flex-col flex-1 p-2 pt-1 bg-transparent">
-              
-              {/* Weight and Add Button */}
-              <div className="flex items-center justify-between mt-2 min-h-[36px] gap-1">
-                <div className="text-[11px] md:text-[12px] font-bold text-slate-700 dark:text-slate-300 flex-1 truncate min-w-0 pr-1">
-                  {product.weight || "1 unit"}
-                </div>
-                
-                {/* Add Button */}
-                <div className="relative z-10 flex-shrink-0">
-                  {quantity > 0 ? (
-                    <div className="flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm h-8 md:h-[34px] overflow-hidden w-[70px] md:w-[76px] justify-between border border-[#0c831f]">
-                      <button
-                        onClick={handleDecrement}
-                        className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
-                        <Minus size={14} strokeWidth={3} />
-                      </button>
-                      <span className="text-[12px] font-bold min-w-[16px] text-center px-0.5">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={handleIncrement}
-                        className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
-                        <Plus size={14} strokeWidth={3} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleAddToCart}
-                      className={cn(
-                        "flex flex-col items-center justify-center bg-white dark:bg-emerald-900/20 border border-[#0c831f] text-[#0c831f] dark:text-emerald-400 rounded-lg transition-all duration-200 active:scale-95 hover:bg-green-50 w-[70px] md:w-[76px] shadow-sm",
-                        product.variants && product.variants.length > 1 ? "h-[36px] md:h-[38px] pt-[2px]" : "h-8 md:h-[34px]"
-                      )}>
-                      <span className="text-[13px] md:text-[14px] font-black uppercase tracking-tight leading-none">ADD</span>
-                      {product.variants && product.variants.length > 1 && (
-                        <span className="text-[8px] text-slate-500 font-bold whitespace-nowrap leading-none mt-1">
-                          {product.variants.length} options
-                        </span>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Price Row */}
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="text-[13px] md:text-[14px] font-black text-slate-900 dark:text-white leading-none">
-                  ₹{Number(displayPrice || 0).toLocaleString()}
-                </span>
-                {strikethroughPrice && (
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 line-through font-medium leading-none">
-                    ₹{Number(strikethroughPrice || 0).toLocaleString()}
-                  </span>
+            <div className="flex flex-col flex-1 p-2 bg-gradient-to-b from-transparent to-black/5 dark:to-white/5">
+              <div className="space-y-0.5 mt-1">
+                <h3 className="text-[12px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] line-clamp-2 h-[32px] md:h-[34px]">
+                  {product.name}
+                </h3>
+                {product.weight && (
+                  <p className="text-[10px] text-slate-500 font-medium leading-none mt-1">
+                    {product.weight}
+                  </p>
                 )}
               </div>
-              
-              {/* Discount Percentage */}
-              {discountPercent > 0 && (
-                <div className="mt-1">
-                  <span className="text-[10px] md:text-[11px] font-bold text-[#2b52d9] dark:text-[#5e81f4] leading-none">
-                    {discountPercent}% OFF on MRP
+
+              <div className="mt-auto pt-2 flex items-end justify-between gap-1">
+                <div className="flex flex-col justify-end pb-0.5">
+                  <span className="text-[13px] md:text-[14px] font-extrabold text-[#A32CC4] dark:text-[#D16BEE] leading-none">
+                    ₹{Number(displayPrice || 0).toLocaleString()}
                   </span>
+                  {strikethroughPrice && (
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 line-through font-medium leading-none mt-1">
+                      ₹{Number(strikethroughPrice || 0).toLocaleString()}
+                    </span>
+                  )}
                 </div>
-              )}
 
-              {/* Product Title */}
-              <h3 className="text-[12px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] line-clamp-2 mt-1">
-                {product.name}
-              </h3>
-
-              {/* Delivery Time */}
-              <div className="mt-auto pt-1.5 flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                <Clock size={11} className="text-slate-400" />
-                <span>{product.deliveryTime ? product.deliveryTime : "15 mins"}</span>
+                {quantity > 0 ? (
+                  <div className="flex items-center bg-[#A32CC4] text-white rounded-lg shadow-sm h-8 md:h-[34px] overflow-hidden w-[70px] md:w-[76px] justify-between">
+                    <button
+                      onClick={handleDecrement}
+                      className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
+                      <Minus size={14} strokeWidth={3} />
+                    </button>
+                    <span className="text-[12px] font-bold min-w-[16px] text-center px-0.5">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={handleIncrement}
+                      className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
+                      <Plus size={14} strokeWidth={3} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    className="flex items-center justify-center bg-green-50 dark:bg-emerald-900/20 border border-[#0c831f] text-[#0c831f] dark:text-emerald-400 rounded-lg transition-all duration-200 active:scale-95 hover:bg-green-100 font-bold w-[70px] md:w-[76px] h-8 md:h-[34px]">
+                    <span className="text-[12px] font-bold uppercase tracking-tight">ADD</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -934,18 +883,15 @@ const ProductCard = React.memo(
                       "flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold",
                       isBestOffer 
                         ? "rounded-[8px] w-8 h-8 md:w-9 md:h-9" 
-                        : cn(
-                            "rounded-xl w-[72px] md:w-[80px] px-1",
-                            product.variants && product.variants.length > 1 ? "h-[36px] md:h-[40px] pt-[2px]" : "h-8 md:h-9"
-                          )
+                        : "rounded-xl w-[72px] md:w-[80px] h-8 md:h-9 px-1"
                     )}>
                     {isBestOffer ? (
                       <Plus size={16} strokeWidth={3.5} />
                     ) : (
                       <>
-                        <span className="text-[13px] md:text-[14px] font-black uppercase leading-none">ADD</span>
+                        <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
                         {product.variants && product.variants.length > 1 && (
-                          <span className="text-[8px] font-bold text-slate-500 leading-none mt-1 whitespace-nowrap">
+                          <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
                             {product.variants.length} options
                           </span>
                         )}
