@@ -692,40 +692,40 @@ const ProductCard = React.memo(
             <div className="flex flex-col flex-1 p-2 pt-1 bg-transparent">
               
               {/* Weight and Add Button */}
-              <div className="flex items-center justify-between mt-2 min-h-[36px] gap-1">
-                <div className="text-[11px] md:text-[12px] font-bold text-slate-700 dark:text-slate-300 flex-1 truncate min-w-0 pr-1">
+              <div className="flex flex-row items-center justify-between mt-2 min-h-[32px] gap-1">
+                <div className="text-[10px] md:text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex-1 truncate pr-1">
                   {product.weight || "1 unit"}
                 </div>
                 
                 {/* Add Button */}
-                <div className="relative z-10 flex-shrink-0">
+                <div className="relative z-10 flex-shrink-0 w-[60px] md:w-[66px]">
                   {quantity > 0 ? (
-                    <div className="flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm h-8 md:h-[34px] overflow-hidden w-[70px] md:w-[76px] justify-between border border-[#0c831f]">
+                    <div className="flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm h-8 overflow-hidden w-full justify-between border border-[#0c831f]">
                       <button
                         onClick={handleDecrement}
-                        className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
-                        <Minus size={14} strokeWidth={3} />
+                        className="w-6 h-full active:bg-black/20 flex items-center justify-center font-black">
+                        <Minus size={12} strokeWidth={3} />
                       </button>
-                      <span className="text-[12px] font-bold min-w-[16px] text-center px-0.5">
+                      <span className="text-[11px] font-bold min-w-[14px] text-center px-0.5">
                         {quantity}
                       </span>
                       <button
                         onClick={handleIncrement}
-                        className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
-                        <Plus size={14} strokeWidth={3} />
+                        className="w-6 h-full active:bg-black/20 flex items-center justify-center font-black">
+                        <Plus size={12} strokeWidth={3} />
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={handleAddToCart}
                       className={cn(
-                        "flex flex-col items-center justify-center bg-white dark:bg-emerald-900/20 border border-[#0c831f] text-[#0c831f] dark:text-emerald-400 rounded-lg transition-all duration-200 active:scale-95 hover:bg-green-50 w-[70px] md:w-[76px] shadow-sm",
-                        product.variants && product.variants.length > 1 ? "h-[36px] md:h-[38px] pt-[2px]" : "h-8 md:h-[34px]"
+                        "flex flex-col items-center justify-center bg-white dark:bg-emerald-900/20 border border-[#0c831f] text-[#0c831f] dark:text-emerald-400 rounded-[8px] transition-all duration-200 active:scale-95 hover:bg-green-50 w-full shadow-sm",
+                        product.variants && product.variants.length > 1 ? "h-[34px] pt-[2px]" : "h-8"
                       )}>
-                      <span className="text-[13px] md:text-[14px] font-black uppercase tracking-tight leading-none">ADD</span>
+                      <span className="text-[11px] md:text-[12px] font-black uppercase tracking-tight leading-none">ADD</span>
                       {product.variants && product.variants.length > 1 && (
-                        <span className="text-[8px] text-slate-500 font-bold whitespace-nowrap leading-none mt-1">
-                          {product.variants.length} options
+                        <span className="text-[7px] text-slate-500 font-bold whitespace-nowrap leading-none mt-1">
+                          {product.variants.length} opts
                         </span>
                       )}
                     </button>

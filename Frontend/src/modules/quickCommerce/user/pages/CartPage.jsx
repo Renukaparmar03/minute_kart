@@ -905,15 +905,17 @@ const CartPage = () => {
               You might also like
             </h3>
 
-            <div className="grid grid-cols-3 gap-2">
-              {similarProducts.slice(0, 3).map((item) => (
-                <ProductCard 
-                  key={item.id} 
-                  product={item} 
-                  compact={true} 
-                  hideBadge={true} 
-                  showTimeOnImage={true} 
-                />
+            <div className="flex overflow-x-auto gap-3 pb-2 snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style dangerouslySetInnerHTML={{__html: `::-webkit-scrollbar { display: none; }`}} />
+              {similarProducts.slice(0, 5).map((item) => (
+                <div key={item.id} className="w-[135px] md:w-[150px] flex-shrink-0 snap-start">
+                  <ProductCard 
+                    product={item} 
+                    compact={true} 
+                    hideBadge={true} 
+                    showTimeOnImage={true} 
+                  />
+                </div>
               ))}
             </div>
 

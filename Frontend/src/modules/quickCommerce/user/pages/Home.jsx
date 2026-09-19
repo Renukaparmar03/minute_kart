@@ -837,6 +837,31 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                   </motion.button>
                 </div>
 
+                <style>
+                  {`
+                    @keyframes zomato-flip {
+                      0%, 35% { transform: rotateY(0deg); }
+                      50%, 85% { transform: rotateY(180deg); }
+                      100% { transform: rotateY(360deg); }
+                    }
+                    .zomato-flip-container {
+                      transform-style: preserve-3d;
+                      animation: zomato-flip 6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+                      width: 100%;
+                      height: 100%;
+                      position: relative;
+                      border-radius: 9999px;
+                    }
+                    .zomato-flip-face {
+                      backface-visibility: hidden;
+                      -webkit-backface-visibility: hidden;
+                      border-radius: 9999px;
+                    }
+                    .zomato-flip-back {
+                      transform: rotateY(180deg);
+                    }
+                  `}
+                </style>
                 <div
                   ref={quickCatsRef}
                   className="relative z-10 flex items-start gap-2.5 md:gap-3 lg:gap-4 overflow-x-auto no-scrollbar px-4 pb-3 pt-1 md:px-8 md:pb-4 snap-x scroll-smooth">
@@ -844,6 +869,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                     const palette =
                       quickCategoryPalettes[idx % quickCategoryPalettes.length];
                     const categoryImage = getQuickCategoryImage(cat);
+                    const isAll = cat.name?.toLowerCase() === "all";
                     return (
                       <motion.div
                         key={cat.id}
@@ -870,19 +896,44 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                         }}
                         className="flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group/item w-[70px] sm:w-[80px]"
                       >
-                        <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover/item:scale-110 flex items-center justify-center mb-1 bg-[#F3F4F6] dark:bg-neutral-800 rounded-full">
-                          {categoryImage ? (
-                            <img
-                              src={categoryImage}
-                              alt={cat.name}
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center rounded-[20px] bg-slate-100 dark:bg-neutral-800 text-2xl font-black uppercase text-slate-400">
-                              {(cat.name || "?").charAt(0)}
+                        {isAll ? (
+                          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-full shadow-[0_4px_12px_rgba(233,30,99,0.35)] transition-transform group-active:scale-95 z-10 p-0 border-2 border-white bg-white mb-1">
+                            <div className="zomato-flip-container">
+                              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face bg-[#F3F4F6] dark:bg-neutral-800">
+                                {categoryImage ? (
+                                  <img src={categoryImage} alt={cat.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center rounded-[20px] text-2xl font-black uppercase text-slate-400">
+                                    {(cat.name || "?").charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face zomato-flip-back bg-[#F3F4F6] dark:bg-neutral-800">
+                                {categoryImage ? (
+                                  <img src={categoryImage} alt={cat.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center rounded-[20px] text-2xl font-black uppercase text-slate-400">
+                                    {(cat.name || "?").charAt(0)}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover/item:scale-110 flex items-center justify-center mb-1 bg-[#F3F4F6] dark:bg-neutral-800 rounded-full">
+                            {categoryImage ? (
+                              <img
+                                src={categoryImage}
+                                alt={cat.name}
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center rounded-[20px] bg-slate-100 dark:bg-neutral-800 text-2xl font-black uppercase text-slate-400">
+                                {(cat.name || "?").charAt(0)}
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <span className="text-xs font-semibold truncate w-full text-center text-gray-600 dark:text-gray-300 transition-colors">
                           {cat.name}
                         </span>

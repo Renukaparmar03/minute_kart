@@ -160,32 +160,103 @@ function CircularCategoryItem({
       className="flex flex-col items-center gap-1.5 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0"
       style={{ minWidth: "56px", maxWidth: "64px" }}
     >
-      <div
-        className={cn(
-          "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full flex items-center justify-center transition-all",
-          isActive 
-            ? "bg-[#E8F5E9] ring-2 ring-[#0c831f]/30" 
-            : isMore
-              ? "bg-[#E8F5E9]"
-              : "bg-[#f4f5f4]"
-        )}
-      >
-        {typeof cat.icon === "function" ||
-          (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
-          <cat.icon
-            sx={{
-              fontSize: 28,
-              color: isActive ? "#0c831f" : "#4b5563",
-            }}
-          />
-        ) : (
-          <img
-            src={cat.icon || cat.image}
-            alt={cat.name}
-            className="h-8 w-8 md:h-10 md:w-10 object-contain"
-          />
-        )}
-      </div>
+      <style>
+        {`
+          @keyframes zomato-flip {
+            0%, 35% { transform: rotateY(0deg); }
+            50%, 85% { transform: rotateY(180deg); }
+            100% { transform: rotateY(360deg); }
+          }
+          .zomato-flip-container {
+            transform-style: preserve-3d;
+            animation: zomato-flip 6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 9999px;
+          }
+          .zomato-flip-face {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 9999px;
+          }
+          .zomato-flip-back {
+            transform: rotateY(180deg);
+          }
+        `}
+      </style>
+      {cat.name?.toLowerCase() === "all" ? (
+        <div
+          className={cn(
+            "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full transition-all border-2 border-white bg-white z-10 p-0 shadow-[0_4px_12px_rgba(233,30,99,0.35)]",
+            isActive && "ring-2 ring-[#0c831f]/30"
+          )}
+        >
+          <div className="zomato-flip-container">
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face bg-[#E8F5E9] rounded-full">
+              {typeof cat.icon === "function" ||
+              (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
+                <cat.icon
+                  sx={{
+                    fontSize: 28,
+                    color: isActive ? "#0c831f" : "#4b5563",
+                  }}
+                />
+              ) : (
+                <img
+                  src={cat.icon || cat.image}
+                  alt={cat.name}
+                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                />
+              )}
+            </div>
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face zomato-flip-back bg-[#E8F5E9] rounded-full">
+              {typeof cat.icon === "function" ||
+              (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
+                <cat.icon
+                  sx={{
+                    fontSize: 28,
+                    color: isActive ? "#0c831f" : "#4b5563",
+                  }}
+                />
+              ) : (
+                <img
+                  src={cat.icon || cat.image}
+                  alt={cat.name}
+                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full flex items-center justify-center transition-all",
+            isActive 
+              ? "bg-[#E8F5E9] ring-2 ring-[#0c831f]/30" 
+              : isMore
+                ? "bg-[#E8F5E9]"
+                : "bg-[#f4f5f4]"
+          )}
+        >
+          {typeof cat.icon === "function" ||
+            (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
+            <cat.icon
+              sx={{
+                fontSize: 28,
+                color: isActive ? "#0c831f" : "#4b5563",
+              }}
+            />
+          ) : (
+            <img
+              src={cat.icon || cat.image}
+              alt={cat.name}
+              className="h-8 w-8 md:h-10 md:w-10 object-contain"
+            />
+          )}
+        </div>
+      )}
       <div className="flex items-center justify-center w-full">
         <span
           className={cn(
