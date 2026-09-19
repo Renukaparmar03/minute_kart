@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Banknote,
@@ -20,6 +22,8 @@ import {
   X,
   Tag,
   MapPin,
+  Wallet,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@core/context/SettingsContext";
@@ -38,6 +42,7 @@ import {
   getQuickOrderDetailPath,
 } from "../utils/routes";
 import { resolveQuickImageUrl } from "../utils/image";
+import { publicGetOnce, userAPI } from "@food/api";
 
 const DEFAULT_QUICK_BILLING_SETTINGS = {
   deliveryFee: 25,
@@ -143,6 +148,28 @@ const CartPage = () => {
   const [recipientPhone, setRecipientPhone] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientError, setRecipientError] = useState("");
+  const [showPaymentSheet, setShowPaymentSheet] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(false);
+  
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchWalletBalance = async () => {
+      try {
+        setIsLoadingWallet(true);
+        const response = await userAPI.getWallet();
+        if (response?.data?.success && response?.data?.data?.wallet) {
+          setWalletBalance(response.data.data.wallet.balance || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching wallet balance:", error);
+        setWalletBalance(0);
+      } finally {
+        setIsLoadingWallet(false);
+      }
+    };
+    fetchWalletBalance();
+  }, [isAuthenticated]);
 
   const handleUseCurrentLocation = async () => {
     setIsFetchingLocation(true);
@@ -230,8 +257,22 @@ const CartPage = () => {
     { value: 0, label: "No Tip" },
     { value: 10, label: "₹10" },
     { value: 20, label: "₹20" },
-    { value: 30, label: "₹30" },
+    { value: 50, label: "₹50" },
   ];
+
+  const [cartBannerUrl, setCartBannerUrl] = useState("");
+
+  useEffect(() => {
+    publicGetOnce("/food/landing/settings/public")
+      .then(res => {
+        if (res.data?.success && res.data?.data?.cartBannerImage) {
+          setCartBannerUrl(res.data.data.cartBannerImage);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load cart banner", err);
+      });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -556,29 +597,47 @@ const CartPage = () => {
     ? selectedCoupon.discountAmount || selectedCoupon.discount || 0
     : 0;
   const grandTotal = Math.max(0, baseGrandTotal + selectedTip - discountAmount);
+
   const paymentMethods = [
-    ...(settings?.onlineEnabled === false
-      ? []
-      : [
+    ...(settings?.onlinePaymentEnabled !== false
+      ? [
           {
-            id: "online",
-            label: "Pay Online",
-            icon: CreditCard,
-            sublabel: "UPI / Cards / NetBanking",
+            id: "razorpay",
+            label: "Online Payment",
+            sublabel: "UPI, Cards, Netbanking",
+            icon: Zap,
+            color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400",
+            selectedColor: "bg-emerald-500 text-white",
+            badge: "SECURE",
           },
-        ]),
-    ...(settings?.codEnabled === false
-      ? []
-      : [
+          {
+            id: "wallet",
+            label: "Quick Wallet",
+            sublabel: "Pay from your wallet",
+            icon: Wallet,
+            color: "bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
+            selectedColor: "bg-blue-500 text-white",
+            subInfo: `Bal: ₹${walletBalance.toFixed(0)}`,
+            disabled: walletBalance < grandTotal,
+            disabledText: "Low Balance",
+          },
+        ]
+      : []),
+    ...(settings?.codEnabled !== false
+      ? [
           {
             id: "cash",
             label: "Cash on Delivery",
+            sublabel: "Pay when order arrives",
             icon: Banknote,
-            sublabel: "Pay after delivery",
+            color: "bg-orange-50 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400",
+            selectedColor: "bg-orange-500 text-white",
           },
-        ]),
+        ]
+      : []),
   ];
-  const [selectedPayment, setSelectedPayment] = useState("cash");
+  
+  const [selectedPayment, setSelectedPayment] = useState("razorpay");
 
   const handleRemove = (item) => {
     removeFromCart(item.id || item._id);
@@ -603,6 +662,8 @@ const CartPage = () => {
 
   const selectedPaymentMethod =
     paymentMethods.find((method) => method.id === selectedPayment) || null;
+  const selectedPaymentDetails = selectedPaymentMethod;
+  const selectedPaymentLabel = selectedPaymentDetails?.label || "Online Payment";
 
   if (loading && cart.length === 0) {
     return (
@@ -1119,15 +1180,24 @@ const CartPage = () => {
         {/* Tip for Partner */}
         <section className="mt-4 rounded-xl bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-neutral-850 dark:to-neutral-900/60 rounded-[20px] p-4 border border-pink-100/50 dark:border-neutral-800/40">
-            <div className="flex items-center gap-2 mb-3">
-              <Heart size={18} className="text-pink-500 fill-pink-500" />
-              <h3 className="font-black text-slate-800 dark:text-white text-sm">
-                Tip your delivery partner
-              </h3>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Heart size={18} className="text-pink-500 fill-pink-500" />
+                  <h3 className="font-black text-slate-800 dark:text-white text-sm">
+                    Tip your delivery partner
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  100% of the tip goes to them
+                </p>
+              </div>
+              {cartBannerUrl && (
+                <div className="w-[75px] h-[75px] flex-shrink-0 -mt-2 flex items-center justify-center">
+                  <img src={cartBannerUrl} alt="Tip Banner" className="w-full h-full object-contain" />
+                </div>
+              )}
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-              100% of the tip goes to them
-            </p>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {tipAmounts.map((tip) => (
                 <button
@@ -1209,7 +1279,7 @@ const CartPage = () => {
 
 
         <section className="mt-4 rounded-xl bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                 Payment
@@ -1217,59 +1287,30 @@ const CartPage = () => {
               <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
                 Choose how you want to pay
               </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                We&apos;ll carry this choice into checkout so you don&apos;t have to pick it again.
-              </p>
             </div>
           </div>
 
-          <div className="mt-4 space-y-2">
-            {paymentMethods.length ? (
-              paymentMethods.map((method) => {
-                const Icon = method.icon;
-                const isSelected = selectedPayment === method.id;
-                return (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setSelectedPayment(method.id)}
-                    className={`flex w-full items-center gap-3 rounded-2xl border-2 p-3 text-left transition-all ${
-                      isSelected
-                        ? "border-[#0c831f] dark:border-emerald-600 bg-green-50 dark:bg-emerald-900/10"
-                        : "border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-slate-300 dark:hover:border-neutral-700"
-                    }`}
-                  >
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                        isSelected ? "bg-green-100 dark:bg-emerald-900/30" : "bg-slate-100 dark:bg-neutral-800"
-                      }`}
-                    >
-                      <Icon
-                        size={18}
-                        className={isSelected ? "text-[#0c831f] dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-sm font-bold ${isSelected ? "text-[#0c831f] dark:text-emerald-400" : "text-slate-800 dark:text-white"}`}>
-                        {method.label}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{method.sublabel}</p>
-                    </div>
-                    <div
-                      className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                        isSelected ? "border-[#0c831f] dark:border-emerald-500 bg-[#0c831f] dark:bg-emerald-500" : "border-slate-300 dark:border-neutral-700"
-                      }`}
-                    >
-                      {isSelected ? <Check size={12} className="text-white" /> : null}
-                    </div>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Payment options are currently unavailable. You can still review the order on checkout.
+          <div 
+            onClick={() => setShowPaymentSheet(true)}
+            className="flex items-center justify-between p-4 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedPaymentDetails?.color || 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                {selectedPaymentDetails ? <selectedPaymentDetails.icon className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
               </div>
-            )}
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-0.5">Pay using</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                  {selectedPaymentLabel}
+                </p>
+                {selectedPayment === "wallet" && (
+                  <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-1 rounded inline-block mt-0.5">
+                    ₹{walletBalance.toFixed(0)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
         </section>
 
@@ -1279,7 +1320,7 @@ const CartPage = () => {
         <div className="mx-auto max-w-3xl">
           <button
             onClick={handlePlaceOrder}
-            disabled={isPlacingOrder}
+            disabled={isPlacingOrder || (selectedPayment === "wallet" && walletBalance < grandTotal)}
             className="w-full bg-[#0c831f] text-white rounded-xl px-4 py-3 flex justify-between items-center shadow-sm active:scale-[0.98] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isPlacingOrder ? (
@@ -1530,6 +1571,118 @@ const CartPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Payment Sheet Modal */}
+      {typeof window !== "undefined" && createPortal(
+        <AnimatePresence>
+          {showPaymentSheet && (
+            <>
+              <motion.div
+                className="fixed inset-0 bg-black/50 z-[10020]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowPaymentSheet(false)}
+              />
+              <motion.div
+                className="fixed bottom-0 left-0 right-0 z-[10021] w-full max-w-3xl mx-auto bg-white dark:bg-[#121212] rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-[calc(1rem+env(safe-area-inset-bottom))]"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              >
+                <div className="flex flex-col h-[70vh] max-h-[600px]">
+                  <div className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shrink-0">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-gray-900 dark:text-white leading-none">Payment Method</h2>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Select how you want to pay</p>
+                    </div>
+                    <button
+                      onClick={() => setShowPaymentSheet(false)}
+                      className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar pb-4 flex-1 min-h-0 px-5 pt-4">
+                    {paymentMethods.map((method) => {
+                      const isSelected = selectedPayment === method.id;
+                      const Icon = method.icon;
+                      
+                      return (
+                        <div
+                          key={method.id}
+                          onClick={() => {
+                            if (!method.disabled) {
+                              setSelectedPayment(method.id);
+                              setTimeout(() => setShowPaymentSheet(false), 200);
+                            }
+                          }}
+                          className={`
+                            relative flex items-center p-4 rounded-xl border-2 transition-all duration-200
+                            ${method.disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-[#1a1a1a] border-transparent' : 'cursor-pointer'}
+                            ${isSelected 
+                              ? `border-[#0c831f] dark:border-emerald-500/50 bg-[#0c831f]/5 dark:bg-emerald-500/10` 
+                              : `border-transparent bg-white dark:bg-[#1a1a1a] hover:border-gray-200 dark:hover:border-gray-700`
+                            }
+                            shadow-[0_2px_10px_rgba(0,0,0,0.02)]
+                          `}
+                        >
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                            isSelected ? method.selectedColor : method.color || 'bg-gray-100 dark:bg-gray-800'
+                          } transition-colors duration-200`}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+                                {method.label}
+                                {method.badge && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold tracking-wider">
+                                    {method.badge}
+                                  </span>
+                                )}
+                              </span>
+                              {method.subInfo && (
+                                <span className={`text-xs font-bold ${method.disabled ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                                  {method.subInfo}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">
+                              {method.disabled && method.disabledText ? (
+                                <span className="text-red-500 font-bold">{method.disabledText}</span>
+                              ) : (
+                                method.sublabel
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="ml-4 flex items-center justify-center w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 shrink-0 relative">
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`absolute inset-[-2px] rounded-full flex items-center justify-center ${method.selectedColor || 'bg-[#0c831f]'}`}
+                              >
+                                <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                              </motion.div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
     </div>
   );
 };

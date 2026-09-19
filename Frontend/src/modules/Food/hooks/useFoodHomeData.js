@@ -449,11 +449,17 @@ export const useFoodHomeData = ({
       });
     }
 
-    // Compute availability status and filter out closed ones
+    // Compute availability status, add offline flags, but DO NOT filter out closed ones
     filtered = filtered.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
-      return { ...r, _isOpen: status.isOpen };
-    }).filter(r => r._isOpen);
+      return { 
+        ...r, 
+        _isOpen: status.isOpen,
+        isOffline: !status.isOpen,
+        openingTime: status.openingTime,
+        closingTime: status.closingTime
+      };
+    });
 
     // Apply sorting: Open restaurants first, then by rating
     filtered.sort((a, b) => {
@@ -491,10 +497,22 @@ export const useFoodHomeData = ({
       list = list.filter(r => r.pureVegRestaurant);
     }
     
-    // Filter out offline restaurants
-    list = list.filter(r => {
+    // Compute offline status but DO NOT filter out offline restaurants
+    list = list.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
-      return status.isOpen;
+      return { 
+        ...r, 
+        isOffline: !status.isOpen,
+        openingTime: status.openingTime,
+        closingTime: status.closingTime
+      };
+    });
+    
+    // Sort to push offline restaurants to the bottom
+    list.sort((a, b) => {
+      if (a.isOffline && !b.isOffline) return 1;
+      if (!a.isOffline && b.isOffline) return -1;
+      return 0;
     });
     
     return list.slice(0, 12);
@@ -506,10 +524,22 @@ export const useFoodHomeData = ({
       list = list.filter(r => r.pureVegRestaurant);
     }
     
-    // Filter out offline restaurants
-    list = list.filter(r => {
+    // Compute offline status but DO NOT filter out offline restaurants
+    list = list.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
-      return status.isOpen;
+      return { 
+        ...r, 
+        isOffline: !status.isOpen,
+        openingTime: status.openingTime,
+        closingTime: status.closingTime
+      };
+    });
+    
+    // Sort to push offline restaurants to the bottom
+    list.sort((a, b) => {
+      if (a.isOffline && !b.isOffline) return 1;
+      if (!a.isOffline && b.isOffline) return -1;
+      return 0;
     });
     
     return list.slice(0, 12);

@@ -22,6 +22,7 @@ import { useToast } from "@shared/components/ui/Toast";
 import { customerApi } from "../services/customerApi";
 import { resolveQuickImageUrl } from "../utils/image";
 import ProductCard from "../components/shared/ProductCard";
+import MiniCart from "../components/shared/MiniCart";
 
 const getProductIdentifier = (value) =>
   String(value?.productId || value?.itemId || value?.id || value?._id || "").split("::")[0];
@@ -1151,6 +1152,8 @@ const ProductDetailPage = () => {
           )}
         </div>
       </div>
+
+      <MiniCart />
     </div>
   );
 };

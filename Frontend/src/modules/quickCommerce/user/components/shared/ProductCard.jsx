@@ -596,19 +596,17 @@ const ProductCard = React.memo(
         {!isBestOffer ? (
           <div
             className={cn(
-              "flex flex-col h-full w-full rounded-[14px] transition-all duration-300 product-card-container",
-              "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-2",
-              "hover:shadow-md",
+              "flex flex-col h-full w-full rounded-[12px] transition-all duration-300 product-card-container overflow-hidden relative",
+              "bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-2",
+              "hover:shadow-sm",
             )}>
-            {/* Time Badge at top left */}
-            <div className="flex items-start">
-              <div className="bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-[4px] inline-flex items-center justify-center leading-tight">
-                {product.deliveryTime || "10-15 mins"}
-              </div>
-            </div>
-
             {/* Image Section */}
-            <div className="relative w-full h-[98px] md:h-[118px] mt-1 mb-1.5 bg-transparent flex items-center justify-center">
+            <div className="relative w-full h-[120px] md:h-[140px] bg-transparent flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-300">
+              {/* Time Badge Overlay */}
+              <div className="absolute top-0 left-0 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border border-gray-100 dark:border-neutral-800 shadow-sm text-gray-700 dark:text-gray-300 font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center justify-center leading-tight">
+                <Clock size={10} className="mr-1" />
+                {product.deliveryTime ? product.deliveryTime.toUpperCase() : "10 MINS"}
+              </div>
               {allImages.length > 1 ? (
                 <>
                   <div className="w-full h-full relative overflow-hidden">
@@ -667,51 +665,51 @@ const ProductCard = React.memo(
             </div>
 
             {/* Content Section */}
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <div className="space-y-0 mt-0.5">
-                <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.2] truncate">
+            <div className="flex flex-col flex-1 p-2 bg-gradient-to-b from-transparent to-black/5 dark:to-white/5">
+              <div className="space-y-0.5 mt-1">
+                <h3 className="text-[12px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] line-clamp-2 h-[32px] md:h-[34px]">
                   {product.name}
                 </h3>
                 {product.weight && (
-                  <p className="text-[9px] md:text-[10px] text-slate-500 font-medium leading-none">
+                  <p className="text-[10px] text-slate-500 font-medium leading-none mt-1">
                     {product.weight}
                   </p>
                 )}
               </div>
-              
-              <div className="mt-auto pt-1.5 flex items-center justify-between gap-1">
-                <div className="flex flex-col justify-center">
-                  <span className="text-[13px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
+
+              <div className="mt-auto pt-2 flex items-end justify-between gap-1">
+                <div className="flex flex-col justify-end pb-0.5">
+                  <span className="text-[13px] md:text-[14px] font-extrabold text-[#A32CC4] dark:text-[#D16BEE] leading-none">
                     ₹{Number(displayPrice || 0).toLocaleString()}
                   </span>
                   {strikethroughPrice && (
-                    <span className="text-[10px] md:text-[11px] text-slate-400 dark:text-slate-500 line-through font-semibold leading-none mt-1">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 line-through font-medium leading-none mt-1">
                       ₹{Number(strikethroughPrice || 0).toLocaleString()}
                     </span>
                   )}
                 </div>
 
                 {quantity > 0 ? (
-                  <div className="flex items-center bg-[#0c831f] text-white rounded-[10px] shadow-sm h-8 md:h-9 overflow-hidden w-[72px] md:w-[80px] justify-between">
+                  <div className="flex items-center bg-[#A32CC4] text-white rounded-lg shadow-sm h-8 md:h-[34px] overflow-hidden w-[70px] md:w-[76px] justify-between">
                     <button
                       onClick={handleDecrement}
-                      className="w-7 md:w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                      <Minus size={12} strokeWidth={3.5} />
+                      className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
+                      <Minus size={14} strokeWidth={3} />
                     </button>
-                    <span className="text-[12px] md:text-[14px] font-black min-w-[16px] md:min-w-[20px] text-center px-0.5">
+                    <span className="text-[12px] font-bold min-w-[16px] text-center px-0.5">
                       {quantity}
                     </span>
                     <button
                       onClick={handleIncrement}
-                      className="w-7 md:w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                      <Plus size={12} strokeWidth={3.5} />
+                      className="w-7 h-full active:bg-black/20 flex items-center justify-center font-black">
+                      <Plus size={14} strokeWidth={3} />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={handleAddToCart}
-                    className="flex items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-[10px] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold w-[72px] md:w-[80px] h-8 md:h-9 px-1">
-                    <span className="text-[12px] md:text-[13px] font-black uppercase leading-none">ADD</span>
+                    className="flex items-center justify-center bg-green-50 dark:bg-emerald-900/20 border border-[#0c831f] text-[#0c831f] dark:text-emerald-400 rounded-lg transition-all duration-200 active:scale-95 hover:bg-green-100 font-bold w-[70px] md:w-[76px] h-8 md:h-[34px]">
+                    <span className="text-[12px] font-bold uppercase tracking-tight">ADD</span>
                   </button>
                 )}
               </div>
@@ -725,7 +723,7 @@ const ProductCard = React.memo(
               "hover:shadow-md",
             )}>
             {/* Top Image Section */}
-            <div className="relative overflow-hidden w-full h-[122px] md:h-[142px] p-0.5 md:p-1 bg-white dark:bg-neutral-800">
+            <div className="relative overflow-hidden w-full h-[140px] md:h-[160px] p-0.5 md:p-1 bg-white dark:bg-neutral-800 group-hover:scale-[1.02] transition-transform duration-300">
               {/* Badge (Professional Tag) */}
               {!hideBadge && (badge || product.discount || discountPercent > 0) && (
                 <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>
@@ -738,8 +736,9 @@ const ProductCard = React.memo(
 
               {/* Time Badge on Image */}
               {showTimeOnImage && (
-                <div className="absolute top-1 left-1 z-10 bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-sm flex items-center justify-center leading-tight">
-                  {product.deliveryTime || "10-15 mins"}
+                <div className="absolute top-1 right-1 z-10 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm shadow-sm text-gray-700 dark:text-gray-300 font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center justify-center leading-tight border border-gray-100 dark:border-neutral-800">
+                  <Clock size={10} className="mr-1" />
+                  {product.deliveryTime ? product.deliveryTime.toUpperCase() : "10 MINS"}
                 </div>
               )}
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import { useCart } from "../context/CartContext";
@@ -30,6 +31,8 @@ import {
   Clipboard,
   Check,
   Contact2,
+  Wallet,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +47,7 @@ import {
   onOrderStatusUpdate,
 } from "@/core/services/orderSocket";
 import { initRazorpayPayment } from "@food/utils/razorpay";
+import { publicGetOnce, userAPI } from "@food/api";
 import { getCompanyNameAsync } from "@common/utils/businessSettings";
 import ProductCard from "../components/shared/ProductCard";
 import {
@@ -316,6 +320,29 @@ const CheckoutPage = () => {
     useWishlist();
   const { showToast } = useToast();
   const { user, isAuthenticated } = useAuth();
+
+  const [showPaymentSheet, setShowPaymentSheet] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchWalletBalance = async () => {
+      try {
+        setIsLoadingWallet(true);
+        const response = await userAPI.getWallet();
+        if (response?.data?.success && response?.data?.data?.wallet) {
+          setWalletBalance(response.data.data.wallet.balance || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching wallet balance:", error);
+        setWalletBalance(0);
+      } finally {
+        setIsLoadingWallet(false);
+      }
+    };
+    fetchWalletBalance();
+  }, [isAuthenticated]);
   const {
     userProfile,
     getDefaultAddress,
@@ -353,7 +380,7 @@ const CheckoutPage = () => {
   const [selectedPayment, setSelectedPayment] = useState(
     routerLocation.state?.selectedPayment ||
       storedCheckoutState.selectedPayment ||
-      "cash",
+      "razorpay",
   );
   const [selectedTip, setSelectedTip] = useState(
     Number(routerLocation.state?.selectedTip || storedCheckoutState.selectedTip || 0),
@@ -638,26 +665,42 @@ const CheckoutPage = () => {
   ];
 
   const paymentMethods = [
-    ...(settings?.onlinePaymentEnabled === false
-      ? []
-      : [
+    ...(settings?.onlinePaymentEnabled !== false
+      ? [
           {
-            id: "online",
-            label: "Pay Online",
-            icon: CreditCard,
-            sublabel: "UPI / Cards / NetBanking",
+            id: "razorpay",
+            label: "Online Payment",
+            sublabel: "UPI, Cards, Netbanking",
+            icon: Zap,
+            color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400",
+            selectedColor: "bg-emerald-500 text-white",
+            badge: "SECURE",
           },
-        ]),
-    ...(settings?.codEnabled === false
-      ? []
-      : [
+          {
+            id: "wallet",
+            label: "Quick Wallet",
+            sublabel: "Pay from your wallet",
+            icon: Wallet,
+            color: "bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
+            selectedColor: "bg-blue-500 text-white",
+            subInfo: `Bal: ₹${walletBalance.toFixed(0)}`,
+            disabled: walletBalance < (pricingPreview?.grandTotal || 0),
+            disabledText: "Low Balance",
+          },
+        ]
+      : []),
+    ...(settings?.codEnabled !== false
+      ? [
           {
             id: "cash",
             label: "Cash on Delivery",
+            sublabel: "Pay when order arrives",
             icon: Banknote,
-            sublabel: "Pay after delivery",
+            color: "bg-orange-50 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400",
+            selectedColor: "bg-orange-500 text-white",
           },
-        ]),
+        ]
+      : []),
   ];
 
   const tipAmounts = [
@@ -665,8 +708,23 @@ const CheckoutPage = () => {
     { value: 10, label: "₹10" },
     { value: 20, label: "₹20" },
     { value: 30, label: "₹30" },
+    { value: 50, label: "₹50" },
   ];
   const [customTip, setCustomTip] = useState("");
+  
+  const [cartBannerUrl, setCartBannerUrl] = useState("");
+  
+  useEffect(() => {
+    publicGetOnce("/food/landing/settings/public")
+      .then(res => {
+        if (res.data?.success && res.data?.data?.cartBannerImage) {
+          setCartBannerUrl(res.data.data.cartBannerImage);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load cart banner", err);
+      });
+  }, []);
 
   const deliveryFee = pricingPreview?.deliveryFeeCharged || 0;
   const handlingFee = pricingPreview?.handlingFeeCharged || 0;
@@ -740,6 +798,11 @@ const CheckoutPage = () => {
       setSelectedPayment(paymentMethods[0].id);
     }
   }, [paymentMethods, selectedPayment]);
+
+  const selectedPaymentMethod =
+    paymentMethods.find((method) => method.id === selectedPayment) || null;
+  const selectedPaymentDetails = selectedPaymentMethod;
+  const selectedPaymentLabel = selectedPaymentDetails?.label || "Online Payment";
 
   useEffect(() => {
     if (!sharedProfileName && !sharedProfilePhone) return;
@@ -1649,7 +1712,7 @@ const CheckoutPage = () => {
       const orderData = {
         items: getCheckoutCartItemsForSync(),
         address: buildAddressForOrder(),
-        paymentMode: selectedPayment === "online" ? "ONLINE" : "COD",
+        paymentMode: selectedPayment === "cash" ? "COD" : selectedPayment === "wallet" ? "WALLET" : "ONLINE",
         discountTotal: discountAmount,
         taxTotal: gstAmount,
         platformFee: platformFee,
@@ -1679,7 +1742,7 @@ const CheckoutPage = () => {
         const placedOrderId =
           order?.orderId || order?.orderNumber || order?.id || order?._id || "";
 
-        if (selectedPayment === "online" && razorpayData) {
+        if ((selectedPayment === "razorpay" || selectedPayment === "online") && razorpayData) {
           try {
             const companyName = await getCompanyNameAsync();
             const userName = userProfile?.name || user?.name || "Customer";
@@ -1754,7 +1817,7 @@ const CheckoutPage = () => {
           }
         }
 
-        // COD flow or fallback if Razorpay missing
+        // COD or Wallet flow
         clearCart();
         try {
           if (typeof window !== "undefined") {
@@ -2285,15 +2348,24 @@ const CheckoutPage = () => {
 
             {/* Tip for Partner */}
             <motion.div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-neutral-800 dark:to-neutral-900 rounded-2xl p-4 border border-pink-100 dark:border-neutral-800">
-              <div className="flex items-center gap-2 mb-3">
-                <Heart size={18} className="text-pink-500 fill-pink-500" />
-                <h3 className="font-black text-slate-800 dark:text-white">
-                  Tip your delivery partner
-                </h3>
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Heart size={18} className="text-pink-500 fill-pink-500" />
+                    <h3 className="font-black text-slate-800 dark:text-white">
+                      Tip your delivery partner
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    100% of the tip goes to them
+                  </p>
+                </div>
+                {cartBannerUrl && (
+                  <div className="w-[75px] h-[75px] flex-shrink-0 -mt-2 flex items-center justify-center">
+                    <img src={cartBannerUrl} alt="Tip Banner" className="w-full h-full object-contain" />
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                100% of the tip goes to them
-              </p>
               <div className="grid grid-cols-4 gap-2 mb-3">
                 {tipAmounts.map((tip) => (
                   <button
@@ -2338,55 +2410,28 @@ const CheckoutPage = () => {
             {/* Payment Method */}
             <motion.div className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-neutral-800 transition-colors">
               <h3 className="font-black text-slate-800 dark:text-white mb-4">Payment Method</h3>
-              <div className="space-y-2">
-                {paymentMethods.map((method) => {
-                  const Icon = method.icon;
-                  return (
-                    <button
-                      key={method.id}
-                      onClick={() => setSelectedPayment(method.id)}
-                      className={`w-full p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                        selectedPayment === method.id
-                          ? "border-[#0c831f] bg-green-50 dark:bg-emerald-900/20"
-                          : "border-slate-200 bg-white hover:border-slate-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600"
-                      }`}>
-                      <div
-                        className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                          selectedPayment === method.id
-                            ? "bg-green-100 dark:bg-emerald-800/40"
-                            : "bg-slate-100 dark:bg-neutral-700"
-                        }`}>
-                        <Icon
-                          size={18}
-                          className={
-                            selectedPayment === method.id
-                              ? "text-[#0c831f] dark:text-emerald-400"
-                              : "text-slate-600 dark:text-slate-400"
-                          }
-                        />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p
-                          className={`font-bold text-sm ${selectedPayment === method.id ? "text-[#0c831f] dark:text-emerald-400" : "text-slate-800 dark:text-white"}`}>
-                          {method.label}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {method.sublabel}
-                        </p>
-                      </div>
-                      <div
-                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPayment === method.id
-                            ? "border-[#0c831f] dark:border-emerald-500"
-                            : "border-slate-300 dark:border-neutral-600"
-                        }`}>
-                        {selectedPayment === method.id && (
-                          <div className="h-3 w-3 rounded-full bg-[#0c831f] dark:bg-emerald-500" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+              
+              <div 
+                onClick={() => setShowPaymentSheet(true)}
+                className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#121212] border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedPaymentDetails?.color || 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                    {selectedPaymentDetails ? <selectedPaymentDetails.icon className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-0.5">Pay using</p>
+                    <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                      {selectedPaymentLabel}
+                    </p>
+                    {selectedPayment === "wallet" && (
+                      <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-1 rounded inline-block mt-0.5">
+                        ₹{walletBalance.toFixed(0)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
             </motion.div>
 
@@ -2516,10 +2561,21 @@ const CheckoutPage = () => {
                       </button>
                     ) : (
                       <SlideToPay
-                        amount={totalAmount}
+                        amount={pricingPreview?.grandTotal}
                         onSuccess={handlePlaceOrder}
                         isLoading={isPlacingOrder || isPreviewLoading || !pricingPreview}
-                        text="Order Now"
+                        text={
+                          selectedPayment === "wallet" && walletBalance < (pricingPreview?.grandTotal || 0)
+                            ? "Low Wallet Balance"
+                            : selectedPayment === "cash"
+                            ? "Slide to place order"
+                            : "Slide to pay"
+                        }
+                        disabled={
+                          !currentAddress ||
+                          isPlacingOrder ||
+                          (selectedPayment === "wallet" && walletBalance < (pricingPreview?.grandTotal || 0))
+                        }
                       />
                     )}
                     <p className="text-center text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-[0.1em]">

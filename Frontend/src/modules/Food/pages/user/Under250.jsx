@@ -20,7 +20,7 @@ import { restaurantAPI, adminAPI } from "@food/api"
 import { isModuleAuthenticated } from "@food/utils/auth"
 import { flattenMenuItems, getMenuFromResponse } from "@food/utils/menuItems"
 import { calculateDistance, formatDistance } from "@food/utils/common"
-import { getRestaurantAvailabilityStatus } from "@food/utils/restaurantAvailability"
+import { getRestaurantAvailabilityStatus, formatTimeLabel } from "@food/utils/restaurantAvailability"
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
 const debugError = (...args) => {}
@@ -771,6 +771,9 @@ export default function Under250() {
       description: item.description || `${item.name} from ${restaurant.name}`,
       customisable: item.customisable || false,
       notEligibleForCoupons: item.notEligibleForCoupons || false,
+      isOffline: restaurant.isOffline,
+      openingTime: restaurant.openingTime,
+      closingTime: restaurant.closingTime,
     }
     const existingQuantity = quantities[item.id] || 0
     setItemDetailQuantity(existingQuantity > 0 ? existingQuantity : 1)
@@ -1151,14 +1154,24 @@ export default function Under250() {
                                 />
                               </motion.div>
 
+                              {/* Offline Overlay */}
+                              {isRestaurantOffline && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-10 rounded-[24px]">
+                                  <span className="text-[10px] font-black tracking-wider uppercase mb-0.5">Offline</span>
+                                  <span className="text-[8px] font-semibold text-gray-200 text-center leading-tight">
+                                    {(restaurant.openingTime && restaurant.closingTime) ? `Opens ${formatTimeLabel(restaurant.openingTime)}` : "Not accepting orders"}
+                                  </span>
+                                </div>
+                              )}
+
                               {/* Rating Badge (bottom-left) */}
-                              <div className="absolute bottom-2 left-2.5 z-10 flex items-center gap-0.5 bg-[#e8f5e9] dark:bg-green-950/80 text-[#2e7d32] dark:text-green-400 px-1.5 py-0.5 rounded-full shadow-sm text-[9px] sm:text-[10px] font-bold">
+                              <div className="absolute bottom-2 left-2.5 z-20 flex items-center gap-0.5 bg-[#e8f5e9] dark:bg-green-950/80 text-[#2e7d32] dark:text-green-400 px-1.5 py-0.5 rounded-full shadow-sm text-[9px] sm:text-[10px] font-bold">
                                 <span>★</span>
                                 <span>{item.rating ?? restaurant.rating ?? 0}</span>
                               </div>
 
                               {/* Floating Action Button (bottom-right) */}
-                              {quantity > 0 ? (
+                              {!isRestaurantOffline && (quantity > 0 ? (
                                 <div
                                   className="absolute bottom-2 right-2.5 z-20 flex items-center justify-between gap-1 sm:gap-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-white dark:bg-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-100 dark:border-gray-700 h-7 sm:h-8 min-w-[55px] sm:min-w-[70px]"
                                   onClick={(e) => e.stopPropagation()}
@@ -1200,7 +1213,7 @@ export default function Under250() {
                                 >
                                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-[#DC021B]" strokeWidth={3} />
                                 </button>
-                              )}
+                              ))}
                             </div>
 
                             {/* Item Details below image */}
@@ -1494,26 +1507,26 @@ export default function Under250() {
               <div className="border-t dark:border-gray-800 border-gray-200 px-4 md:px-6 lg:px-8 xl:px-10 py-4 md:py-5 lg:py-6 bg-white dark:bg-[#1a1a1a]">
                 <div className="flex items-center gap-4 md:gap-5 lg:gap-6">
                   {/* Quantity Selector */}
-                  <div className={`flex items-center gap-3 md:gap-4 lg:gap-5 border-2 rounded-lg md:rounded-xl px-3 md:px-4 lg:px-5 h-[44px] md:h-[50px] lg:h-[56px] ${shouldShowGrayscale
+                  <div className={`flex items-center gap-3 md:gap-4 lg:gap-5 border-2 rounded-lg md:rounded-xl px-3 md:px-4 lg:px-5 h-[44px] md:h-[50px] lg:h-[56px] ${(shouldShowGrayscale || selectedItem.isOffline)
                     ? 'border-gray-300 dark:border-gray-700 opacity-50'
                     : 'border-gray-300 dark:border-gray-700'
                     }`}>
                     <button
                       onClick={(e) => {
-                        if (!shouldShowGrayscale) {
+                        if (!shouldShowGrayscale && !selectedItem.isOffline) {
                           e.stopPropagation()
                           setItemDetailQuantity((prev) => Math.max(1, prev - 1))
                         }
                       }}
-                      disabled={itemDetailQuantity <= 1 || shouldShowGrayscale}
-                      className={`${shouldShowGrayscale
+                      disabled={itemDetailQuantity <= 1 || shouldShowGrayscale || selectedItem.isOffline}
+                      className={`${(shouldShowGrayscale || selectedItem.isOffline)
                         ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed'
                         }`}
                     >
                       <Minus className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7" />
                     </button>
-                    <span className={`text-lg md:text-xl lg:text-2xl font-semibold min-w-[2rem] md:min-w-[2.5rem] lg:min-w-[3rem] text-center ${shouldShowGrayscale
+                    <span className={`text-lg md:text-xl lg:text-2xl font-semibold min-w-[2rem] md:min-w-[2.5rem] lg:min-w-[3rem] text-center ${(shouldShowGrayscale || selectedItem.isOffline)
                       ? 'text-gray-400 dark:text-gray-600'
                       : 'text-gray-900 dark:text-white'
                       }`}>
@@ -1521,13 +1534,13 @@ export default function Under250() {
                     </span>
                     <button
                       onClick={(e) => {
-                        if (!shouldShowGrayscale) {
+                        if (!shouldShowGrayscale && !selectedItem.isOffline) {
                           e.stopPropagation()
                           setItemDetailQuantity((prev) => prev + 1)
                         }
                       }}
-                      disabled={shouldShowGrayscale}
-                      className={shouldShowGrayscale
+                      disabled={shouldShowGrayscale || selectedItem.isOffline}
+                      className={(shouldShowGrayscale || selectedItem.isOffline)
                         ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                       }
@@ -1538,19 +1551,19 @@ export default function Under250() {
 
                   {/* Add Item Button */}
                   <Button
-                    className={`flex-1 h-[44px] md:h-[50px] lg:h-[56px] rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 text-sm md:text-base lg:text-lg ${shouldShowGrayscale
+                    className={`flex-1 h-[44px] md:h-[50px] lg:h-[56px] rounded-lg md:rounded-xl font-semibold flex items-center justify-center gap-2 text-sm md:text-base lg:text-lg ${(shouldShowGrayscale || selectedItem.isOffline)
                       ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed opacity-50'
                       : 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white'
                       }`}
                     onClick={(e) => {
-                      if (!shouldShowGrayscale) {
+                      if (!shouldShowGrayscale && !selectedItem.isOffline) {
                         updateItemQuantity(selectedItem, itemDetailQuantity, e)
                         closeItemDetail()
                       }
                     }}
-                    disabled={shouldShowGrayscale}
+                    disabled={shouldShowGrayscale || selectedItem.isOffline}
                   >
-                    <span>Add item</span>
+                    <span>{selectedItem.isOffline ? 'Currently Offline' : 'Add item'}</span>
                     <div className="flex items-center gap-1 md:gap-2">
                       {selectedItem.originalPrice && selectedItem.originalPrice > selectedItem.price && (
                         <span className="text-sm md:text-base lg:text-lg line-through text-red-200">

@@ -868,34 +868,24 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                           }
                           navigate(getQuickCategoryPath(cat.id));
                         }}
-                        className="flex flex-col items-center gap-1 min-w-[84px] md:min-w-[112px] lg:min-w-[128px] cursor-pointer group/item snap-start">
-                        <div
-                          className="relative w-[84px] h-[96px] md:w-[112px] md:h-[126px] lg:w-[128px] lg:h-[140px] rounded-t-full rounded-b-[24px] shadow-[0_10px_22px_rgba(15,23,42,0.10)] border flex items-start justify-center p-2 transition-all duration-300 group-hover/item:-translate-y-1 group-hover/item:shadow-[0_16px_30px_rgba(15,23,42,0.14)] overflow-hidden"
-                          style={{
-                            backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.6) 24%, rgba(255,255,255,0.15) 100%), linear-gradient(135deg, ${palette.bgFrom}, ${palette.bgVia}, ${palette.bgTo})`,
-                            borderColor: palette.frameColor,
-                          }}>
-                          <div
-                            className="absolute inset-0 opacity-40 pointer-events-none"
-                            style={{ backgroundColor: palette.glowColor }}
-                          />
+                        className="flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group/item w-[70px] sm:w-[80px]"
+                      >
+                        <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover/item:scale-110 flex items-center justify-center mb-1 bg-[#F3F4F6] dark:bg-neutral-800 rounded-full">
                           {categoryImage ? (
                             <img
                               src={categoryImage}
                               alt={cat.name}
-                              className="absolute left-1/2 top-3 z-10 h-[68px] w-[68px] -translate-x-1/2 object-contain drop-shadow-[0_5px_12px_rgba(0,0,0,0.10)] mix-blend-multiply group-hover/item:scale-110 transition-transform duration-500"
+                              className="w-full h-full object-contain"
                             />
                           ) : (
-                            <div className="absolute left-1/2 top-3 z-10 flex h-[68px] w-[68px] -translate-x-1/2 items-center justify-center rounded-[20px] bg-white/55 text-2xl font-black uppercase text-slate-400">
+                            <div className="flex h-full w-full items-center justify-center rounded-[20px] bg-slate-100 dark:bg-neutral-800 text-2xl font-black uppercase text-slate-400">
                               {(cat.name || "?").charAt(0)}
                             </div>
                           )}
-                          <div className="absolute inset-x-2 bottom-1.5 z-20 text-center">
-                            <span className="block text-[10px] md:text-[11px] lg:text-[12px] font-semibold text-[#1f2b20] dark:text-gray-900 leading-tight whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-[0_1px_0_rgba(255,255,255,0.65)] group-hover/item:text-[#0c831f] dark:group-hover/item:text-emerald-700 transition-colors">
-                              {cat.name}
-                            </span>
-                          </div>
                         </div>
+                        <span className="text-xs font-semibold truncate w-full text-center text-gray-600 dark:text-gray-300 transition-colors">
+                          {cat.name}
+                        </span>
                       </motion.div>
                     );
                   })}

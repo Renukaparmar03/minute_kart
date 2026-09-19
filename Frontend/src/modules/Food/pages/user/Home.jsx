@@ -92,7 +92,7 @@ import { useZone } from "@food/hooks/useZone";
 import api, { publicGetOnce, restaurantAPI, adminAPI } from "@food/api";
 import { API_BASE_URL } from "@food/api/config";
 import OptimizedImage from "@food/components/OptimizedImage";
-import { getRestaurantAvailabilityStatus } from "@food/utils/restaurantAvailability";
+import { getRestaurantAvailabilityStatus, formatTimeLabel } from "@food/utils/restaurantAvailability";
 import HomeHeader from "@food/components/user/home/HomeHeader";
 import { LocationProvider as QuickLocationProvider } from "../../../quickCommerce/user/context/LocationContext";
 import { ProductDetailProvider as QuickProductDetailProvider } from "../../../quickCommerce/user/context/ProductDetailContext";
@@ -339,6 +339,11 @@ export default function Home() {
             const restaurantId = restaurant?.restaurantId || restaurant?._id;
             if (!restaurantId) return;
             try {
+              const availabilityStatus = getRestaurantAvailabilityStatus(restaurant, new Date());
+              const isOffline = !availabilityStatus.isOpen;
+              const openingTime = availabilityStatus.openingTime;
+              const closingTime = availabilityStatus.closingTime;
+
               const menuResponse = await restaurantAPI.getMenuByRestaurantId(restaurantId);
               const menu = getMenuFromResponse(menuResponse);
               const menuItems = flattenMenuItems(menu)
@@ -353,7 +358,9 @@ export default function Home() {
                     isVeg,
                     restaurant: restaurant?.restaurantName || restaurant?.name || "Restaurant",
                     restaurantId: String(restaurantId),
-                    rating: Number(restaurant?.rating || 4.2),
+                    isOffline,
+                    openingTime,
+                    closingTime,
                     image:
                       item?.image ||
                       restaurant?.coverImages?.[0]?.url ||
@@ -737,7 +744,14 @@ export default function Home() {
                           </div>
 
                           {/* Plus Button or Quantity Selector Overlay (Inside the image) */}
-                          {(() => {
+                          {dish.isOffline ? (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-20 rounded-2xl">
+                              <span className="text-[10px] font-black tracking-wider uppercase mb-0.5">Offline</span>
+                              <span className="text-[8px] font-semibold text-gray-200 text-center leading-tight">
+                                {(dish.openingTime && dish.closingTime) ? `Opens ${formatTimeLabel(dish.openingTime)}` : "Not accepting orders"}
+                              </span>
+                            </div>
+                          ) : (() => {
                             const totalQty = getCartItemQuantity(dish);
 
                             if (totalQty > 0) {

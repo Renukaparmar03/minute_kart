@@ -971,77 +971,8 @@ const CategoryProductsPage = () => {
 
     // Attach non-passive events directly to the current scrollable container
     useEffect(() => {
-        const container = currentPanelScrollRef.current;
-        if (!container || isProductDetailOpen) return;
-
-        const onTouchStart = (e) => {
-            const touch = e.touches[0];
-            handleDragStart(
-                touch.clientY,
-                touch.clientX,
-                true,
-                container.scrollTop,
-                container.scrollHeight,
-                container.clientHeight
-            );
-        };
-
-        const onTouchMove = (e) => {
-            if (e.touches.length > 1) return;
-            const touch = e.touches[0];
-            
-            if (gestureActiveRef.current && e.cancelable) {
-                e.preventDefault();
-            }
-            
-            handleDragMove(touch.clientY, touch.clientX);
-            
-            if (gestureActiveRef.current && e.cancelable) {
-                e.preventDefault();
-            }
-        };
-
-        const onTouchEnd = (e) => {
-            const touch = e.changedTouches[0] || e.touches[0];
-            handleDragEnd(touch ? touch.clientY : dragStartRef.current.y);
-        };
-
-        const onMouseDown = (e) => {
-            handleDragStart(
-                e.clientY,
-                e.clientX,
-                false,
-                container.scrollTop,
-                container.scrollHeight,
-                container.clientHeight
-            );
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('mouseup', onMouseUp);
-        };
-
-        const onMouseMove = (e) => {
-            handleDragMove(e.clientY, e.clientX);
-        };
-
-        const onMouseUp = (e) => {
-            handleDragEnd(e.clientY);
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
-        };
-
-        container.addEventListener('touchstart', onTouchStart, { passive: true });
-        container.addEventListener('touchmove', onTouchMove, { passive: false });
-        container.addEventListener('touchend', onTouchEnd, { passive: true });
-        container.addEventListener('mousedown', onMouseDown);
-
-        return () => {
-            container.removeEventListener('touchstart', onTouchStart);
-            container.removeEventListener('touchmove', onTouchMove);
-            container.removeEventListener('touchend', onTouchEnd);
-            container.removeEventListener('mousedown', onMouseDown);
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
-        };
+        // Feature disabled: The user requested that categories should only change when explicitly selected
+        // from the category sidebar, and not automatically switch when scrolling or dragging past the boundary.
     }, [selectedSubCategory, catId, activeTransition, isProductDetailOpen, subCategories, mainCategories]);
 
     const productsById = React.useMemo(() => {
@@ -1104,7 +1035,13 @@ const CategoryProductsPage = () => {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
+                <motion.div 
+                    key={subCategoryId}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4"
+                >
                     {isPanelLoading ? (
                         Array.from({ length: 8 }).map((_, i) => (
                             <div key={i} className="animate-pulse bg-transparent flex flex-col h-[220px]">
@@ -1130,7 +1067,7 @@ const CategoryProductsPage = () => {
                             <p className="text-gray-400 font-bold italic">No products found in this category</p>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </div>
         );
     };

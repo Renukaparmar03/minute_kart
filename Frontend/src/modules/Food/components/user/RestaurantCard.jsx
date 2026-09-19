@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from "framer-motion";
 import { Star, Clock, IndianRupee, Heart } from "lucide-react";
 import OptimizedImage from "@food/components/OptimizedImage";
+import { formatTimeLabel } from "@food/utils/restaurantAvailability";
 
 const WEBVIEW_SESSION_CACHE_BUSTER = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -199,6 +200,18 @@ const RestaurantCard = ({
             }`}
           />
         </button>
+        {restaurant.isOffline && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-20">
+            <span className="text-sm font-black tracking-wider uppercase mb-1">Currently Offline</span>
+            {(restaurant.openingTime && restaurant.closingTime) ? (
+              <span className="text-[11px] font-semibold text-gray-200">
+                Opens {formatTimeLabel(restaurant.openingTime)} to {formatTimeLabel(restaurant.closingTime)}
+              </span>
+            ) : (
+              <span className="text-[11px] font-semibold text-gray-200">Not accepting orders</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-3 sm:p-4">
