@@ -742,6 +742,9 @@ const CategoryProductsPage = () => {
     useEffect(() => {
         const container = currentPanelScrollRef.current;
         if (container) {
+            // Momentarily disable overflow to kill any active native momentum scrolling
+            container.style.overflowY = 'hidden';
+
             const cacheKey = `${catId}_${selectedSubCategory}`;
             const savedScroll = scrollPositionsRef.current[cacheKey];
             
@@ -751,10 +754,16 @@ const CategoryProductsPage = () => {
                         currentPanelScrollRef.current.scrollTop = savedScroll === 99999
                             ? currentPanelScrollRef.current.scrollHeight
                             : savedScroll;
+                        currentPanelScrollRef.current.style.overflowY = 'auto';
                     }
-                }, 20);
+                }, 30);
             } else {
                 container.scrollTop = 0;
+                setTimeout(() => {
+                    if (currentPanelScrollRef.current) {
+                        currentPanelScrollRef.current.style.overflowY = 'auto';
+                    }
+                }, 30);
             }
         }
     }, [selectedSubCategory, catId, isLoading]);
@@ -776,6 +785,7 @@ const CategoryProductsPage = () => {
 
     const handleDragMove = (clientY, clientX) => {
         if (!isDraggingRef.current || !dragStartRef.current) return;
+        if (Date.now() - scrollCooldownRef.current < 1200) return;
         
         const start = dragStartRef.current;
         const deltaY = clientY - start.y;
