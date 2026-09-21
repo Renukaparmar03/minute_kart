@@ -702,27 +702,9 @@ const CategoryProductsPage = () => {
 
     // Scroll listener for current panel
     const handleScrollEvent = (e) => {
-        const container = e.currentTarget;
-        const scrollTop = container.scrollTop;
-        const scrollHeight = container.scrollHeight;
-        const clientHeight = container.clientHeight;
-        const maxScroll = scrollHeight - clientHeight;
-        
+        const scrollTop = e.currentTarget.scrollTop;
         const cacheKey = `${catId}_${selectedSubCategory}`;
         scrollPositionsRef.current[cacheKey] = scrollTop;
-
-        // Auto-transition to next subcategory on scrolling to the very bottom
-        if (scrollTop > 0 && Math.abs(scrollTop - maxScroll) <= 2) {
-            if (!window._scrollTransitionDebounce && !isLoading && !activeTransition.active) {
-                window._scrollTransitionDebounce = true;
-                setTimeout(() => { window._scrollTransitionDebounce = false; }, 800);
-                
-                const { next } = getAdjacentPanels();
-                if (next && next.mainCategoryId === catId) {
-                    setSelectedSubCategory(next.subCategoryId);
-                }
-            }
-        }
     };
 
     // Restore scroll position on selection change
@@ -959,6 +941,10 @@ const CategoryProductsPage = () => {
         }
     };
 
+    // Refs for wheel scroll debouncing
+    const scrollCooldownRef = React.useRef(0);
+    const overscrollAccumulatorRef = React.useRef(0);
+
     // Attach non-passive events directly to the current scrollable container
     useEffect(() => {
         if (isProductDetailOpen || activeTransition.active) return;
@@ -999,6 +985,68 @@ const CategoryProductsPage = () => {
                 handleDragEnd(e.clientY);
             }
         };
+        
+        const onWheel = (e) => {
+            // Only care about vertical scrolling
+            if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+
+            // Enforce a strict global cooldown of 1.2s between category switches
+            if (Date.now() - scrollCooldownRef.current < 1200) {
+                overscrollAccumulatorRef.current = 0;
+                return;
+            }
+
+            const currentScrollTop = container.scrollTop;
+            const currentScrollHeight = container.scrollHeight;
+            const currentClientHeight = container.clientHeight;
+            const maxScroll = Math.max(0, currentScrollHeight - currentClientHeight);
+
+            // If we are at the top and scrolling up
+            if (currentScrollTop <= 0 && e.deltaY < 0) {
+                overscrollAccumulatorRef.current += e.deltaY;
+                if (overscrollAccumulatorRef.current < -300) {
+                    overscrollAccumulatorRef.current = 0;
+                    const { prev } = getAdjacentPanels();
+                    if (prev) {
+                        scrollCooldownRef.current = Date.now();
+                        const { mainCategoryId, subCategoryId } = prev;
+                        if (mainCategoryId !== catId) {
+                            navigate(`/quick/categories/${mainCategoryId}`, { 
+                                state: { activeSubcategoryId: subCategoryId },
+                                replace: true 
+                            });
+                        } else {
+                            scrollPositionsRef.current[`${mainCategoryId}_${subCategoryId}`] = 99999;
+                            setSelectedSubCategory(subCategoryId);
+                        }
+                    }
+                }
+            } 
+            // If we are at the bottom and scrolling down
+            else if (currentScrollTop >= maxScroll - 2 && e.deltaY > 0) {
+                overscrollAccumulatorRef.current += e.deltaY;
+                if (overscrollAccumulatorRef.current > 300) {
+                    overscrollAccumulatorRef.current = 0;
+                    const { next } = getAdjacentPanels();
+                    if (next) {
+                        scrollCooldownRef.current = Date.now();
+                        const { mainCategoryId, subCategoryId } = next;
+                        if (mainCategoryId !== catId) {
+                            navigate(`/quick/categories/${mainCategoryId}`, { 
+                                state: { activeSubcategoryId: subCategoryId },
+                                replace: true 
+                            });
+                        } else {
+                            scrollPositionsRef.current[`${mainCategoryId}_${subCategoryId}`] = 0;
+                            setSelectedSubCategory(subCategoryId);
+                        }
+                    }
+                }
+            } else {
+                // If scrolling normally within bounds, reset accumulator
+                overscrollAccumulatorRef.current = 0;
+            }
+        };
 
         container.addEventListener('touchstart', onTouchStart, { passive: false });
         container.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -1007,6 +1055,7 @@ const CategoryProductsPage = () => {
         container.addEventListener('mousedown', onMouseDown);
         window.addEventListener('mousemove', onMouseMove, { passive: false });
         window.addEventListener('mouseup', onMouseUp);
+        container.addEventListener('wheel', onWheel, { passive: true });
 
         return () => {
             container.removeEventListener('touchstart', onTouchStart);
@@ -1015,6 +1064,7 @@ const CategoryProductsPage = () => {
             container.removeEventListener('mousedown', onMouseDown);
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            container.removeEventListener('wheel', onWheel);
         };
     }, [selectedSubCategory, catId, activeTransition, isProductDetailOpen, subCategories, mainCategories]);
 
