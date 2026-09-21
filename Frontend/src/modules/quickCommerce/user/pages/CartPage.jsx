@@ -660,6 +660,12 @@ const CartPage = () => {
     }
   }, [paymentMethods, selectedPayment]);
 
+  useEffect(() => {
+    if (!loading && cart.length === 0) {
+      navigate("/quick", { replace: true });
+    }
+  }, [loading, cart.length, navigate]);
+
   const selectedPaymentMethod =
     paymentMethods.find((method) => method.id === selectedPayment) || null;
   const selectedPaymentDetails = selectedPaymentMethod;
@@ -1280,66 +1286,77 @@ const CartPage = () => {
         </section>
 
 
-        <section className="mt-4 rounded-xl bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                Payment
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                Choose how you want to pay
-              </h2>
-            </div>
-          </div>
-
-          <div 
-            onClick={() => setShowPaymentSheet(true)}
-            className="flex items-center justify-between p-4 bg-white dark:bg-[#121212] border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer hover:border-gray-200 dark:hover:border-gray-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedPaymentDetails?.color || 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
-                {selectedPaymentDetails ? <selectedPaymentDetails.icon className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-0.5">Pay using</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
-                  {selectedPaymentLabel}
-                </p>
-                {selectedPayment === "wallet" && (
-                  <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-1 rounded inline-block mt-0.5">
-                    ₹{walletBalance.toFixed(0)}
-                  </p>
-                )}
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-        </section>
 
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[520] bg-white dark:bg-neutral-900 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <div className="mx-auto max-w-3xl">
-          <button
-            onClick={handlePlaceOrder}
-            disabled={isPlacingOrder || (selectedPayment === "wallet" && walletBalance < grandTotal)}
-            className="w-full bg-[#0c831f] text-white rounded-xl px-4 py-3 flex justify-between items-center shadow-sm active:scale-[0.98] transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isPlacingOrder ? (
-              <div className="flex justify-center w-full font-bold text-sm tracking-wide">Placing Order...</div>
-            ) : (
-              <>
-                <div className="flex flex-col text-left">
-                  <span className="font-extrabold text-sm leading-none">{"\u20B9"}{grandTotal}</span>
-                  <span className="text-[10px] font-bold text-emerald-100 mt-0.5 tracking-wider">TOTAL</span>
+      {/* Bottom Sticky - Place Order */}
+      <div
+        className="bg-white dark:bg-[#1a1a1a] border-t dark:border-gray-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-[520] flex-shrink-0 fixed bottom-0 left-0 right-0"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom, 0px))" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
+          <div className="w-full max-w-lg mx-auto space-y-3">
+            {/* Pay Using - Slim Pro UI */}
+            <div
+              className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[#222222] rounded-xl border border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#282828] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              onClick={() => setShowPaymentSheet(true)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-emerald-100/80 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
+                  {selectedPayment === "wallet" ? (
+                    <Wallet className="h-5 w-5 text-[#0c831f]" />
+                  ) : selectedPayment === "razorpay" ? (
+                    <Zap className="h-5 w-5 text-[#0c831f]" />
+                  ) : (
+                    <Banknote className="h-5 w-5 text-[#0c831f]" />
+                  )}
                 </div>
-                <div className="flex items-center font-bold text-sm tracking-wide">
-                  <span>{isAuthenticated ? "Proceed to Pay" : "Login to Proceed"}</span>
-                  <ChevronRight size={18} className="ml-1 opacity-90 stroke-[2.5]" />
+                <div className="leading-tight text-left">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold opacity-80">
+                    PAYING WITH
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                      {selectedPaymentLabel}
+                    </p>
+                    {selectedPayment === "wallet" && (
+                      <p className="text-[10px] text-[#0c831f] dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-1 rounded">
+                        ₹{walletBalance.toFixed(0)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </>
-            )}
-          </button>
+              </div>
+
+              <div className="flex items-center gap-0.5 text-[#0c831f] font-bold text-[11px] uppercase tracking-widest bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-lg">
+                CHANGE <ChevronRight className="h-3.5 w-3.5" />
+              </div>
+            </div>
+
+            {/* Place Order Button */}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={isPlacingOrder || (selectedPayment === "wallet" && walletBalance < grandTotal)}
+              className="w-full bg-[#0c831f] hover:bg-[#0b721b] text-white px-6 h-12 md:h-14 rounded-2xl font-bold shadow-lg shadow-[#0c831f]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-transform active:scale-[0.98]"
+            >
+              {(selectedPayment === "razorpay" || selectedPayment === "wallet" || selectedPayment === "cash") && (
+                <div className="text-left flex flex-col justify-center border-r-[1.5px] border-white/20 pr-4">
+                  <span className="text-xs md:text-sm font-extrabold text-white leading-none">₹{grandTotal}</span>
+                  <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider text-white/80 mt-0.5">Total</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 mx-auto text-sm md:text-lg tracking-wide font-extrabold">
+                {isPlacingOrder
+                  ? "Processing..."
+                  : !isAuthenticated
+                    ? "Login to Proceed"
+                    : "Place Order"}
+                <div className="flex align-center h-full">
+                  <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 

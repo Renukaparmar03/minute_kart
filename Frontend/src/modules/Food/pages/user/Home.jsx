@@ -502,6 +502,19 @@ export default function Home() {
       return;
     }
 
+    if (dish?.isOffline) {
+      toast.error("This restaurant is currently offline. You cannot add its items to the cart.");
+      return;
+    }
+
+    if (dish.restaurant && typeof dish.restaurant === 'object') {
+      const availabilityStatus = getRestaurantAvailabilityStatus(dish.restaurant);
+      if (!availabilityStatus.isOpen) {
+        toast.error("This restaurant is currently offline. You cannot add its items to the cart.");
+        return;
+      }
+    }
+
     const rect = event ? event.currentTarget.getBoundingClientRect() : null;
     const sourcePosition = rect ? {
       x: rect.left + rect.width / 2 + window.scrollX,

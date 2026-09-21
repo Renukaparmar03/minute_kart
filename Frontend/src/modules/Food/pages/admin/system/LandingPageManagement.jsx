@@ -1265,13 +1265,14 @@ export default function LandingPageManagement() {
           exploreMoreHeading: nextSettings.exploreMoreHeading || "Explore More",
           recommendedRestaurantIds: Array.isArray(nextSettings.recommendedRestaurantIds) ? nextSettings.recommendedRestaurantIds : [],
           headerVideoUrl: nextSettings.headerVideoUrl || "",
-          headerImages: Array.isArray(nextSettings.headerImages) ? nextSettings.headerImages : []
+          headerImages: Array.isArray(nextSettings.headerImages) ? nextSettings.headerImages : [],
+          cartBannerImage: nextSettings.cartBannerImage || ""
         })
       }
     } catch (err) {
       // Silently handle 401/404 errors - endpoints may not exist yet, use default settings
       if (err.response?.status === 401 || err.response?.status === 404) {
-        setSettings({ exploreMoreHeading: "Explore More", recommendedRestaurantIds: [], headerVideoUrl: "", headerImages: [] }) // Use default settings
+        setSettings({ exploreMoreHeading: "Explore More", recommendedRestaurantIds: [], headerVideoUrl: "", headerImages: [], cartBannerImage: "" }) // Use default settings
         setError(null) // Clear any previous error
       } else {
         // Filter out token-related errors

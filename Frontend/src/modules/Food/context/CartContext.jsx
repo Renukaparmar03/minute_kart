@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, Plus, Minus } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@food/components/ui/button"
+import { getRestaurantAvailabilityStatus } from "@food/utils/restaurantAvailability"
 
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
@@ -261,6 +262,17 @@ export function CartProvider({ children }) {
   const addToCart = (item, sourcePosition = null) => {
     const safeCart = normalizeCartData(cart)
     const nextOrderType = getItemOrderType(item)
+
+    if (item?.isOffline) {
+      return { ok: false, error: 'This restaurant is currently offline. You cannot add its items to the cart.', code: 'RESTAURANT_OFFLINE' };
+    }
+
+    if (item?.restaurant && typeof item.restaurant === 'object') {
+      const availabilityStatus = getRestaurantAvailabilityStatus(item.restaurant);
+      if (!availabilityStatus.isOpen) {
+        return { ok: false, error: 'This restaurant is currently offline. You cannot add its items to the cart.', code: 'RESTAURANT_OFFLINE' };
+      }
+    }
 
     // Prevent mixing custom cakes with other items
     const hasCustomCake = safeCart.some(i => i.isCustomCake === true)

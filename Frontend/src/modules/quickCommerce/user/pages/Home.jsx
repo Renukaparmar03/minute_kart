@@ -894,10 +894,10 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                           }
                           navigate(getQuickCategoryPath(cat.id));
                         }}
-                        className="flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group/item w-[70px] sm:w-[80px]"
+                        className="flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group/item w-[76px] sm:w-[88px]"
                       >
                         {isAll ? (
-                          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-full shadow-[0_4px_12px_rgba(233,30,99,0.35)] transition-transform group-active:scale-95 z-10 p-0 border-2 border-white bg-white mb-1">
+                          <div className="w-[64px] h-[64px] sm:w-[74px] sm:h-[74px] rounded-full shadow-[0_4px_12px_rgba(233,30,99,0.35)] transition-transform group-active:scale-95 z-10 p-0 border-2 border-white bg-white mb-1">
                             <div className="zomato-flip-container">
                               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face bg-[#F3F4F6] dark:bg-neutral-800">
                                 {categoryImage ? (
@@ -920,12 +920,12 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                             </div>
                           </div>
                         ) : (
-                          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover/item:scale-110 flex items-center justify-center mb-1 bg-[#F3F4F6] dark:bg-neutral-800 rounded-full">
+                          <div className="w-[64px] h-[64px] sm:w-[74px] sm:h-[74px] transition-transform group-hover/item:scale-110 flex items-center justify-center mb-1">
                             {categoryImage ? (
                               <img
                                 src={categoryImage}
                                 alt={cat.name}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain drop-shadow-sm"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center rounded-[20px] bg-slate-100 dark:bg-neutral-800 text-2xl font-black uppercase text-slate-400">

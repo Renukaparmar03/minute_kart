@@ -57,7 +57,7 @@ const MiniCart = ({
                     id="mini-cart-target"
                     className={cn(
                         "fixed z-[100] pointer-events-auto",
-                        isProductDetailPage ? "bottom-[130px] md:bottom-[92px]" : "bottom-[84px]",
+                        isProductDetailPage ? "bottom-[84px] md:bottom-[92px]" : "bottom-[84px]",
                         "left-0 right-0 px-4 flex justify-center w-full max-w-full",
                         className,
                     )}

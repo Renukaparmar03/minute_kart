@@ -106,7 +106,7 @@ const CategoryProductCard = ({ product }) => {
             </div>
 
             {/* Product Image */}
-            <div ref={imageRef} className="relative w-full h-[98px] md:h-[114px] bg-transparent flex items-center justify-center p-0 overflow-hidden mb-0.5">
+            <div ref={imageRef} className="relative w-full h-[118px] md:h-[134px] bg-transparent flex items-center justify-center p-0 overflow-hidden mb-0.5">
                 {allImages.length > 1 ? (
                     <div className="w-full h-full relative overflow-hidden">
                         {/* Slide-controlled image list container */}
@@ -677,7 +677,7 @@ const CategoryProductsPage = () => {
         let prev = null;
         let next = null;
         
-        // Prev Category selection
+        // Prev Category selection (Only within same main category)
         if (currentSubIndex > 0) {
             prev = {
                 mainCategoryId: catId,
@@ -685,24 +685,9 @@ const CategoryProductsPage = () => {
                 name: subCats[currentSubIndex - 1].name,
                 icon: subCats[currentSubIndex - 1].icon
             };
-        } else {
-            const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
-            if (currentCatIndex > 0) {
-                const prevMain = mainCategories[currentCatIndex - 1];
-                const prevMainId = normalizeId(prevMain._id || prevMain.id);
-                const prevSubCats = getSubCategoriesForCategory(prevMainId);
-                const targetSub = prevSubCats.length > 0 ? prevSubCats[prevSubCats.length - 1] : { id: 'all', name: 'All' };
-                
-                prev = {
-                    mainCategoryId: prevMainId,
-                    subCategoryId: targetSub.id,
-                    name: targetSub.name,
-                    icon: targetSub.icon || prevMain.image
-                };
-            }
         }
         
-        // Next Category selection
+        // Next Category selection (Only within same main category)
         if (currentSubIndex !== -1 && currentSubIndex < subCats.length - 1) {
             next = {
                 mainCategoryId: catId,
@@ -710,19 +695,6 @@ const CategoryProductsPage = () => {
                 name: subCats[currentSubIndex + 1].name,
                 icon: subCats[currentSubIndex + 1].icon
             };
-        } else {
-            const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
-            if (currentCatIndex !== -1 && currentCatIndex < mainCategories.length - 1) {
-                const nextMain = mainCategories[currentCatIndex + 1];
-                const nextMainId = normalizeId(nextMain._id || nextMain.id);
-                
-                next = {
-                    mainCategoryId: nextMainId,
-                    subCategoryId: 'all',
-                    name: nextMain.name || nextMain.slug,
-                    icon: nextMain.image
-                };
-            }
         }
         
         return { prev, next };
@@ -730,9 +702,27 @@ const CategoryProductsPage = () => {
 
     // Scroll listener for current panel
     const handleScrollEvent = (e) => {
-        const scrollTop = e.currentTarget.scrollTop;
+        const container = e.currentTarget;
+        const scrollTop = container.scrollTop;
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        const maxScroll = scrollHeight - clientHeight;
+        
         const cacheKey = `${catId}_${selectedSubCategory}`;
         scrollPositionsRef.current[cacheKey] = scrollTop;
+
+        // Auto-transition to next subcategory on scrolling to the very bottom
+        if (scrollTop > 0 && Math.abs(scrollTop - maxScroll) <= 2) {
+            if (!window._scrollTransitionDebounce && !isLoading && !activeTransition.active) {
+                window._scrollTransitionDebounce = true;
+                setTimeout(() => { window._scrollTransitionDebounce = false; }, 800);
+                
+                const { next } = getAdjacentPanels();
+                if (next && next.mainCategoryId === catId) {
+                    setSelectedSubCategory(next.subCategoryId);
+                }
+            }
+        }
     };
 
     // Restore scroll position on selection change
@@ -971,8 +961,61 @@ const CategoryProductsPage = () => {
 
     // Attach non-passive events directly to the current scrollable container
     useEffect(() => {
-        // Feature disabled: The user requested that categories should only change when explicitly selected
-        // from the category sidebar, and not automatically switch when scrolling or dragging past the boundary.
+        if (isProductDetailOpen || activeTransition.active) return;
+        
+        const container = currentPanelScrollRef.current;
+        if (!container) return;
+
+        const onTouchStart = (e) => {
+            handleDragStart(e.touches[0].clientY, e.touches[0].clientX, true, container.scrollTop, container.scrollHeight, container.clientHeight);
+        };
+        const onTouchMove = (e) => {
+            if (isDraggingRef.current) {
+                if (gestureActiveRef.current) {
+                    if (e.cancelable) e.preventDefault();
+                }
+                handleDragMove(e.touches[0].clientY, e.touches[0].clientX);
+            }
+        };
+        const onTouchEnd = (e) => {
+            if (isDraggingRef.current) {
+                handleDragEnd(e.changedTouches[0].clientY);
+            }
+        };
+
+        const onMouseDown = (e) => {
+            handleDragStart(e.clientY, e.clientX, false, container.scrollTop, container.scrollHeight, container.clientHeight);
+        };
+        const onMouseMove = (e) => {
+            if (isDraggingRef.current) {
+                if (gestureActiveRef.current) {
+                    if (e.cancelable) e.preventDefault();
+                }
+                handleDragMove(e.clientY, e.clientX);
+            }
+        };
+        const onMouseUp = (e) => {
+            if (isDraggingRef.current) {
+                handleDragEnd(e.clientY);
+            }
+        };
+
+        container.addEventListener('touchstart', onTouchStart, { passive: false });
+        container.addEventListener('touchmove', onTouchMove, { passive: false });
+        container.addEventListener('touchend', onTouchEnd);
+        
+        container.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove, { passive: false });
+        window.addEventListener('mouseup', onMouseUp);
+
+        return () => {
+            container.removeEventListener('touchstart', onTouchStart);
+            container.removeEventListener('touchmove', onTouchMove);
+            container.removeEventListener('touchend', onTouchEnd);
+            container.removeEventListener('mousedown', onMouseDown);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
     }, [selectedSubCategory, catId, activeTransition, isProductDetailOpen, subCategories, mainCategories]);
 
     const productsById = React.useMemo(() => {

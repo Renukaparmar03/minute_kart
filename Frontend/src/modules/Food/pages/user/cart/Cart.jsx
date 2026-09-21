@@ -3422,9 +3422,12 @@ export default function Cart() {
                     )}
                     
                     {selectedTip > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Delivery Partner Tip</span>
-                        <span className="text-gray-800 dark:text-gray-200 font-medium">+{RUPEE_SYMBOL}{selectedTip.toFixed(2)}</span>
+                      <div className="flex items-center justify-between text-sm text-pink-600 dark:text-pink-400 font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Heart size={16} className="text-pink-500 fill-pink-500 shrink-0" />
+                          <span className="border-b border-dotted border-pink-300 dark:border-pink-800 pb-0.5">Delivery Partner Tip</span>
+                        </div>
+                        <span>+{RUPEE_SYMBOL}{selectedTip.toFixed(2)}</span>
                       </div>
                     )}
                     

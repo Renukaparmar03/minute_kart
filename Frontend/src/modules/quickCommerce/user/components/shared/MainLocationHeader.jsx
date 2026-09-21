@@ -157,8 +157,11 @@ function CircularCategoryItem({
     <motion.button
       whileTap={{ scale: 0.94 }}
       onClick={onClick}
-      className="flex flex-col items-center gap-1.5 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0"
-      style={{ minWidth: "56px", maxWidth: "64px" }}
+      className={cn(
+        "flex flex-col items-center gap-2 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0 pb-1.5 transition-all border-b-2",
+        isActive ? "border-[#0c831f]" : "border-transparent"
+      )}
+      style={{ minWidth: "64px" }}
     >
       <style>
         {`
@@ -188,12 +191,12 @@ function CircularCategoryItem({
       {cat.name?.toLowerCase() === "all" ? (
         <div
           className={cn(
-            "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full transition-all border-2 border-white bg-white z-10 p-0 shadow-[0_4px_12px_rgba(233,30,99,0.35)]",
+            "w-[52px] h-[52px] sm:w-[62px] sm:h-[62px] rounded-full transition-all bg-white z-10 p-0 transition-transform group-hover:scale-110 flex items-center justify-center",
             isActive && "ring-2 ring-[#0c831f]/30"
           )}
         >
           <div className="zomato-flip-container">
-            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face bg-[#E8F5E9] rounded-full">
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face rounded-full">
               {typeof cat.icon === "function" ||
               (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
                 <cat.icon
@@ -206,11 +209,11 @@ function CircularCategoryItem({
                 <img
                   src={cat.icon || cat.image}
                   alt={cat.name}
-                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                  className="w-full h-full object-contain drop-shadow-sm"
                 />
               )}
             </div>
-            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face zomato-flip-back bg-[#E8F5E9] rounded-full">
+            <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-1 zomato-flip-face zomato-flip-back rounded-full">
               {typeof cat.icon === "function" ||
               (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
                 <cat.icon
@@ -223,7 +226,7 @@ function CircularCategoryItem({
                 <img
                   src={cat.icon || cat.image}
                   alt={cat.name}
-                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                  className="w-full h-full object-contain drop-shadow-sm"
                 />
               )}
             </div>
@@ -232,12 +235,8 @@ function CircularCategoryItem({
       ) : (
         <div
           className={cn(
-            "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full flex items-center justify-center transition-all",
-            isActive 
-              ? "bg-[#E8F5E9] ring-2 ring-[#0c831f]/30" 
-              : isMore
-                ? "bg-[#E8F5E9]"
-                : "bg-[#f4f5f4]"
+            "w-[52px] h-[52px] sm:w-[62px] sm:h-[62px] transition-transform group-hover:scale-110 flex items-center justify-center",
+            isActive && "ring-2 ring-[#0c831f]/30 rounded-full" 
           )}
         >
           {typeof cat.icon === "function" ||
@@ -252,18 +251,18 @@ function CircularCategoryItem({
             <img
               src={cat.icon || cat.image}
               alt={cat.name}
-              className="h-8 w-8 md:h-10 md:w-10 object-contain"
+              className="w-full h-full object-contain drop-shadow-sm"
             />
           )}
         </div>
       )}
-      <div className="flex items-center justify-center w-full">
+      <div className="flex items-center justify-center w-full mt-0.5">
         <span
           className={cn(
-            "text-[9px] uppercase tracking-wide text-center leading-tight font-bold text-gray-600 line-clamp-1",
-            isActive && "text-[#0c831f] font-black"
+            "text-xs font-semibold truncate w-full text-center transition-colors",
+            isActive ? "text-[#0c831f]" : "text-gray-600 dark:text-gray-300"
           )}
-          style={{ maxWidth: isDropdown ? "46px" : "58px" }}
+          style={{ maxWidth: isDropdown ? "60px" : "100%" }}
         >
           {cat.name}
         </span>

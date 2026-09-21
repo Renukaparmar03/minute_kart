@@ -166,6 +166,11 @@ export default function RestaurantPreviewCard({
     event.preventDefault();
     event.stopPropagation();
 
+    if (!availability.isOpen) {
+      toast.error("This restaurant is currently offline. You cannot add its items to the cart.");
+      return;
+    }
+
     if (isOutOfService) {
       toast.error("You are outside the service zone. Please select a location within the service area.");
       return;
