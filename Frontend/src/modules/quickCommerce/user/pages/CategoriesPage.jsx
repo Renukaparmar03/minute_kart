@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import { customerApi } from '../services/customerApi';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,6 +30,7 @@ const CategoriesPage = () => {
     const [groups, setGroups] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [flippedCategoryId, setFlippedCategoryId] = useState(null);
+    const navigate = useNavigate();
 
     const fetchCategories = useCallback(async () => {
         setIsLoading(true);
@@ -101,7 +103,15 @@ const CategoriesPage = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-500">
             <div className="max-w-[1400px] mx-auto px-4 pt-6 md:pt-10 pb-20">
-                <h1 className="text-[28px] md:text-[32px] font-bold text-slate-900 dark:text-white mb-6 tracking-tight">Categories</h1>
+                <div className="flex items-center gap-3 mb-6">
+                    <button
+                        onClick={() => navigate('/quick')}
+                        className="p-1.5 md:p-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-full transition-colors shadow-sm"
+                    >
+                        <ChevronLeft size={24} className="text-slate-800 dark:text-white" />
+                    </button>
+                    <h1 className="text-[28px] md:text-[32px] font-bold text-slate-900 dark:text-white tracking-tight">Categories</h1>
+                </div>
                 <AnimatePresence mode='wait'>
                     {isLoading ? (
                         <motion.div
