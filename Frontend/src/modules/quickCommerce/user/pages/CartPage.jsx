@@ -660,8 +660,12 @@ const CartPage = () => {
     }
   }, [paymentMethods, selectedPayment]);
 
+  const hasItemsRef = React.useRef(cart.length > 0);
+
   useEffect(() => {
-    if (!loading && cart.length === 0) {
+    if (cart.length > 0) {
+      hasItemsRef.current = true;
+    } else if (!loading && cart.length === 0 && hasItemsRef.current) {
       navigate("/quick", { replace: true });
     }
   }, [loading, cart.length, navigate]);
@@ -684,6 +688,10 @@ const CartPage = () => {
   }
 
   if (cart.length === 0) {
+    if (hasItemsRef.current) {
+      return null;
+    }
+
     return (
       <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 py-6">
         <div className="mx-auto max-w-md">

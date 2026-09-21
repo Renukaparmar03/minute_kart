@@ -826,21 +826,51 @@ const CategoryProductsPage = () => {
             // Animate transition chevrons representing drag force
             const direction = gestureDirectionRef.current;
             const containerHeight = currentClientHeight;
-            const progress = Math.min(1.2, Math.abs(offsetY) / (containerHeight * 0.4));
+            // Use a fixed small distance (60px) for a seamless, continuous scroll feel
+            const progress = Math.min(1.2, Math.abs(offsetY) / 60);
             const arrowRef = direction === 'up' ? nextArrowRef : prevArrowRef;
 
             if (arrowRef && arrowRef.current) {
-                // Scale up and translate chevrons based on drag pull depth
                 const scale = 0.8 + Math.min(1.0, progress) * 0.55;
                 const translateY = direction === 'up' ? -progress * 25 : progress * 25;
                 arrowRef.current.style.transform = `scale(${scale}) translateY(${translateY}px)`;
-                
-                // Opacity scales from faint to fully solid
                 arrowRef.current.style.opacity = `${0.6 + Math.min(1.0, progress) * 0.4}`;
-
-                // Add bounce animation once threshold is breached
+                
+                // Seamless mobile scroll - trigger jump instantly if threshold reached
                 if (progress >= 1.0) {
-                    arrowRef.current.classList.add('animate-bounce');
+                    if (Date.now() - scrollCooldownRef.current > 1200) {
+                        scrollCooldownRef.current = Date.now();
+                        isDraggingRef.current = false;
+                        gestureActiveRef.current = false;
+                        
+                        if (animContainer) animContainer.style.transform = 'translateY(0px)';
+                        
+                        const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
+                        if (targetPanel) {
+                            const { mainCategoryId, subCategoryId } = targetPanel;
+                            const cacheKey = `${mainCategoryId}_${subCategoryId}`;
+                            
+                            if (scrollPositionsRef.current[cacheKey] === undefined) {
+                                scrollPositionsRef.current[cacheKey] = direction === 'down' ? 99999 : 0;
+                            }
+
+                            if (mainCategoryId !== catId) {
+                                navigate(`/quick/categories/${mainCategoryId}`, { 
+                                    state: { activeSubcategoryId: subCategoryId },
+                                    replace: true 
+                                });
+                            } else {
+                                setSelectedSubCategory(subCategoryId);
+                            }
+                        }
+                        
+                        setActiveTransition({
+                            active: false,
+                            direction: null,
+                            prevPanel: null,
+                            nextPanel: null
+                        });
+                    }
                 } else {
                     arrowRef.current.classList.remove('animate-bounce');
                 }
@@ -865,13 +895,23 @@ const CategoryProductsPage = () => {
         const direction = gestureDirectionRef.current;
         let isComplete = false;
 
+        // Use fixed smaller thresholds (100px or velocity > 0.3) for more responsive mobile experience
         if (direction === 'up') {
-            if (offsetY < -containerHeight * 0.4 || velocity < -0.4) {
+            if (offsetY < -100 || velocity < -0.3) {
                 isComplete = true;
             }
         } else if (direction === 'down') {
-            if (offsetY > containerHeight * 0.4 || velocity > 0.4) {
+            if (offsetY > 100 || velocity > 0.3) {
                 isComplete = true;
+            }
+        }
+
+        // Apply throttling to touch gestures to prevent multiple rapid jumps
+        if (isComplete) {
+            if (Date.now() - scrollCooldownRef.current < 1200) {
+                isComplete = false;
+            } else {
+                scrollCooldownRef.current = Date.now();
             }
         }
 
@@ -947,12 +987,13 @@ const CategoryProductsPage = () => {
 
     // Attach non-passive events directly to the current scrollable container
     useEffect(() => {
-        if (isProductDetailOpen || activeTransition.active) return;
+        if (isProductDetailOpen) return;
         
         const container = currentPanelScrollRef.current;
         if (!container) return;
 
         const onTouchStart = (e) => {
+            if (activeTransition.active) return;
             handleDragStart(e.touches[0].clientY, e.touches[0].clientX, true, container.scrollTop, container.scrollHeight, container.clientHeight);
         };
         const onTouchMove = (e) => {
@@ -970,6 +1011,7 @@ const CategoryProductsPage = () => {
         };
 
         const onMouseDown = (e) => {
+            if (activeTransition.active) return;
             handleDragStart(e.clientY, e.clientX, false, container.scrollTop, container.scrollHeight, container.clientHeight);
         };
         const onMouseMove = (e) => {
