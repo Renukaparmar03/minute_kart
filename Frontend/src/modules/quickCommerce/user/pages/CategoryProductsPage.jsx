@@ -700,11 +700,42 @@ const CategoryProductsPage = () => {
         return { prev, next };
     };
 
+    const prevScrollRef = React.useRef(0);
+
     // Scroll listener for current panel
     const handleScrollEvent = (e) => {
-        const scrollTop = e.currentTarget.scrollTop;
+        const container = e.currentTarget;
+        const scrollTop = container.scrollTop;
+        const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
         const cacheKey = `${catId}_${selectedSubCategory}`;
         scrollPositionsRef.current[cacheKey] = scrollTop;
+
+        if (Date.now() - scrollCooldownRef.current > 1200 && !isDraggingRef.current && !activeTransition.active) {
+            const maxScroll = Math.max(0, scrollHeight - clientHeight);
+            const deltaY = scrollTop - prevScrollRef.current;
+            
+            if (scrollTop >= maxScroll - 2 && deltaY > 0) {
+                overscrollAccumulatorRef.current += deltaY;
+                if (overscrollAccumulatorRef.current > 30) {
+                    overscrollAccumulatorRef.current = 0;
+                    const { next } = getAdjacentPanels();
+                    if (next) {
+                        scrollCooldownRef.current = Date.now();
+                        const { mainCategoryId, subCategoryId } = next;
+                        if (mainCategoryId !== catId) {
+                            navigate(`/quick/categories/${mainCategoryId}`, { state: { activeSubcategoryId: subCategoryId }, replace: true });
+                        } else {
+                            scrollPositionsRef.current[`${mainCategoryId}_${subCategoryId}`] = 0;
+                            setSelectedSubCategory(subCategoryId);
+                        }
+                    }
+                }
+            } else {
+                overscrollAccumulatorRef.current = 0;
+            }
+        }
+        prevScrollRef.current = scrollTop;
     };
 
     // Restore scroll position on selection change
@@ -917,57 +948,26 @@ const CategoryProductsPage = () => {
 
         const animContainer = animationContainerRef.current;
         if (animContainer) {
-            animContainer.style.transition = 'transform 450ms cubic-bezier(0.175, 0.885, 0.32, 1.1)';
-            const targetY = isComplete
-                ? (direction === 'up' ? -containerHeight : containerHeight)
-                : 0;
-
-            animContainer.style.transform = `translateY(${targetY}px)`;
-
-            // Animate chevrons release transitions
-            const arrowRef = direction === 'up' ? nextArrowRef : prevArrowRef;
-            if (arrowRef && arrowRef.current) {
-                arrowRef.current.classList.remove('animate-bounce');
-                arrowRef.current.style.transition = 'transform 450ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 450ms';
-                if (isComplete) {
-                    const finalY = direction === 'up' ? -40 : 40;
-                    arrowRef.current.style.transform = `scale(1.4) translateY(${finalY}px)`;
-                    arrowRef.current.style.opacity = '1.0';
-                } else {
-                    arrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
-                    arrowRef.current.style.opacity = '0.6';
-                }
-            }
-
-            setTimeout(() => {
+            if (isComplete) {
                 animContainer.style.transition = 'none';
-                animContainer.style.transform = 'translateY(0px)';
+                animContainer.style.transform = `translateY(0px)`;
+                
+                const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
+                if (targetPanel) {
+                    const { mainCategoryId, subCategoryId } = targetPanel;
+                    const cacheKey = `${mainCategoryId}_${subCategoryId}`;
+                    
+                    if (scrollPositionsRef.current[cacheKey] === undefined) {
+                        scrollPositionsRef.current[cacheKey] = direction === 'down' ? 99999 : 0;
+                    }
 
-                // Clean up arrow transition styles
-                if (arrowRef && arrowRef.current) {
-                    arrowRef.current.style.transition = 'none';
-                    arrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
-                    arrowRef.current.style.opacity = '0.6';
-                }
-
-                if (isComplete) {
-                    const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
-                    if (targetPanel) {
-                        const { mainCategoryId, subCategoryId } = targetPanel;
-                        const cacheKey = `${mainCategoryId}_${subCategoryId}`;
-                        
-                        if (scrollPositionsRef.current[cacheKey] === undefined) {
-                            scrollPositionsRef.current[cacheKey] = direction === 'down' ? 99999 : 0;
-                        }
-
-                        if (mainCategoryId !== catId) {
-                            navigate(`/quick/categories/${mainCategoryId}`, { 
-                                state: { activeSubcategoryId: subCategoryId },
-                                replace: true 
-                            });
-                        } else {
-                            setSelectedSubCategory(subCategoryId);
-                        }
+                    if (mainCategoryId !== catId) {
+                        navigate(`/quick/categories/${mainCategoryId}`, { 
+                            state: { activeSubcategoryId: subCategoryId },
+                            replace: true 
+                        });
+                    } else {
+                        setSelectedSubCategory(subCategoryId);
                     }
                 }
 
@@ -977,7 +977,43 @@ const CategoryProductsPage = () => {
                     prevPanel: null,
                     nextPanel: null
                 });
-            }, 450);
+
+                if (prevArrowRef.current) {
+                    prevArrowRef.current.classList.remove('animate-bounce');
+                    prevArrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
+                    prevArrowRef.current.style.opacity = '0';
+                }
+                if (nextArrowRef.current) {
+                    nextArrowRef.current.classList.remove('animate-bounce');
+                    nextArrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
+                    nextArrowRef.current.style.opacity = '0';
+                }
+            } else {
+                animContainer.style.transition = 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+                animContainer.style.transform = `translateY(0px)`;
+                
+                const arrowRef = direction === 'up' ? nextArrowRef : prevArrowRef;
+                if (arrowRef && arrowRef.current) {
+                    arrowRef.current.classList.remove('animate-bounce');
+                    arrowRef.current.style.transition = 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 300ms';
+                    arrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
+                    arrowRef.current.style.opacity = '0.6';
+                }
+
+                setTimeout(() => {
+                    animContainer.style.transition = 'none';
+                    if (arrowRef && arrowRef.current) {
+                        arrowRef.current.style.transition = 'none';
+                        arrowRef.current.style.opacity = '0';
+                    }
+                    setActiveTransition({
+                        active: false,
+                        direction: null,
+                        prevPanel: null,
+                        nextPanel: null
+                    });
+                }, 300);
+            }
         }
     };
 

@@ -377,7 +377,7 @@ const ProductCard = React.memo(
         let targetProduct = product;
         if (product.variants && product.variants.length === 1) {
           const v = product.variants[0];
-          const variantId = `${product.id}::${v.sku}`;
+          const variantId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
           const vPrice = v.salePrice > 0 ? v.salePrice : v.price;
           const vOriginalPrice = Math.max(vPrice, v.price);
           targetProduct = {
@@ -433,7 +433,7 @@ const ProductCard = React.memo(
         let targetStock = Number(product.stock ?? Infinity);
         if (product.variants && product.variants.length === 1) {
           const v = product.variants[0];
-          targetId = `${product.id}::${v.sku}`;
+          targetId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
           targetStock = Number(v.stock ?? Infinity);
         }
 
@@ -468,7 +468,7 @@ const ProductCard = React.memo(
         let targetId = product.id || product._id;
         if (product.variants && product.variants.length === 1) {
           const v = product.variants[0];
-          targetId = `${product.id}::${v.sku}`;
+          targetId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
         }
 
         const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
@@ -500,7 +500,7 @@ const ProductCard = React.memo(
       async (e, variant) => {
         e.preventDefault();
         e.stopPropagation();
-        const variantId = `${product.id}::${variant.sku}`;
+        const variantId = `${product.id}::${variant._id || variant.id || variant.sku || variant.name}`;
         const stock = Number(variant.stock ?? Infinity);
         if (stock <= 0) {
           showToast("This variant is out of stock", "error");
@@ -540,7 +540,7 @@ const ProductCard = React.memo(
       (e, variant) => {
         e.preventDefault();
         e.stopPropagation();
-        const variantId = `${product.id}::${variant.sku}`;
+        const variantId = `${product.id}::${variant._id || variant.id || variant.sku || variant.name}`;
         const item = cart.find(
           (item) => String(item.productId || item.itemId || item.id || item._id) === variantId
         );
@@ -560,7 +560,7 @@ const ProductCard = React.memo(
       (e, variant) => {
         e.preventDefault();
         e.stopPropagation();
-        const variantId = `${product.id}::${variant.sku}`;
+        const variantId = `${product.id}::${variant._id || variant.id || variant.sku || variant.name}`;
         const item = cart.find(
           (item) => String(item.productId || item.itemId || item.id || item._id) === variantId
         );
@@ -1001,7 +1001,7 @@ const ProductCard = React.memo(
                   {/* Variants List */}
                   <div className="overflow-y-auto space-y-3 max-h-[50vh] pr-1 py-1">
                     {product.variants.map((v, idx) => {
-                      const variantId = `${product.id}::${v.sku}`;
+                      const variantId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
                       const variantQty = cart
                         .filter(
                           (item) =>
