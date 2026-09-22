@@ -204,14 +204,27 @@ const ProductDetailPage = () => {
   const { showToast } = useToast();
   const currentVariantId = useMemo(() => {
     if (!product) return "";
-    return selectedVariant ? `${product.id}::${selectedVariant.sku}` : product.id;
+    const baseId = product.id || product._id;
+    return selectedVariant 
+      ? `${baseId}::${selectedVariant._id || selectedVariant.id || selectedVariant.sku || selectedVariant.name}` 
+      : baseId;
   }, [product, selectedVariant]);
 
   const quantity = useMemo(() => {
     if (!product) return 0;
     const cartItem = cart.find(
-      (item) => (item.productId || item.itemId || item.id || item._id) === currentVariantId,
+      (item) => {
+        const itemId = item.productId || item.itemId || item.id || item._id;
+        console.log("Checking item in cart:", {
+          itemId,
+          currentVariantId,
+          isMatch: String(itemId) === String(currentVariantId),
+          productBaseId: product.id || product._id
+        });
+        return String(itemId) === String(currentVariantId) || String(itemId) === String(product.id || product._id);
+      }
     );
+    console.log("Final matched cart item:", cartItem, "quantity:", cartItem ? cartItem.quantity : 0);
     return cartItem ? cartItem.quantity : 0;
   }, [cart, product, currentVariantId]);
 
@@ -506,20 +519,31 @@ const ProductDetailPage = () => {
     showToast(`${variantProduct.name} added to cart`, "success");
   };
 
+  const matchedCartItemId = useMemo(() => {
+    if (!product) return currentVariantId;
+    const cartItem = cart.find(
+      (item) => {
+        const itemId = item.productId || item.itemId || item.id || item._id;
+        return String(itemId) === String(currentVariantId) || String(itemId) === String(product.id || product._id);
+      }
+    );
+    return cartItem ? (cartItem.productId || cartItem.itemId || cartItem.id || cartItem._id) : currentVariantId;
+  }, [cart, product, currentVariantId]);
+
   const handleIncrement = () => {
     const stock = Number(displayStock ?? Infinity);
     if (quantity >= stock) {
       showToast(`Only ${stock} in stock`, "error");
       return;
     }
-    updateQuantity(currentVariantId, 1);
+    updateQuantity(matchedCartItemId, 1);
   };
 
   const handleDecrement = () => {
     if (quantity === 1) {
-      removeFromCart(currentVariantId);
+      removeFromCart(matchedCartItemId);
     } else {
-      updateQuantity(currentVariantId, -1);
+      updateQuantity(matchedCartItemId, -1);
     }
   };
 
