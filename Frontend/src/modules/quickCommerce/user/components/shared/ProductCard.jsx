@@ -429,12 +429,14 @@ const ProductCard = React.memo(
           return;
         }
 
-        let targetId = product.id || product._id;
+        let targetId = cartItem?.productId || cartItem?.id || cartItem?._id || product.id || product._id;
         let targetStock = Number(product.stock ?? Infinity);
-        if (product.variants && product.variants.length === 1) {
+        if (!cartItem && product.variants && product.variants.length === 1) {
           const v = product.variants[0];
           targetId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
           targetStock = Number(v.stock ?? Infinity);
+        } else if (cartItem && cartItem.stock !== undefined) {
+          targetStock = Number(cartItem.stock);
         }
 
         if (quantity >= targetStock) {
@@ -465,8 +467,8 @@ const ProductCard = React.memo(
           return;
         }
 
-        let targetId = product.id || product._id;
-        if (product.variants && product.variants.length === 1) {
+        let targetId = cartItem?.productId || cartItem?.id || cartItem?._id || product.id || product._id;
+        if (!cartItem && product.variants && product.variants.length === 1) {
           const v = product.variants[0];
           targetId = `${product.id}::${v._id || v.id || v.sku || v.name}`;
         }
