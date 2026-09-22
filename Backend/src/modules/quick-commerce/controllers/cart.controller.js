@@ -168,7 +168,7 @@ export const addToCart = async (req, res) => {
   );
 
   const itemIndex = cart.items.findIndex(
-    (item) => String(item.productId) === parentId && item.variantSku === (variantSku || null)
+    (item) => String(item.productId) === parentId && (item.variantSku || null) === (variantSku || null)
   );
   if (itemIndex >= 0) {
     cart.items[itemIndex].quantity = Math.max(1, cart.items[itemIndex].quantity + Math.max(1, quantity));
@@ -202,7 +202,7 @@ export const updateCartItem = async (req, res) => {
   const [parentId, variantSku] = String(productId).split("::");
 
   const itemIndex = cart.items.findIndex(
-    (item) => String(item.productId) === parentId && item.variantSku === (variantSku || null)
+    (item) => String(item.productId) === parentId && (item.variantSku || null) === (variantSku || null)
   );
   if (itemIndex < 0) {
     return res.status(404).json({ success: false, message: 'Cart item not found' });
@@ -236,9 +236,14 @@ export const removeCartItem = async (req, res) => {
 
   const [parentId, variantSku] = String(productId).split("::");
 
-  cart.items = cart.items.filter(
-    (item) => !(String(item.productId) === parentId && item.variantSku === (variantSku || null))
-  );
+  cart.items = cart.items.filter((item) => {
+    const matchProduct = String(item.productId) === parentId;
+    if (!matchProduct) return true;
+    if (variantSku) {
+      return (item.variantSku || null) !== variantSku;
+    }
+    return false;
+  });
   await cart.save();
 
   const result = await mapCart(idQuery);

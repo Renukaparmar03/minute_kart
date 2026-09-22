@@ -88,17 +88,19 @@ export default function QuickCommerceRoutes() {
   return (
     <HeroTransitionProvider>
       <ProfileProvider>
-        <CartProvider>
-          <LocationProvider>
-            <WishlistProvider>
-              <CartAnimationProvider>
-                <ProductDetailProvider>
-                  <QuickCommerceInnerRoutes />
-                </ProductDetailProvider>
-              </CartAnimationProvider>
-            </WishlistProvider>
-          </LocationProvider>
-        </CartProvider>
+        <FoodCartProvider>
+          <CartProvider>
+            <LocationProvider>
+              <WishlistProvider>
+                <CartAnimationProvider>
+                  <ProductDetailProvider>
+                    <QuickCommerceInnerRoutes />
+                  </ProductDetailProvider>
+                </CartAnimationProvider>
+              </WishlistProvider>
+            </LocationProvider>
+          </CartProvider>
+        </FoodCartProvider>
       </ProfileProvider>
     </HeroTransitionProvider>
   );

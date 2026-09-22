@@ -481,14 +481,7 @@ export default function Home() {
   };
 
   const handleVegModeChange = (newValue) => {
-    if (isHandlingSwitchOff.current) return;
-    if (newValue && !vegMode) setShowVegModePopup(true);
-    else if (!newValue && vegMode) {
-      isHandlingSwitchOff.current = true;
-      setShowSwitchOffPopup(true);
-    } else {
-      setVegModeContext(newValue);
-    }
+    setVegModeContext(newValue);
   };
 
   const handleSearchFocus = useCallback(() => {
@@ -1020,7 +1013,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Veg Mode Popups (Enable / Switch Off) */}
-      {false && <VegModePopups
+      <VegModePopups
         showVegModePopup={showVegModePopup}
         showSwitchOffPopup={showSwitchOffPopup}
         onCloseVegPopup={(level) => {
@@ -1038,7 +1031,7 @@ export default function Home() {
           setShowSwitchOffPopup(false);
           isHandlingSwitchOff.current = false;
         }}
-      />}
+      />
 
       {/* Category Modal */}
       <AnimatePresence>

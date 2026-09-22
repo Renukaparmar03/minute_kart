@@ -388,10 +388,15 @@ export function CartProvider({ children }) {
   }
 
   const removeFromCart = (itemId, sourcePosition = null, productInfo = null) => {
+    const normalizedTargetId = String(itemId || "").split("::")[0];
     setCart((prev) => {
       const safePrev = normalizeCartData(prev)
       const resolvedItemId = resolveCartEntryId(safePrev, itemId)
-      const itemToRemove = safePrev.find((i) => i.id === resolvedItemId)
+      const itemToRemove = safePrev.find(
+        (i) =>
+          i.id === resolvedItemId ||
+          String(i.productId || i.itemId || i.id || "").split("::")[0] === normalizedTargetId,
+      )
       if (itemToRemove && sourcePosition && productInfo) {
         setLastRemoveEvent({
           product: {
@@ -403,7 +408,12 @@ export function CartProvider({ children }) {
         })
         setTimeout(() => setLastRemoveEvent(null), 1500)
       }
-      return safePrev.filter((i) => i.id !== resolvedItemId)
+      return safePrev.filter((i) => {
+        if (i.id === resolvedItemId) return false
+        const baseId = String(i.productId || i.itemId || i.id || "").split("::")[0]
+        if (baseId && baseId === normalizedTargetId) return false
+        return true
+      })
     })
   }
 

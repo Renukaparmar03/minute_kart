@@ -373,7 +373,31 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
   const removeFromCart = async (productId) => {
     const resolvedProductId = normalizeProductId(productId);
     if (!resolvedProductId) return;
-    setCart((prev) => prev.filter((item) => getProductId(item) !== resolvedProductId));
+    const targetBaseId = resolvedProductId.split("::")[0];
+    setCart((prev) =>
+      prev.filter((item) => {
+        const id = getProductId(item);
+        return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+      }),
+    );
+    try {
+      const legacyCart = localStorage.getItem("cart");
+      if (legacyCart) {
+        const parsed = JSON.parse(legacyCart);
+        if (Array.isArray(parsed)) {
+          const remaining = parsed.filter((item) => {
+            const id = getProductId(item);
+            return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+          });
+          if (remaining.length > 0) {
+            localStorage.setItem("cart", JSON.stringify(remaining));
+          } else {
+            localStorage.removeItem("cart");
+          }
+        }
+      }
+    } catch (e) {}
+
     if (isAuthenticated) {
       pendingRequestsRef.current += 1;
       try {
@@ -390,21 +414,28 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
   const updateQuantity = async (productId, delta) => {
     const resolvedProductId = normalizeProductId(productId);
     if (!resolvedProductId) return;
-    const currentItem = cart.find((item) => getProductId(item) === resolvedProductId);
+    const targetBaseId = resolvedProductId.split("::")[0];
+    const currentItem = cart.find((item) => {
+      const id = getProductId(item);
+      return id === resolvedProductId || id.split("::")[0] === targetBaseId;
+    });
     if (!currentItem) return;
     const stock = Number(currentItem.stock ?? Infinity);
     const newQty = Math.max(0, Math.min(currentItem.quantity + delta, stock));
     if (newQty === currentItem.quantity && delta > 0) return; // already at stock limit
     if (newQty === 0) {
-      removeFromCart(resolvedProductId);
+      await removeFromCart(resolvedProductId);
       return;
     }
     setCart((prev) =>
-      prev.map((item) =>
-        getProductId(item) === resolvedProductId ? { ...item, quantity: newQty } : item,
-      ),
+      prev.map((item) => {
+        const id = getProductId(item);
+        return id === resolvedProductId || id.split("::")[0] === targetBaseId
+          ? { ...item, quantity: newQty }
+          : item;
+      }),
     );
-      if (isAuthenticated) {
+    if (isAuthenticated) {
       pendingRequestsRef.current += 1;
       try {
         await customerApi.updateCartQuantity({
@@ -534,9 +565,11 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (productId) => {
       const resolvedProductId = normalizeProductId(productId);
       if (!resolvedProductId) return;
-      const nextQuickItems = quickItemsFromFoodCart.filter(
-        (item) => getProductId(item) !== resolvedProductId,
-      );
+      const targetBaseId = resolvedProductId.split("::")[0];
+      const nextQuickItems = quickItemsFromFoodCart.filter((item) => {
+        const id = getProductId(item);
+        return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+      });
       persistQuickCartSnapshot(nextQuickItems);
       foodCart.removeFromCart(resolvedProductId);
 
@@ -552,47 +585,48 @@ export const CartProvider = ({ children }) => {
     const updateQuantity = async (productId, delta) => {
       const resolvedProductId = normalizeProductId(productId);
       if (!resolvedProductId) return;
-      const currentItem = foodCart.getCartItem(resolvedProductId, "", "quick");
+      const targetBaseId = resolvedProductId.split("::")[0];
+      const currentItem =
+        foodCart.getCartItem(resolvedProductId, "", "quick") ||
+        quickItemsFromFoodCart.find((item) => {
+          const id = getProductId(item);
+          return id === resolvedProductId || id.split("::")[0] === targetBaseId;
+        });
       if (!currentItem) return;
       const nextQuantity = Math.max(0, (currentItem.quantity || 0) + delta);
-      const nextQuickItems =
-        nextQuantity === 0
-          ? quickItemsFromFoodCart.filter(
-              (item) => getProductId(item) !== resolvedProductId,
-            )
-          : quickItemsFromFoodCart.map((item) =>
-              getProductId(item) === resolvedProductId
-                ? { ...item, quantity: nextQuantity }
-                : item,
-            );
+      if (nextQuantity === 0) {
+        await removeFromCart(resolvedProductId);
+        return;
+      }
+      const nextQuickItems = quickItemsFromFoodCart.map((item) => {
+        const id = getProductId(item);
+        if (id === resolvedProductId || id.split("::")[0] === targetBaseId) {
+          return { ...item, quantity: nextQuantity };
+        }
+        return item;
+      });
       persistQuickCartSnapshot(nextQuickItems);
       foodCart.updateQuantity(resolvedProductId, nextQuantity);
 
       if (isAuthenticated) {
         try {
-          if (nextQuantity === 0) {
-            await customerApi.removeFromCart(resolvedProductId);
-          } else {
+          await customerApi.updateCartQuantity({
+            productId: resolvedProductId,
+            quantity: nextQuantity,
+          });
+        } catch (error) {
+          if (error?.response?.status === 404) {
             try {
-              await customerApi.updateCartQuantity({
+              await customerApi.addToCart({
                 productId: resolvedProductId,
                 quantity: nextQuantity,
               });
-            } catch (error) {
-              if (error?.response?.status === 404) {
-                // Fallback: if update fails with 404, the item might be missing from backend cart
-                // but present in local bridged cart. Try adding it.
-                await customerApi.addToCart({
-                  productId: resolvedProductId,
-                  quantity: nextQuantity,
-                });
-              } else {
-                throw error;
-              }
+            } catch (addError) {
+              console.error("Failed to fallback-add item to cart", addError);
             }
+          } else {
+            console.error("Failed to sync bridged updateQuantity to backend", error);
           }
-        } catch (error) {
-          console.error("Failed to sync bridged updateQuantity to backend", error);
         }
       }
     };
