@@ -283,7 +283,9 @@ const CategoryProductsPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { currentLocation } = useAppLocation();
-    const initialSubcategoryId = normalizeId(location.state?.activeSubcategoryId) || 'all';
+    const initialSubcategoryId = normalizeId(location.state?.activeSubcategoryId)
+        || sessionStorage.getItem(`quick.subcat.${normalizeId(rawCatId)}`)
+        || 'all';
     const { isOpen: isProductDetailOpen } = useProductDetail();
     
     // Core Layout States
@@ -562,7 +564,11 @@ const CategoryProductsPage = () => {
     // Fetch on page navigate or location change
     useEffect(() => {
         fetchData(catId);
-        setSelectedSubCategory(normalizeId(location.state?.activeSubcategoryId) || 'all');
+        // Priority: explicit navigation state > sessionStorage saved > default 'all'
+        const restoredSub = normalizeId(location.state?.activeSubcategoryId)
+            || sessionStorage.getItem(`quick.subcat.${catId}`)
+            || 'all';
+        setSelectedSubCategory(restoredSub);
     }, [catId, location.state?.activeSubcategoryId, currentLocation?.latitude, currentLocation?.longitude]);
 
     // Background preloader for adjacent main categories
@@ -776,6 +782,13 @@ const CategoryProductsPage = () => {
             }
         }
     }, [selectedSubCategory, catId, isLoading]);
+
+    // Persist selected subcategory to sessionStorage so back-navigation restores it
+    useEffect(() => {
+        if (catId && selectedSubCategory) {
+            sessionStorage.setItem(`quick.subcat.${catId}`, selectedSubCategory);
+        }
+    }, [selectedSubCategory, catId]);
 
     // Auto-scroll sidebar to keep active subcategory visible
     useEffect(() => {
