@@ -1284,7 +1284,7 @@ const CategoryProductsPage = () => {
 
                 <div className="flex flex-1 relative overflow-hidden h-full">
                     {/* Sidebar */}
-                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar h-full pb-32 transition-colors">
+                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar h-full pb-32 transition-colors touch-pan-y overscroll-contain">
                         {subCategories.map((cat) => (
                             <button
                                 key={cat.id}
