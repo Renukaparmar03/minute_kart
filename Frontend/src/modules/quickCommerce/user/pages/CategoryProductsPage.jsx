@@ -791,18 +791,24 @@ const CategoryProductsPage = () => {
     }, [selectedSubCategory, catId]);
 
     // Auto-scroll sidebar to keep active subcategory visible
+    // Also depends on isLoading so it re-fires once page fully renders after back-navigation
     useEffect(() => {
-        const sidebar = sidebarRef.current;
-        if (!sidebar) return;
-        const activeBtn = sidebar.querySelector(`[data-subcat-id="${selectedSubCategory}"]`);
-        if (!activeBtn) return;
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const btnRect = activeBtn.getBoundingClientRect();
-        // Calculate how much to scroll so button is centered in sidebar
-        const targetScrollTop =
-            sidebar.scrollTop + (btnRect.top - sidebarRect.top) - sidebarRect.height / 2 + btnRect.height / 2;
-        sidebar.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-    }, [selectedSubCategory]);
+        if (isLoading) return;
+        // Wait for DOM to fully paint before measuring positions
+        const raf = requestAnimationFrame(() => {
+            const sidebar = sidebarRef.current;
+            if (!sidebar) return;
+            const activeBtn = sidebar.querySelector(`[data-subcat-id="${selectedSubCategory}"]`);
+            if (!activeBtn) return;
+            const sidebarRect = sidebar.getBoundingClientRect();
+            const btnRect = activeBtn.getBoundingClientRect();
+            // Calculate how much to scroll so button is centered in sidebar
+            const targetScrollTop =
+                sidebar.scrollTop + (btnRect.top - sidebarRect.top) - sidebarRect.height / 2 + btnRect.height / 2;
+            sidebar.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+        });
+        return () => cancelAnimationFrame(raf);
+    }, [selectedSubCategory, isLoading]);
 
     // Gesture Handlers
     const handleDragStart = (clientY, clientX, isTouch, scrollTop, scrollHeight, clientHeight) => {
