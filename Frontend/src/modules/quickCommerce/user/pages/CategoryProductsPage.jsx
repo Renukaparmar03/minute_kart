@@ -319,6 +319,12 @@ const CategoryProductsPage = () => {
         prevPanel: null,
         nextPanel: null
     });
+    // Keep a ref in sync with activeTransition to avoid stale closures in event handlers
+    const activeTransitionRef = React.useRef({ active: false, direction: null, prevPanel: null, nextPanel: null });
+    const setActiveTransitionSynced = (val) => {
+        activeTransitionRef.current = val;
+        setActiveTransition(val);
+    };
 
     const dragStartRef = React.useRef(null);
     const isDraggingRef = React.useRef(false);
@@ -711,13 +717,14 @@ const CategoryProductsPage = () => {
         const cacheKey = `${catId}_${selectedSubCategory}`;
         scrollPositionsRef.current[cacheKey] = scrollTop;
 
-        if (Date.now() - scrollCooldownRef.current > 1200 && !isDraggingRef.current && !activeTransition.active) {
+        if (Date.now() - scrollCooldownRef.current > 800 && !isDraggingRef.current && !activeTransitionRef.current.active) {
             const maxScroll = Math.max(0, scrollHeight - clientHeight);
             const deltaY = scrollTop - prevScrollRef.current;
             
-            if (scrollTop >= maxScroll - 2 && deltaY > 0) {
+            // Use 8px tolerance for mobile floating point precision
+            if (scrollTop >= maxScroll - 8 && deltaY > 0) {
                 overscrollAccumulatorRef.current += deltaY;
-                if (overscrollAccumulatorRef.current > 30) {
+                if (overscrollAccumulatorRef.current > 20) {
                     overscrollAccumulatorRef.current = 0;
                     const { next } = getAdjacentPanels();
                     if (next) {
@@ -731,7 +738,8 @@ const CategoryProductsPage = () => {
                         }
                     }
                 }
-            } else {
+            } else if (scrollTop < maxScroll - 8) {
+                // Only reset accumulator if we are clearly NOT at the bottom
                 overscrollAccumulatorRef.current = 0;
             }
         }
@@ -785,7 +793,7 @@ const CategoryProductsPage = () => {
 
     const handleDragMove = (clientY, clientX) => {
         if (!isDraggingRef.current || !dragStartRef.current) return;
-        if (Date.now() - scrollCooldownRef.current < 1200) return;
+        if (Date.now() - scrollCooldownRef.current < 800) return;
         
         const start = dragStartRef.current;
         const deltaY = clientY - start.y;
@@ -807,7 +815,8 @@ const CategoryProductsPage = () => {
 
         if (!gestureActiveRef.current) {
             // Detect Boundary Overscroll Triggers (uses live scroll positions to support mid-drag boundary hits)
-            if (currentScrollTop <= 0 && deltaY > 0) {
+            // Use 8px tolerance for mobile floating point precision
+            if (currentScrollTop <= 2 && deltaY > 0) {
                 gestureActiveRef.current = true;
                 gestureDirectionRef.current = 'down';
                 gestureStartRef.current = clientY;
@@ -816,7 +825,7 @@ const CategoryProductsPage = () => {
                 if (prev) {
                     // Trigger preload in case it's not complete
                     getCategoryDataFromCacheOrFetch(prev.mainCategoryId);
-                    setActiveTransition({
+                    setActiveTransitionSynced({
                         active: true,
                         direction: 'down',
                         prevPanel: prev,
@@ -825,7 +834,7 @@ const CategoryProductsPage = () => {
                 } else {
                     gestureActiveRef.current = false;
                 }
-            } else if (currentScrollTop >= maxScroll - 2 && deltaY < 0) {
+            } else if (currentScrollTop >= maxScroll - 8 && deltaY < 0) {
                 gestureActiveRef.current = true;
                 gestureDirectionRef.current = 'up';
                 gestureStartRef.current = clientY;
@@ -834,7 +843,7 @@ const CategoryProductsPage = () => {
                 if (next) {
                     // Trigger preload in case it's not complete
                     getCategoryDataFromCacheOrFetch(next.mainCategoryId);
-                    setActiveTransition({
+                    setActiveTransitionSynced({
                         active: true,
                         direction: 'up',
                         prevPanel: null,
@@ -879,14 +888,16 @@ const CategoryProductsPage = () => {
                 
                 // Seamless mobile scroll - trigger jump instantly if threshold reached
                 if (progress >= 1.0) {
-                    if (Date.now() - scrollCooldownRef.current > 1200) {
+                    if (Date.now() - scrollCooldownRef.current > 800) {
                         scrollCooldownRef.current = Date.now();
                         isDraggingRef.current = false;
                         gestureActiveRef.current = false;
                         
                         if (animContainer) animContainer.style.transform = 'translateY(0px)';
                         
-                        const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
+                        // Use ref to avoid stale closure - activeTransitionRef always has latest value
+                        const currentTransition = activeTransitionRef.current;
+                        const targetPanel = direction === 'up' ? currentTransition.nextPanel : currentTransition.prevPanel;
                         if (targetPanel) {
                             const { mainCategoryId, subCategoryId } = targetPanel;
                             const cacheKey = `${mainCategoryId}_${subCategoryId}`;
@@ -905,7 +916,7 @@ const CategoryProductsPage = () => {
                             }
                         }
                         
-                        setActiveTransition({
+                        setActiveTransitionSynced({
                             active: false,
                             direction: null,
                             prevPanel: null,
@@ -936,20 +947,20 @@ const CategoryProductsPage = () => {
         const direction = gestureDirectionRef.current;
         let isComplete = false;
 
-        // Use fixed smaller thresholds (100px or velocity > 0.3) for more responsive mobile experience
+        // Use fixed smaller thresholds (60px or velocity > 0.2) for more responsive mobile experience
         if (direction === 'up') {
-            if (offsetY < -100 || velocity < -0.3) {
+            if (offsetY < -60 || velocity < -0.2) {
                 isComplete = true;
             }
         } else if (direction === 'down') {
-            if (offsetY > 100 || velocity > 0.3) {
+            if (offsetY > 60 || velocity > 0.2) {
                 isComplete = true;
             }
         }
 
         // Apply throttling to touch gestures to prevent multiple rapid jumps
         if (isComplete) {
-            if (Date.now() - scrollCooldownRef.current < 1200) {
+            if (Date.now() - scrollCooldownRef.current < 800) {
                 isComplete = false;
             } else {
                 scrollCooldownRef.current = Date.now();
@@ -962,7 +973,9 @@ const CategoryProductsPage = () => {
                 animContainer.style.transition = 'none';
                 animContainer.style.transform = `translateY(0px)`;
                 
-                const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
+                // Use ref to avoid stale closure
+                const currentTransition = activeTransitionRef.current;
+                const targetPanel = direction === 'up' ? currentTransition.nextPanel : currentTransition.prevPanel;
                 if (targetPanel) {
                     const { mainCategoryId, subCategoryId } = targetPanel;
                     const cacheKey = `${mainCategoryId}_${subCategoryId}`;
@@ -981,7 +994,7 @@ const CategoryProductsPage = () => {
                     }
                 }
 
-                setActiveTransition({
+                setActiveTransitionSynced({
                     active: false,
                     direction: null,
                     prevPanel: null,
@@ -1016,7 +1029,7 @@ const CategoryProductsPage = () => {
                         arrowRef.current.style.transition = 'none';
                         arrowRef.current.style.opacity = '0';
                     }
-                    setActiveTransition({
+                    setActiveTransitionSynced({
                         active: false,
                         direction: null,
                         prevPanel: null,
@@ -1039,7 +1052,7 @@ const CategoryProductsPage = () => {
         if (!container) return;
 
         const onTouchStart = (e) => {
-            if (activeTransition.active) return;
+            if (activeTransitionRef.current.active) return;
             handleDragStart(e.touches[0].clientY, e.touches[0].clientX, true, container.scrollTop, container.scrollHeight, container.clientHeight);
         };
         const onTouchMove = (e) => {
@@ -1057,7 +1070,7 @@ const CategoryProductsPage = () => {
         };
 
         const onMouseDown = (e) => {
-            if (activeTransition.active) return;
+            if (activeTransitionRef.current.active) return;
             handleDragStart(e.clientY, e.clientX, false, container.scrollTop, container.scrollHeight, container.clientHeight);
         };
         const onMouseMove = (e) => {
@@ -1078,8 +1091,8 @@ const CategoryProductsPage = () => {
             // Only care about vertical scrolling
             if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
 
-            // Enforce a strict global cooldown of 1.2s between category switches
-            if (Date.now() - scrollCooldownRef.current < 1200) {
+            // Enforce a global cooldown of 0.8s between category switches
+            if (Date.now() - scrollCooldownRef.current < 800) {
                 overscrollAccumulatorRef.current = 0;
                 return;
             }
@@ -1090,9 +1103,9 @@ const CategoryProductsPage = () => {
             const maxScroll = Math.max(0, currentScrollHeight - currentClientHeight);
 
             // If we are at the top and scrolling up
-            if (currentScrollTop <= 0 && e.deltaY < 0) {
+            if (currentScrollTop <= 2 && e.deltaY < 0) {
                 overscrollAccumulatorRef.current += e.deltaY;
-                if (overscrollAccumulatorRef.current < -300) {
+                if (overscrollAccumulatorRef.current < -150) {
                     overscrollAccumulatorRef.current = 0;
                     const { prev } = getAdjacentPanels();
                     if (prev) {
@@ -1110,10 +1123,10 @@ const CategoryProductsPage = () => {
                     }
                 }
             } 
-            // If we are at the bottom and scrolling down
-            else if (currentScrollTop >= maxScroll - 2 && e.deltaY > 0) {
+            // If we are at the bottom and scrolling down - use 8px tolerance
+            else if (currentScrollTop >= maxScroll - 8 && e.deltaY > 0) {
                 overscrollAccumulatorRef.current += e.deltaY;
-                if (overscrollAccumulatorRef.current > 300) {
+                if (overscrollAccumulatorRef.current > 150) {
                     overscrollAccumulatorRef.current = 0;
                     const { next } = getAdjacentPanels();
                     if (next) {
@@ -1130,8 +1143,8 @@ const CategoryProductsPage = () => {
                         }
                     }
                 }
-            } else {
-                // If scrolling normally within bounds, reset accumulator
+            } else if (currentScrollTop < maxScroll - 8) {
+                // Only reset accumulator if clearly NOT at boundary
                 overscrollAccumulatorRef.current = 0;
             }
         };
@@ -1154,7 +1167,8 @@ const CategoryProductsPage = () => {
             window.removeEventListener('mouseup', onMouseUp);
             container.removeEventListener('wheel', onWheel);
         };
-    }, [selectedSubCategory, catId, activeTransition, isProductDetailOpen, subCategories, mainCategories]);
+        // Note: activeTransition removed from deps — we use activeTransitionRef to avoid stale closures
+    }, [selectedSubCategory, catId, isProductDetailOpen, subCategories, mainCategories]);
 
     const productsById = React.useMemo(() => {
         const map = {};
