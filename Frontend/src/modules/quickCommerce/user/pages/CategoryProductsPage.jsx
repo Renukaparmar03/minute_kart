@@ -337,6 +337,7 @@ const CategoryProductsPage = () => {
     const currentPanelRef = React.useRef(null);
     const prevPanelRef = React.useRef(null);
     const nextPanelRef = React.useRef(null);
+    const sidebarRef = React.useRef(null);
 
     // Retrieve header theme on mount
     useEffect(() => {
@@ -775,6 +776,20 @@ const CategoryProductsPage = () => {
             }
         }
     }, [selectedSubCategory, catId, isLoading]);
+
+    // Auto-scroll sidebar to keep active subcategory visible
+    useEffect(() => {
+        const sidebar = sidebarRef.current;
+        if (!sidebar) return;
+        const activeBtn = sidebar.querySelector(`[data-subcat-id="${selectedSubCategory}"]`);
+        if (!activeBtn) return;
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        // Calculate how much to scroll so button is centered in sidebar
+        const targetScrollTop =
+            sidebar.scrollTop + (btnRect.top - sidebarRect.top) - sidebarRect.height / 2 + btnRect.height / 2;
+        sidebar.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+    }, [selectedSubCategory]);
 
     // Gesture Handlers
     const handleDragStart = (clientY, clientX, isTouch, scrollTop, scrollHeight, clientHeight) => {
@@ -1298,10 +1313,14 @@ const CategoryProductsPage = () => {
 
                 <div className="flex flex-1 relative overflow-hidden h-full">
                     {/* Sidebar */}
-                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar h-full pb-32 transition-colors touch-pan-y overscroll-contain">
+                    <aside
+                        ref={sidebarRef}
+                        className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar h-full pb-32 transition-colors touch-pan-y overscroll-contain"
+                    >
                         {subCategories.map((cat) => (
                             <button
                                 key={cat.id}
+                                data-subcat-id={cat.id}
                                 onClick={() => setSelectedSubCategory(cat.id)}
                                 className={cn(
                                     "flex flex-col items-center py-3.5 px-1 gap-1.5 transition-all relative",
