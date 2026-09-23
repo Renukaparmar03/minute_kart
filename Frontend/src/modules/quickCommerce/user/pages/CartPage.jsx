@@ -482,7 +482,7 @@ const CartPage = () => {
           phone: savedRecipient ? savedRecipient.phone : (selectedAddress.phone || user?.phone || ""),
           location: selectedAddress.location,
         },
-        paymentMode: selectedPayment === "online" ? "ONLINE" : "COD",
+        paymentMode: selectedPayment === "razorpay" ? "ONLINE" : "COD",
         discountTotal: selectedCoupon ? selectedCoupon.discountAmount || selectedCoupon.discount || 0 : 0,
         taxTotal: gstAmount,
         platformFee: platformFee,
@@ -495,7 +495,7 @@ const CartPage = () => {
         const placedOrderId = order?.orderId || order?.orderNumber || order?.id || order?._id || "";
 
         // Online Payment
-        if (selectedPayment === "online" && response.data.razorpay) {
+        if (selectedPayment === "razorpay" && response.data.razorpay) {
           const razorpayData = response.data.razorpay;
           const userName = user?.name || "Customer";
           const userEmail = user?.email || "customer@example.com";
@@ -562,9 +562,9 @@ const CartPage = () => {
         showToast(response.data.message || "Failed to place order", "error");
       }
     } catch (err) {
-      console.error("Place order failed:", err);
+      console.error("Place order failed:", err, err.response?.data);
       showToast(
-        err.response?.data?.message || "Failed to place order. Please try again.",
+        err.response?.data?.message || err.response?.data?.error || "Failed to place order. Please try again.",
         "error"
       );
     } finally {

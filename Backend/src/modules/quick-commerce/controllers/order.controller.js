@@ -96,7 +96,7 @@ const normalizeOrderSummary = (order) => {
 const normalizeDeliveryAddress = (address) => {
   if (!address || typeof address !== 'object') return null;
 
-  const street = String(address.address || address.street || '').trim();
+  const street = String(address.address || address.street || '').trim() || 'NA';
   const city = String(address.city || '').trim();
   const additionalDetails = String(address.landmark || address.additionalDetails || '').trim();
   const phone = String(address.phone || '').trim();
@@ -317,7 +317,7 @@ export const placeOrder = async (req, res) => {
     const shouldFanOutSellerOrders = true;
     const deliveryAddress = normalizeDeliveryAddress(req.body?.address);
 
-    const sellerIds = [...new Set(products.map((p) => String(p.sellerId)).filter(Boolean))];
+    const sellerIds = [...new Set(products.map((p) => p.sellerId ? String(p.sellerId) : null).filter(Boolean))];
     const sellers = await Seller.find({ _id: { $in: sellerIds } }).lean();
 
     // Validate zone constraint
@@ -605,7 +605,8 @@ export const placeOrder = async (req, res) => {
       razorpay: razorpayPayload
     });
   } catch (error) {
-    logger.error(`Quick placeOrder failed: ${error?.message || error}`);
+    console.error("Quick placeOrder error:", error);
+    logger.error(`Quick placeOrder failed: ${error?.stack || error}`);
     return res.status(500).json({
       success: false,
       error: error?.message || 'Failed to place quick order',
