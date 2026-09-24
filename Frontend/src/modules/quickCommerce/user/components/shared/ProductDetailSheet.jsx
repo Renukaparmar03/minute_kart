@@ -179,7 +179,7 @@ const ProductDetailSheet = () => {
             isWishlisted ? 'info' : 'success'
         );
     };
-
+ 
     const handleAddToCart = async () => {
         const result = await addToCart(selectedProduct);
         if (result?.ok === false) {
