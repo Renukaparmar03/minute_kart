@@ -513,7 +513,9 @@ const ProductDetailPage = () => {
     }
     const result = await addToCart(variantProduct);
     if (result?.ok === false) {
-      showToast(result.error || "Cannot add item to cart", "error");
+      if (!result?.silent) {
+        showToast(result.error || "Cannot add item to cart", "error");
+      }
       return;
     }
     showToast(`${variantProduct.name} added to cart`, "success");

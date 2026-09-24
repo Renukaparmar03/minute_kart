@@ -207,7 +207,8 @@ export function CartProvider({ children }) {
     if (replaceModal.pendingItem) {
       setCart((prev) => {
         const safePrev = normalizeCartData(prev)
-        const nonFoodItems = safePrev.filter((item) => getItemOrderType(item) !== "food")
+        const pendingOrderType = getItemOrderType(replaceModal.pendingItem)
+        const nonMatchingItems = safePrev.filter((item) => getItemOrderType(item) !== pendingOrderType)
         const newItem = { ...replaceModal.pendingItem, quantity: 1 }
 
         if (replaceModal.pendingSourcePosition) {
@@ -222,7 +223,7 @@ export function CartProvider({ children }) {
           setTimeout(() => setLastAddEvent(null), 1500)
         }
 
-        return [...nonFoodItems, newItem]
+        return [...nonMatchingItems, newItem]
       })
     }
     setReplaceModal({
@@ -328,8 +329,15 @@ export function CartProvider({ children }) {
           const newItemStoreName = item?.quickStoreName || item?.storeName || item?.sellerName || item?.sourceName || "another store";
 
           if (firstItemStoreId && newItemStoreId && String(firstItemStoreId) !== String(newItemStoreId)) {
+            setReplaceModal({
+              isOpen: true,
+              existingRestaurant: firstItemStoreName || 'another store',
+              newRestaurant: newItemStoreName || 'Store',
+              pendingItem: item,
+              pendingSourcePosition: sourcePosition
+            })
             const message = `Cart already contains items from "${firstItemStoreName || 'another store'}". Please clear your cart first.`;
-            return { ok: false, error: message, code: 'STORE_MISMATCH' };
+            return { ok: false, error: message, code: 'STORE_MISMATCH', silent: true };
           }
         }
       }
@@ -592,6 +600,7 @@ export function CartProvider({ children }) {
         onConfirm={handleConfirmReplace}
         existingRestaurant={replaceModal.existingRestaurant}
         newRestaurant={replaceModal.newRestaurant}
+        itemType={replaceModal.pendingItem ? getItemOrderType(replaceModal.pendingItem) : "food"}
       />
       {typeof window !== "undefined" &&
         createPortal(
@@ -776,7 +785,9 @@ export function CartProvider({ children }) {
   )
 }
 
-const ReplaceCartModal = ({ isOpen, onClose, onConfirm, existingRestaurant, newRestaurant }) => {
+const ReplaceCartModal = ({ isOpen, onClose, onConfirm, existingRestaurant, newRestaurant, itemType = "food" }) => {
+  const noun = itemType === "quick" ? "items" : "dishes";
+  
   return (
     <AnimatePresence>
       {isOpen && (
@@ -811,7 +822,7 @@ const ReplaceCartModal = ({ isOpen, onClose, onConfirm, existingRestaurant, newR
                 Replace cart item?
               </h3>
               <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                Your cart contains dishes from <span className="font-semibold text-gray-700 dark:text-gray-300">{existingRestaurant}</span>. Do you want to discard the selection and add dishes from <span className="font-semibold text-gray-700 dark:text-gray-300">{newRestaurant}</span>?
+                Your cart contains {noun} from <span className="font-semibold text-gray-700 dark:text-gray-300">{existingRestaurant}</span>. Do you want to discard the selection and add {noun} from <span className="font-semibold text-gray-700 dark:text-gray-300">{newRestaurant}</span>?
               </p>
             </div>
 

@@ -412,7 +412,9 @@ const ProductCard = React.memo(
 
         const result = await addToCart(targetProduct);
         if (result?.ok === false) {
-          showToast(result.error || "Cannot add item to cart", "error");
+          if (!result?.silent) {
+            showToast(result.error || "Cannot add item to cart", "error");
+          }
           return;
         }
       },
@@ -529,7 +531,9 @@ const ProductCard = React.memo(
 
         const result = await addToCart(variantProductObj);
         if (result?.ok === false) {
-          showToast(result.error || "Cannot add variant to cart", "error");
+          if (!result?.silent) {
+            showToast(result.error || "Cannot add variant to cart", "error");
+          }
           return;
         }
 

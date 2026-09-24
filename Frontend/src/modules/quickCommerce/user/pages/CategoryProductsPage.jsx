@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Heart, Minus, Plus, ChevronsDown, ChevronsUp, SlidersHorizontal, ArrowUpDown, ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronLeft, Heart, Minus, Plus, ChevronsDown, ChevronsUp, SlidersHorizontal, ArrowUpDown, ChevronDown, Loader2, Search, Share2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -300,6 +300,12 @@ const CategoryProductsPage = () => {
     const [heroConfig, setHeroConfig] = useState(null);
     const [categoryMap, setCategoryMap] = useState({});
     const [subcategoryMap, setSubcategoryMap] = useState({});
+
+    // Search and Share States
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     // Filter and Sort States
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -789,6 +795,51 @@ const CategoryProductsPage = () => {
             sessionStorage.setItem(`quick.subcat.${catId}`, selectedSubCategory);
         }
     }, [selectedSubCategory, catId]);
+
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: category?.name || 'Category Products',
+                    url: window.location.href,
+                });
+            } else {
+                await navigator.clipboard.writeText(window.location.href);
+                // Can integrate a toast here if needed
+                alert('Link copied to clipboard!');
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    };
+
+    const handleSearch = async (query) => {
+        setSearchQuery(query);
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const res = await customerApi.getProducts({ categoryId: catId, search: query, limit: 30 });
+            if (res?.data?.success) {
+                const results = res.data.result?.items || res.data.results || [];
+                const mapped = results.map(p => ({
+                        ...p,
+                        id: p._id,
+                        image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+                        price: p.salePrice || p.price,
+                        originalPrice: p.price,
+                        weight: p.unit || p.weight || "1 unit",
+                        deliveryTime: p.deliveryTime || "8-15 mins"
+                    }));
+                setSearchResults(mapped);
+            }
+        } catch (err) {
+            console.error("Search error:", err);
+        }
+        setIsSearching(false);
+    };
 
     // Auto-scroll sidebar to keep active subcategory visible
     // Also depends on isLoading so it re-fires once page fully renders after back-navigation
@@ -1328,9 +1379,88 @@ const CategoryProductsPage = () => {
                             </h1>
                         </div>
                     </div>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                        <button
+                            onClick={() => setIsSearchOpen(true)}
+                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                        >
+                            <Search size={22} strokeWidth={2.5} className="text-white" />
+                        </button>
+                        <button
+                            onClick={handleShare}
+                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                        >
+                            <Share2 size={22} strokeWidth={2.5} className="text-white" />
+                        </button>
+                    </div>
                 </header>
 
                 <div className="flex flex-1 relative overflow-hidden h-full">
+                    {/* Search Overlay */}
+                    {isSearchOpen && (
+                        <div className="fixed inset-0 z-[200] bg-white dark:bg-neutral-950 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+                            {/* Search Header */}
+                            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-neutral-800 shadow-sm shrink-0">
+                                <button
+                                    onClick={() => {
+                                        setIsSearchOpen(false);
+                                        setSearchQuery("");
+                                        setSearchResults([]);
+                                    }}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-full transition-colors active:scale-95"
+                                >
+                                    <ChevronLeft size={24} className="text-slate-800 dark:text-slate-200" />
+                                </button>
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        placeholder={`Search in ${category?.name || 'this category'}...`}
+                                        value={searchQuery}
+                                        onChange={(e) => handleSearch(e.target.value)}
+                                        className="w-full bg-slate-100/80 dark:bg-neutral-900 border-none rounded-xl py-2.5 pl-10 pr-10 text-[14px] font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#0c831f]/30 outline-none placeholder:text-slate-400 placeholder:font-medium transition-all"
+                                    />
+                                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => handleSearch("")}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-200 dark:hover:bg-neutral-700 rounded-full active:scale-95"
+                                        >
+                                            <X size={14} className="text-slate-500" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Search Results */}
+                            <div className="flex-1 overflow-y-auto p-3 hide-scrollbar">
+                                {isSearching ? (
+                                    <div className="flex justify-center items-center h-40">
+                                        <Loader2 className="animate-spin text-[#0c831f]" size={32} />
+                                    </div>
+                                ) : searchQuery.trim() === "" ? (
+                                    <div className="flex flex-col items-center justify-center h-full opacity-50 pb-20">
+                                        <Search size={48} className="mb-4 text-slate-300 dark:text-slate-600" />
+                                        <p className="text-sm font-bold text-slate-400">Type to search for products</p>
+                                    </div>
+                                ) : searchResults.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4 pb-20">
+                                        {searchResults.map((product) => (
+                                            <CategoryProductCard key={product.id} product={product} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full opacity-50 pb-20">
+                                        <div className="w-16 h-16 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
+                                            <Search size={28} className="text-slate-400" />
+                                        </div>
+                                        <p className="text-[15px] font-bold text-slate-600 dark:text-slate-300">No products found</p>
+                                        <p className="text-[13px] font-medium text-slate-400 mt-1">Try searching with a different keyword</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {/* Sidebar */}
                     <aside
                         ref={sidebarRef}

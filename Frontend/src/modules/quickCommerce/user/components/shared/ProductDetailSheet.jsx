@@ -183,7 +183,9 @@ const ProductDetailSheet = () => {
     const handleAddToCart = async () => {
         const result = await addToCart(selectedProduct);
         if (result?.ok === false) {
-            showToast(result.error || "Cannot add item to cart", "error");
+            if (!result?.silent) {
+                showToast(result.error || "Cannot add item to cart", "error");
+            }
             return;
         }
         showToast(`${selectedProduct.name} added to cart`, 'success');
