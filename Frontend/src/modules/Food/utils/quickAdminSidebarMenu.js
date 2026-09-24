@@ -55,10 +55,12 @@ export const quickAdminSidebarMenu = [
         label: "Sellers",
         icon: "Building2",
         subItems: [
+          { label: "All Sellers", path: "/admin/quick-commerce/sellers/all" },
           { label: "Active Sellers", path: "/admin/quick-commerce/sellers/active" },
           { label: "Waiting for Review", path: "/admin/quick-commerce/sellers/pending" },
           { label: "Seller Locations", path: "/admin/quick-commerce/seller-locations" },
           { label: "Seller Commission", path: "/admin/quick-commerce/sellers/commission" },
+          { label: "Seller Rank Management", path: "/admin/quick-commerce/sellers/rank-management" },
         ],
       },
       {

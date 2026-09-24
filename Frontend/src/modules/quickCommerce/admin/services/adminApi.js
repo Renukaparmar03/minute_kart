@@ -442,6 +442,9 @@ export const adminApi = {
   getReturnSettings: () => axiosInstance.get('/quick-commerce/admin/returns/settings'),
   updateReturnSettings: (data) => axiosInstance.put('/quick-commerce/admin/returns/settings', data),
   getReturnDetails: (id) => axiosInstance.get(`/quick-commerce/admin/returns/${id}`),
+  getAllSellers: (params) => axiosInstance.get('/quick-commerce/admin/sellers', { params }),
+  getSellersRank: (params) => axiosInstance.get('/quick-commerce/admin/sellers-rank', { params }),
+  updateSellersRank: (payload) => axiosInstance.post('/quick-commerce/admin/sellers-rank', payload),
   updateReturnAction: (id, endpoint, payload) => {
     const method = endpoint === "broadcast" ? "post" : "put";
     return axiosInstance[method](`/quick-commerce/admin/returns/${id}/${endpoint}`, payload);

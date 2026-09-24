@@ -14,6 +14,7 @@ const CategoryHierarchy = React.lazy(() => import("../pages/categories/CategoryH
 const ProductManagement = React.lazy(() => import("../pages/ProductManagement"))
 const ActiveSellers = React.lazy(() => import("../pages/ActiveSellers"))
 const PendingSellers = React.lazy(() => import("../pages/PendingSellers"))
+const AllSellersList = React.lazy(() => import("../pages/AllSellersList"))
 const SellerLocations = React.lazy(() => import("../pages/SellerLocations"))
 const ActiveDeliveryBoys = React.lazy(() => import("../pages/ActiveDeliveryBoys"))
 const PendingDeliveryBoys = React.lazy(() => import("../pages/PendingDeliveryBoys"))
@@ -48,6 +49,7 @@ const SellerCommission = React.lazy(() => import("../pages/SellerCommission"))
 const ReturnSettings = React.lazy(() => import("../pages/ReturnSettings"))
 const ReturnsList = React.lazy(() => import("../pages/ReturnsList"))
 const ReturnDetails = React.lazy(() => import("../pages/ReturnDetails"))
+const SellerRankManagement = React.lazy(() => import("../pages/SellerRankManagement"))
 
 
 
@@ -69,8 +71,10 @@ function QuickCommerceAdminRoutesInner() {
       <Route path="/zone-setup/view/:id" element={<QuickViewZone />} />
       <Route path="/seller-requests" element={<PendingSellers />} />
       <Route path="/sellers/active" element={<ActiveSellers />} />
+      <Route path="/sellers/all" element={<AllSellersList />} />
       <Route path="/sellers/active/:id" element={<SellerDetail />} />
       <Route path="/sellers/commission" element={<SellerCommission />} />
+      <Route path="/sellers/rank-management" element={<SellerRankManagement />} />
       <Route path="/support-tickets" element={<SupportTickets />} />
       <Route path="/moderation" element={<ReviewModeration />} />
       <Route path="/experience-studio" element={<ContentManager />} />

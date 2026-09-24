@@ -1275,6 +1275,31 @@ const CategoryProductsPage = () => {
         const resolvedBannerUrl = resolveQuickImageUrl(bannerUrl);
         const isPanelLoading = panelLoading || panelData.isLoading;
 
+        const groupedProducts = {};
+        const pickUpPointsMap = {};
+        let pickupCounter = 1;
+        let orderedSellers = [];
+
+        if (subCategoryId !== 'all' && productsList.length > 0) {
+            productsList.forEach(product => {
+                const sellerId = product.sellerId || (product.seller && product.seller._id) || product.storeId || 'unknown';
+                if (!groupedProducts[sellerId]) {
+                    groupedProducts[sellerId] = [];
+                }
+                groupedProducts[sellerId].push(product);
+            });
+
+            orderedSellers = Object.keys(groupedProducts).map(sellerId => {
+                const firstProduct = groupedProducts[sellerId][0];
+                const rank = firstProduct?.seller?.rank ?? Number.MAX_SAFE_INTEGER;
+                return { sellerId, rank };
+            }).sort((a, b) => a.rank - b.rank);
+
+            orderedSellers.forEach(({ sellerId }) => {
+                pickUpPointsMap[sellerId] = `Pick up point ${pickupCounter++}`;
+            });
+        }
+
         return (
             <div 
                 ref={isCurrent ? currentPanelScrollRef : null}
@@ -1320,7 +1345,7 @@ const CategoryProductsPage = () => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4"
+                    className={subCategoryId !== 'all' && !isPanelLoading && productsList.length > 0 ? "flex flex-col gap-6" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4"}
                 >
                     {isPanelLoading ? (
                         Array.from({ length: 8 }).map((_, i) => (
@@ -1335,6 +1360,19 @@ const CategoryProductsPage = () => {
                                 <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-800 rounded mt-2.5 mb-1.5" />
                                 <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
                                 <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
+                            </div>
+                        ))
+                    ) : subCategoryId !== 'all' && productsList.length > 0 ? (
+                        orderedSellers.map(({ sellerId }) => (
+                            <div key={sellerId} className="flex flex-col">
+                                <h3 className="text-[14px] md:text-[15px] font-extrabold text-slate-800 dark:text-white mb-3 pl-1 border-l-4 border-[#0c831f] rounded-sm flex items-center">
+                                    <span className="ml-2">{pickUpPointsMap[sellerId]}</span>
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
+                                    {groupedProducts[sellerId].map(product => (
+                                        <CategoryProductCard key={product.id} product={product} />
+                                    ))}
+                                </div>
                             </div>
                         ))
                     ) : (

@@ -1750,3 +1750,31 @@ export const getAdminFinanceTransactions = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getAdminSellersRank = async (req, res) => {
+  try {
+    const { categoryId } = req.query; let sellerIds = []; if (categoryId) { const products = await QuickProduct.find({ $or: [ { headerId: categoryId }, { categoryId: categoryId }, { subcategoryId: categoryId } ] }).select('sellerId').lean(); sellerIds = [...new Set(products.map(p => String(p.sellerId)).filter(id => id && id !== 'undefined' && id !== 'null'))]; } if (categoryId && sellerIds.length === 0) { return res.json({ success: true, result: [] }); } const query = sellerIds.length > 0 ? { _id: { $in: sellerIds } } : {}; const sellersRaw = await Seller.find(query).select('name shopName rank categoryRanks isVerified isActive approvalStatus createdAt').lean(); const sellers = sellersRaw.map(seller => { let rank = seller.rank || 0; if (categoryId && seller.categoryRanks && seller.categoryRanks[categoryId] !== undefined) { rank = seller.categoryRanks[categoryId]; } return { ...seller, rank }; }).sort((a, b) => { if (a.rank === b.rank) return new Date(b.createdAt) - new Date(a.createdAt); return a.rank - b.rank; }); return res.json({ success: true, result: sellers });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateAdminSellersRank = async (req, res) => {
+  try {
+    const { sellers, categoryId } = req.body;
+    if (!Array.isArray(sellers)) {
+      return res.status(400).json({ success: false, message: 'Invalid payload' });
+    }
+    const updatePromises = sellers.map(seller => { if (categoryId) { const updatePath = `categoryRanks.${categoryId}`; return Seller.findByIdAndUpdate(seller._id, { $set: { [updatePath]: seller.rank } }); } else { return Seller.findByIdAndUpdate(seller._id, { rank: seller.rank }); } });
+    await Promise.all(updatePromises);
+    return res.json({ success: true, message: 'Seller ranks updated successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+
+
+export const getAllAdminSellers = async (req, res) => { try { const sellers = await Seller.find({}).sort({ createdAt: -1 }); return res.json({ success: true, results: sellers }); } catch (error) { return res.status(500).json({ success: false, message: error.message }); } };

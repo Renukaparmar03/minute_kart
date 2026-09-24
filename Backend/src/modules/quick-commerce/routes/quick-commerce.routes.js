@@ -95,6 +95,9 @@ import {
   updateAdminBestSellerSection,
   deleteAdminBestSellerSection,
   reorderAdminBestSellerSections,
+  getAdminSellersRank,
+  updateAdminSellersRank,
+  getAllAdminSellers,
 } from "../controllers/admin.controller.js";
 import {
   getSellerCommissionBootstrap,
@@ -301,6 +304,7 @@ router.patch(
   ...adminOnly,
   updateAdminSupportTicketController,
 );
+router.get("/admin/sellers", ...adminOnly, getAllAdminSellers);
 router.get("/admin/seller-requests", ...adminOnly, getAdminSellerRequests);
 router.put(
   "/admin/seller-requests/:sellerId/approve",
@@ -440,5 +444,9 @@ router.patch(
   ...adminOnly,
   toggleDeliveryCommissionRuleStatus,
 );
+
+// Sellers Rank Management
+router.get("/admin/sellers-rank", ...adminOnly, getAdminSellersRank);
+router.post("/admin/sellers-rank", ...adminOnly, updateAdminSellersRank);
 
 export default router;

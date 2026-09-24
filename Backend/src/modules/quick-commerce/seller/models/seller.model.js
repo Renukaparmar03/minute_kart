@@ -176,6 +176,15 @@ const sellerSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    rank: {
+      type: Number,
+      default: 0,
+    },
+    categoryRanks: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
   },
   {
     collection: 'quick_seller_profiles',

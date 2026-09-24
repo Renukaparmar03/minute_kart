@@ -99,7 +99,7 @@ export const buildSellerMap = async (products = []) => {
   if (!sellerIds.length) return {};
 
   const sellers = await Seller.find({ _id: { $in: sellerIds } })
-    .select('_id shopName name fcId')
+    .select('_id shopName name fcId rank categoryRanks')
     .lean();
 
   return sellers.reduce((acc, seller) => {
@@ -144,6 +144,7 @@ export const mapProduct = (product, sellerMap = {}) => {
         id: seller._id,
         name: brandedName,
         shopName: brandedName,
+        rank: (seller.categoryRanks && (seller.categoryRanks[product.headerId] ?? seller.categoryRanks[product.categoryId] ?? seller.categoryRanks[product.subcategoryId])) ?? seller.rank ?? Number.MAX_SAFE_INTEGER,
       }
     : null,
   storeName: brandedName,
@@ -577,4 +578,6 @@ export const getStoreDetails = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to fetch store details' });
   }
 };
+
+
 
