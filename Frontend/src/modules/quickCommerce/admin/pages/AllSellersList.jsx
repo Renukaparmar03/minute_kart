@@ -27,10 +27,12 @@ const AllSellersList = () => {
     };
 
     const filteredSellers = sellers.filter(seller => 
+        seller.approvalStatus === 'approved' && (
         (seller.shopName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (seller.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (seller.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (seller.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
 
     return (

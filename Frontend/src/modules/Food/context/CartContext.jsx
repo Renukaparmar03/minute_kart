@@ -823,7 +823,7 @@ const ReplaceCartModal = ({ isOpen, onClose, onConfirm, existingRestaurant, newR
               </h3>
               <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                 {itemType === "quick" ? (
-                  <>Your cart contains items from another seller. Do you want to discard the previous selection and add items from this new seller?</>
+                  <>Your cart contains items from pickup point 1. Do you want to discard the previous selection and add items from pickup point 2?</>
                 ) : (
                   <>Your cart contains {noun} from <span className="font-semibold text-gray-700 dark:text-gray-300">{existingRestaurant}</span>. Do you want to discard the selection and add {noun} from <span className="font-semibold text-gray-700 dark:text-gray-300">{newRestaurant}</span>?</>
                 )}
