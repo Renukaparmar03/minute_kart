@@ -22,11 +22,11 @@ const SellerRankManagement = () => {
 
     const fetchCategories = async () => {
         try {
-            const res = await adminApi.getCategories({ limit: 100 });
+            const res = await adminApi.getCategories({ limit: 500 });
             if (res.data?.success) {
                 const cats = res.data.results || res.data.result?.items || [];
-                // Only take header level categories or all main categories
-                const filteredCats = cats.filter(c => c.type === 'header' || c.level === 0 || !c.parentId);
+                // Show all categories without filtering root level
+                const filteredCats = cats;
                 setCategories(filteredCats);
                 const allCat = filteredCats.find(c => c.name.toLowerCase() === 'all');
                 if (allCat) {
