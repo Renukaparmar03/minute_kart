@@ -8,6 +8,7 @@ const SellerRankManagement = () => {
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [rotationIntervalDays, setRotationIntervalDays] = useState(1);
 
     useEffect(() => {
         fetchCategories();
@@ -25,7 +26,14 @@ const SellerRankManagement = () => {
             if (res.data?.success) {
                 const cats = res.data.results || res.data.result?.items || [];
                 // Only take header level categories or all main categories
-                setCategories(cats.filter(c => c.type === 'header' || c.level === 0 || !c.parentId));
+                const filteredCats = cats.filter(c => c.type === 'header' || c.level === 0 || !c.parentId);
+                setCategories(filteredCats);
+                const allCat = filteredCats.find(c => c.name.toLowerCase() === 'all');
+                if (allCat) {
+                    setSelectedCategoryId(allCat.id || allCat._id);
+                } else if (filteredCats.length > 0) {
+                    setSelectedCategoryId(filteredCats[0].id || filteredCats[0]._id);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch categories:", error);
@@ -35,9 +43,18 @@ const SellerRankManagement = () => {
     const fetchSellers = async () => {
         setIsLoading(true);
         try {
-            const res = await adminApi.getSellersRank({ categoryId: selectedCategoryId || undefined });
+            let effectiveCategoryId = selectedCategoryId;
+            const allCat = categories.find(c => c.name.toLowerCase() === 'all');
+            if (allCat && (allCat.id === selectedCategoryId || allCat._id === selectedCategoryId)) {
+                effectiveCategoryId = undefined;
+            }
+            const res = await adminApi.getSellersRank({ categoryId: effectiveCategoryId || undefined,
+                rotationIntervalDays: Number(rotationIntervalDays) });
             if (res.data?.success) {
                 let fetchedSellers = res.data.result || [];
+                if (res.data.rotationIntervalDays !== undefined) {
+                    setRotationIntervalDays(res.data.rotationIntervalDays);
+                }
                 fetchedSellers.sort((a, b) => {
                     const rankA = a.rank ?? 999;
                     const rankB = b.rank ?? 999;
@@ -105,13 +122,22 @@ const SellerRankManagement = () => {
                         onChange={(e) => setSelectedCategoryId(e.target.value)}
                         className="px-4 py-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-lg outline-none focus:ring-2 focus:ring-[#0c831f]"
                     >
-                        <option value="">Global (Default) Rank</option>
                         {categories.map(cat => (
                             <option key={cat.id || cat._id} value={cat.id || cat._id}>
                                 {cat.name}
                             </option>
                         ))}
                     </select>
+                    <div className="flex items-center gap-2 mr-4">
+                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Rotation Days:</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={rotationIntervalDays}
+                            onChange={(e) => setRotationIntervalDays(e.target.value)}
+                            className="w-20 px-3 py-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-lg outline-none focus:ring-2 focus:ring-[#0c831f]"
+                        />
+                    </div>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}

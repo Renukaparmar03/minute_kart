@@ -4,6 +4,7 @@ import { QuickCategory } from '../models/category.model.js';
 import { QuickProduct } from '../models/product.model.js';
 import { QuickOrder } from '../models/order.model.js';
 import { Seller } from '../seller/models/seller.model.js';
+import { SellerRankSettings } from '../models/sellerRankSettings.model.js';
 import { SellerOrder } from '../seller/models/sellerOrder.model.js';
 import { QuickZone } from '../models/quick_zone.model.js';
 import { ensureQuickCommerceSeedData } from '../services/seed.service.js';
@@ -1753,7 +1754,10 @@ export const getAdminFinanceTransactions = async (req, res) => {
 
 export const getAdminSellersRank = async (req, res) => {
   try {
-    const { categoryId } = req.query; let sellerIds = []; if (categoryId) { const products = await QuickProduct.find({ $or: [ { headerId: categoryId }, { categoryId: categoryId }, { subcategoryId: categoryId } ] }).select('sellerId').lean(); sellerIds = [...new Set(products.map(p => String(p.sellerId)).filter(id => id && id !== 'undefined' && id !== 'null'))]; } if (categoryId && sellerIds.length === 0) { return res.json({ success: true, result: [] }); } const query = sellerIds.length > 0 ? { _id: { $in: sellerIds } } : {}; const sellersRaw = await Seller.find(query).select('name shopName rank categoryRanks isVerified isActive approvalStatus createdAt').lean(); const sellers = sellersRaw.map(seller => { let rank = seller.rank || 0; if (categoryId && seller.categoryRanks && seller.categoryRanks[categoryId] !== undefined) { rank = seller.categoryRanks[categoryId]; } return { ...seller, rank }; }).sort((a, b) => { if (a.rank === b.rank) return new Date(b.createdAt) - new Date(a.createdAt); return a.rank - b.rank; }); return res.json({ success: true, result: sellers });
+    const { categoryId } = req.query; let sellerIds = []; if (categoryId) { const products = await QuickProduct.find({ $or: [ { headerId: categoryId }, { categoryId: categoryId }, { subcategoryId: categoryId } ] }).select('sellerId').lean(); sellerIds = [...new Set(products.map(p => String(p.sellerId)).filter(id => id && id !== 'undefined' && id !== 'null'))]; } if (categoryId && sellerIds.length === 0) { return res.json({ success: true, result: [] }); } const query = sellerIds.length > 0 ? { _id: { $in: sellerIds }, approvalStatus: 'approved' } : { approvalStatus: 'approved' }; const sellersRaw = await Seller.find(query).select('name shopName rank categoryRanks isVerified isActive approvalStatus createdAt').lean(); const sellers = sellersRaw.map(seller => { let rank = seller.rank || 0; if (categoryId && seller.categoryRanks && seller.categoryRanks[categoryId] !== undefined) { rank = seller.categoryRanks[categoryId]; } return { ...seller, rank }; }).sort((a, b) => { if (a.rank === b.rank) return new Date(b.createdAt) - new Date(a.createdAt); return a.rank - b.rank; });
+    let settings = await SellerRankSettings.findOne();
+    if (!settings) { settings = await SellerRankSettings.create({ globalRotationInterval: 1 }); }
+    return res.json({ success: true, result: sellers, rotationIntervalDays: settings.globalRotationInterval });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -1761,7 +1765,11 @@ export const getAdminSellersRank = async (req, res) => {
 
 export const updateAdminSellersRank = async (req, res) => {
   try {
-    const { sellers, categoryId } = req.body;
+    const { sellers, categoryId, rotationIntervalDays } = req.body;
+    if (rotationIntervalDays !== undefined) {
+      let settings = await SellerRankSettings.findOne();
+      if (settings) { settings.globalRotationInterval = Number(rotationIntervalDays); await settings.save(); } else { await SellerRankSettings.create({ globalRotationInterval: Number(rotationIntervalDays) }); }
+    }
     if (!Array.isArray(sellers)) {
       return res.status(400).json({ success: false, message: 'Invalid payload' });
     }
