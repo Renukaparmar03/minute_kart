@@ -1754,7 +1754,27 @@ export const getAdminFinanceTransactions = async (req, res) => {
 
 export const getAdminSellersRank = async (req, res) => {
   try {
-    const { categoryId } = req.query; let sellerIds = []; if (categoryId) { const products = await QuickProduct.find({ $or: [ { headerId: categoryId }, { categoryId: categoryId }, { subcategoryId: categoryId } ] }).select('sellerId').lean(); sellerIds = [...new Set(products.map(p => String(p.sellerId)).filter(id => id && id !== 'undefined' && id !== 'null'))]; } if (categoryId && sellerIds.length === 0) { return res.json({ success: true, result: [] }); } const query = sellerIds.length > 0 ? { _id: { $in: sellerIds }, approvalStatus: 'approved' } : { approvalStatus: 'approved' }; const sellersRaw = await Seller.find(query).select('name shopName rank categoryRanks isVerified isActive approvalStatus createdAt').lean(); const sellers = sellersRaw.map(seller => { let rank = seller.rank || 0; if (categoryId && seller.categoryRanks && seller.categoryRanks[categoryId] !== undefined) { rank = seller.categoryRanks[categoryId]; } return { ...seller, rank }; }).sort((a, b) => { if (a.rank === b.rank) return new Date(b.createdAt) - new Date(a.createdAt); return a.rank - b.rank; });
+    const { categoryId } = req.query; 
+    let sellerIds = []; 
+    if (categoryId) { 
+        const products = await QuickProduct.find({ $or: [ { headerId: categoryId }, { categoryId: categoryId }, { subcategoryId: categoryId } ] }).select('sellerId').lean(); 
+        sellerIds = [...new Set(products.map(p => String(p.sellerId)).filter(id => id && id !== 'undefined' && id !== 'null'))]; 
+    } 
+    if (categoryId && sellerIds.length === 0) { 
+        return res.json({ success: true, result: [] }); 
+    } 
+    const query = sellerIds.length > 0 ? { _id: { $in: sellerIds }, approvalStatus: 'approved' } : { approvalStatus: 'approved' }; 
+    const sellersRaw = await Seller.find(query).select('name shopName rank categoryRanks isVerified isActive approvalStatus shopInfo createdAt').lean(); 
+    const sellers = sellersRaw.map(seller => { 
+      let rank = seller.rank || 0; 
+      if (categoryId && seller.categoryRanks && seller.categoryRanks[categoryId] !== undefined) { 
+        rank = seller.categoryRanks[categoryId]; 
+      } 
+      return { ...seller, rank }; 
+    }).sort((a, b) => { 
+      if (a.rank === b.rank) return new Date(b.createdAt) - new Date(a.createdAt); 
+      return a.rank - b.rank; 
+    });
     let settings = await SellerRankSettings.findOne();
     if (!settings) { settings = await SellerRankSettings.create({ globalRotationInterval: 1 }); }
     return res.json({ success: true, result: sellers, rotationIntervalDays: settings.globalRotationInterval });

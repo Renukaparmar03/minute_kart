@@ -25,18 +25,17 @@ const SellerRankManagement = () => {
             const res = await adminApi.getCategories({ limit: 500 });
             if (res.data?.success) {
                 const cats = res.data.results || res.data.result?.items || [];
-                // Show all categories without filtering root level
-                const filteredCats = cats;
-                setCategories(filteredCats);
-                const allCat = filteredCats.find(c => c.name.toLowerCase() === 'all');
-                if (allCat) {
-                    setSelectedCategoryId(allCat.id || allCat._id);
-                } else if (filteredCats.length > 0) {
-                    setSelectedCategoryId(filteredCats[0].id || filteredCats[0]._id);
+                const allowedNames = ["Grocery", "Bakery", "Pharmacy", "Electronics", "Fashion", "General Store"];
+                // Only take categories whose name matches one of the allowed names
+                const filteredCats = cats.filter(c => allowedNames.includes(c.name));
+                const mappedCats = [{ id: "", name: "All", _id: "" }, ...filteredCats];
+                setCategories(mappedCats);
+                if (!selectedCategoryId) {
+                    setSelectedCategoryId("");
                 }
             }
         } catch (error) {
-            console.error("Failed to fetch categories:", error);
+            console.error("Failed to load categories:", error);
         }
     };
 
