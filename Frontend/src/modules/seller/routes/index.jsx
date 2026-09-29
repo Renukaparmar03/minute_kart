@@ -151,21 +151,13 @@ const SellerAccessRouter = () => {
           ) : onboardingSubmitted ? (
             <PendingApproval />
           ) : (
-            <Navigate to="/seller/onboarding" replace />
+            <Navigate to="/seller" replace />
           )
         }
       />
       <Route
         path="*"
-        element={
-          approved ? (
-            <SellerWorkspace />
-          ) : requiresOnboarding ? (
-            <Navigate to="/seller/onboarding" replace />
-          ) : (
-            <Navigate to="/seller/pending" replace />
-          )
-        }
+        element={<SellerWorkspace />}
       />
     </Routes>
   );

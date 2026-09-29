@@ -34,11 +34,25 @@ import { MagicCard } from "@/components/ui/magic-card";
 import { BlurFade } from "@/components/ui/blur-fade";
 import ShimmerButton from "@/components/ui/shimmer-button";
 import Pagination from "@shared/components/ui/Pagination";
+import { useAuth } from "@core/context/AuthContext";
 
 const ProductManagement = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const qFromUrl = searchParams.get("q") || "";
+
+  const { user } = useAuth();
+  const approved = user?.approved !== false && (!user?.approvalStatus || user?.approvalStatus === "approved");
+  const onboardingSubmitted = user?.onboardingSubmitted === true;
+  const requiresOnboarding = !approved && (!onboardingSubmitted || user?.approvalStatus === "draft");
+
+  const handleAddProduct = () => {
+    if (requiresOnboarding) {
+      toast.error("Please complete your onboarding details first.");
+      return;
+    }
+    navigate("/seller/products/add");
+  };
 
   const [products, setProducts] = useState([]);
   const [dbCategories, setDbCategories] = useState([]);
@@ -402,7 +416,7 @@ const ProductManagement = () => {
             </p>
           </div>
           <ShimmerButton
-            onClick={() => navigate("/seller/products/add")}
+            onClick={handleAddProduct}
             className="px-6 py-2.5 rounded-lg text-xs font-bold shadow-xl flex items-center space-x-2 text-white"
             background="#0f172a">
             <HiOutlinePlus className="h-4 w-4 mr-2" />

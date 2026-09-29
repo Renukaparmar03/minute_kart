@@ -16,6 +16,7 @@ import {
   CheckCircle,
   LogOut,
   Trash2,
+  Clock,
 } from "lucide-react";
 import { authAPI } from "../../../services/api";
 import { sellerApi } from "../services/sellerApi";
@@ -45,6 +46,7 @@ const SellerProfile = () => {
     lng: null,
     radius: 5,
     address: "",
+    openingHours: "",
   });
 
   useEffect(() => {
@@ -71,6 +73,7 @@ const SellerProfile = () => {
         lng: (data.location?.coordinates && data.location.coordinates[0] !== undefined) ? data.location.coordinates[0] : null,
         radius: data.serviceRadius || 5,
         address: data.address || "",
+        openingHours: data.shopInfo?.openingHours || "",
       });
     } catch (error) {
       if (error?.response?.status !== 401) {
@@ -183,6 +186,7 @@ const SellerProfile = () => {
         lat: formData.lat,
         lng: formData.lng,
         radius: formData.radius,
+        shopInfo: { openingHours: formData.openingHours },
       };
       await sellerApi.updateProfile(payload);
       toast.success("Profile updated successfully");
@@ -221,100 +225,78 @@ const SellerProfile = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-8 font-['Outfit']">
-      {/* Header Section */}
-      <div className="relative mb-24 px-4">
-        {/* Banner Background */}
-        <div className="bg-linear-to-r from-slate-900 via-slate-950 to-black h-[400px] md:h-64 rounded-lg shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-          </div>
-        </div>
-
-        {/* Profile Info Row */}
-        <div className="absolute bottom-8 left-4 right-4 md:left-12 md:right-12 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-10">
-          {/* Avatar Container */}
-          <div className="h-32 w-32 md:h-44 md:w-44 rounded-full bg-white p-2 shadow-[0_30px_70px_rgba(0,0,0,0.15)] flex-shrink-0">
-            <div className="h-full w-full rounded-full bg-slate-50 flex items-center justify-center border-4 border-slate-50">
-              <span className="text-5xl md:text-7xl font-black text-slate-900">
-                {profile?.name?.charAt(0)}
-              </span>
-            </div>
-          </div>
-
-          {/* Info Block */}
-          <div className="flex-1 pb-4 text-center md:text-left">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
-              <span className="px-4 py-1.5 bg-white/10 backdrop-blur-xl text-white text-[10px] font-black uppercase tracking-[2px] rounded-full border border-white/20">
-                {profile?.role}
-              </span>
-              <span
-                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[2px] rounded-full border ${profile?.isActive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}
-                style={{ backdropFilter: "blur(12px)" }}>
-                {profile?.isActive ? "Active" : "Inactive"}
-              </span>
-            </div>
-            <h1 className="text-3xl md:text-6xl font-black text-white tracking-tighter drop-shadow-sm mb-1">
-              {profile?.name}
-            </h1>
-            <p className="text-white/60 font-black tracking-[1px] text-lg">
-              {profile?.shopName}
-            </p>
-          </div>
-
-          {/* Action Button */}
-          <div className="pb-4">
-            {!isEditing ? (
-              <Button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-slate-950 transition-all rounded-lg px-6 md:px-12 py-3 md:py-5 flex items-center gap-4 font-black tracking-[3px] text-[10px] md:text-xs shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:scale-[1.05] active:scale-[0.95]">
-                <Edit2 size={18} /> EDIT PROFILE
-              </Button>
-            ) : (
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  variant="outline"
-                  className="h-[64px] w-[64px] flex items-center justify-center bg-white/5 text-white border border-white/20 hover:bg-white hover:text-slate-900 rounded-lg shadow-lg transition-all backdrop-blur-md">
-                  <X size={24} className="stroke-[2.5]" />
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSaving}
-                  className="bg-white text-slate-950 hover:bg-slate-100 rounded-lg px-6 md:px-12 py-3 md:py-5 font-black tracking-[3px] text-[10px] md:text-xs flex items-center gap-4 shadow-[0_25px_50px_rgba(0,0,0,0.15)] h-auto md:h-[64px]">
-                  {isSaving ? (
-                    "UPDATING..."
-                  ) : (
-                    <>
-                      <Save size={20} /> SAVE CHANGES
-                    </>
-                  )}
-                </Button>
+      
+      {/* --- MOBILE VIEW --- */}
+      <div className="block md:hidden bg-slate-50 min-h-screen -mx-4 -mt-4 relative">
+        {!isEditing ? (
+          <div className="bg-white rounded-t-[32px] px-4 pt-8 pb-20 mt-2 shadow-sm min-h-[calc(100vh-64px)]">
+            {/* Avatar & Store Info */}
+            <div className="flex items-center gap-5 mb-8 px-2">
+              <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md overflow-hidden shrink-0">
+                 <span className="text-4xl font-black text-slate-700">
+                   {profile?.name?.charAt(0)}
+                 </span>
               </div>
-            )}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl font-black text-slate-800 truncate">{profile?.shopName || profile?.name}</h2>
+                <p className="text-sm font-medium text-slate-500 truncate mt-1">{formData.address || "Location not set"}</p>
+              </div>
+            </div>
+
+            {/* Menu List */}
+            <div className="flex flex-col px-2">
+              <button onClick={() => setIsEditing(true)} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <Edit2 className="text-slate-600 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-slate-700">Edit Profile</span>
+              </button>
+              
+              <button onClick={() => setIsMapOpen(true)} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <MapPin className="text-slate-600 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-slate-700">Location Settings</span>
+              </button>
+
+              <button onClick={async () => {
+                  try {
+                    await sellerApi.testPushNotification();
+                    toast.success("Test push notification triggered!");
+                  } catch (err) {
+                    toast.error("Failed to trigger push notification.");
+                  }
+                }} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <Globe className="text-slate-600 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-slate-700">Test Notification</span>
+              </button>
+
+              <button onClick={() => {
+                setDeleteInput("");
+                setShowDeleteConfirm(true);
+              }} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <Trash2 className="text-slate-600 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-slate-700">Delete Account</span>
+              </button>
+
+              <button onClick={() => setShowLogoutConfirm(true)} className="flex items-center gap-5 py-4 active:bg-slate-50 transition-colors mt-2">
+                <LogOut className="text-rose-500 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-rose-500">Logout</span>
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Main Info Card */}
-        <div className="md:col-span-2 space-y-8">
-          <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
-            <h3 className="text-xl font-black text-slate-900 mb-8 border-b border-slate-50 pb-4">
-              Business Profile
-            </h3>
-
-            <form className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+        ) : (
+          <div className="bg-white rounded-t-[32px] px-5 pt-6 pb-24 shadow-sm mt-16 min-h-[calc(100vh-64px)]">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-slate-800">Edit Profile</h2>
+              <button onClick={() => setIsEditing(false)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">
                     Seller Identity
                   </label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                       <User size={18} />
                     </div>
                     <input
@@ -322,18 +304,17 @@ const SellerProfile = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">
                     Store Name
                   </label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                       <Store size={18} />
                     </div>
                     <input
@@ -341,18 +322,17 @@ const SellerProfile = () => {
                       name="shopName"
                       value={formData.shopName}
                       onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">
                     Contact Number
                   </label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                       <Phone size={18} />
                     </div>
                     <input
@@ -360,18 +340,17 @@ const SellerProfile = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">
                     Email Address
                   </label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                       <Mail size={18} />
                     </div>
                     <input
@@ -379,200 +358,419 @@ const SellerProfile = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
-              </div>
-            </form>
-          </Card>
 
-          {/* Location & Radius Settings Card */}
-          <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
-            <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-4">
-              <h3 className="text-xl font-black text-slate-900">
-                Location & Service Settings
-              </h3>
-              {!isEditing && (
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                    Opening Hours
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Clock size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      name="openingHours"
+                      value={formData.openingHours}
+                      onChange={handleChange}
+                      placeholder="e.g. 09:00 AM - 10:00 PM"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
+                    />
+                  </div>
+                </div>
+            </form>
+            
+            <div className="mt-10">
+               <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSaving}
+                  className="w-full bg-slate-900 hover:bg-black text-white rounded-xl py-4 font-black tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20">
+                  {isSaving ? "UPDATING..." : "SAVE CHANGES"}
+               </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* --- DESKTOP VIEW --- */}
+      <div className="hidden md:block">
+        {/* Header Section */}
+        <div className="relative mb-24 px-4">
+          {/* Banner Background */}
+          <div className="bg-linear-to-r from-slate-900 via-slate-950 to-black h-[400px] md:h-64 rounded-lg shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+            </div>
+          </div>
+
+          {/* Profile Info Row */}
+          <div className="absolute bottom-8 left-4 right-4 md:left-12 md:right-12 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-10">
+            {/* Avatar Container */}
+            <div className="h-32 w-32 md:h-44 md:w-44 rounded-full bg-white p-2 shadow-[0_30px_70px_rgba(0,0,0,0.15)] flex-shrink-0">
+              <div className="h-full w-full rounded-full bg-slate-50 flex items-center justify-center border-4 border-slate-50">
+                <span className="text-5xl md:text-7xl font-black text-slate-900">
+                  {profile?.name?.charAt(0)}
+                </span>
+              </div>
+            </div>
+
+            {/* Info Block */}
+            <div className="flex-1 pb-4 text-center md:text-left">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
+                <span className="px-4 py-1.5 bg-white/10 backdrop-blur-xl text-white text-[10px] font-black uppercase tracking-[2px] rounded-full border border-white/20">
+                  {profile?.role}
+                </span>
+                <span
+                  className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[2px] rounded-full border ${profile?.isActive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}
+                  style={{ backdropFilter: "blur(12px)" }}>
+                  {profile?.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <h1 className="text-3xl md:text-6xl font-black text-white tracking-tighter drop-shadow-sm mb-1">
+                {profile?.name}
+              </h1>
+              <p className="text-white/60 font-black tracking-[1px] text-lg">
+                {profile?.shopName}
+              </p>
+            </div>
+
+            {/* Action Button */}
+            <div className="pb-4">
+              {!isEditing ? (
                 <Button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="bg-slate-900 text-white hover:bg-black rounded-lg px-6 py-2 text-[10px] font-black tracking-[2px]">
-                  MANAGE
+                  className="bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white hover:text-slate-950 transition-all rounded-lg px-6 md:px-12 py-3 md:py-5 flex items-center gap-4 font-black tracking-[3px] text-[10px] md:text-xs shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:scale-[1.05] active:scale-[0.95]">
+                  <Edit2 size={18} /> EDIT PROFILE
                 </Button>
+              ) : (
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    className="h-[64px] w-[64px] flex items-center justify-center bg-white/5 text-white border border-white/20 hover:bg-white hover:text-slate-900 rounded-lg shadow-lg transition-all backdrop-blur-md">
+                    <X size={24} className="stroke-[2.5]" />
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSaving}
+                    className="bg-white text-slate-950 hover:bg-slate-100 rounded-lg px-6 md:px-12 py-3 md:py-5 font-black tracking-[3px] text-[10px] md:text-xs flex items-center gap-4 shadow-[0_25px_50px_rgba(0,0,0,0.15)] h-auto md:h-[64px]">
+                    {isSaving ? (
+                      "UPDATING..."
+                    ) : (
+                      <>
+                        <Save size={20} /> SAVE CHANGES
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
+          </div>
+        </div>
 
-            <div className="space-y-6">
-              <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-100/50 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-                  <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                    <div
-                      className={`h-12 w-12 shrink-0 rounded-xl flex items-center justify-center transition-all ${
-                        formData.lat
-                          ? "bg-emerald-100 text-emerald-600 shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)]"
-                          : "bg-white text-slate-400 shadow-sm"
-                      }`}>
-                      <MapPin size={24} />
-                    </div>
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <p className="text-sm font-black text-slate-900 truncate">
-                        {formData.lat
-                          ? "Store Location Pin"
-                          : "Location Not Defined"}
-                      </p>
-                      <p className="text-xs text-slate-500 font-medium leading-relaxed break-words">
-                        {formData.address ||
-                          "Click change to precisely mark your shop location on the map for delivery accuracy."}
-                      </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Main Info Card */}
+          <div className="md:col-span-2 space-y-8">
+            <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
+              <h3 className="text-xl font-black text-slate-900 mb-8 border-b border-slate-50 pb-4">
+                Business Profile
+              </h3>
+
+              <form className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                      Seller Identity
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                        <User size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      />
                     </div>
                   </div>
-                  {isEditing && (
-                    <div className="shrink-0 ml-16 sm:ml-0">
-                      <Button
-                        type="button"
-                        onClick={() => setIsMapOpen(true)}
-                        disabled={isLocationSaving}
-                        className="w-full sm:w-auto bg-white text-slate-900 border-2 border-slate-200 hover:border-slate-900 rounded-lg px-6 py-3 text-[10px] font-black tracking-[2px] shadow-sm hover:shadow-md transition-all">
-                        {isLocationSaving ? "UPDATING..." : "CHANGE PIN"}
-                      </Button>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                      Store Name
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                        <Store size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        name="shopName"
+                        value={formData.shopName}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                      Contact Number
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                        <Phone size={18} />
+                      </div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                      Email Address
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
+                        <Mail size={18} />
+                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">
+                      Opening Hours
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
+                        <Clock size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        name="openingHours"
+                        value={formData.openingHours}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        placeholder="e.g. 09:00 AM - 10:00 PM"
+                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </Card>
+
+            {/* Location & Radius Settings Card */}
+            <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
+              <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-4">
+                <h3 className="text-xl font-black text-slate-900">
+                  Location & Service Settings
+                </h3>
+                {!isEditing && (
+                  <Button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="bg-slate-900 text-white hover:bg-black rounded-lg px-6 py-2 text-[10px] font-black tracking-[2px]">
+                    MANAGE
+                  </Button>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-slate-50 p-6 rounded-2xl border-2 border-slate-100/50 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+                    <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                      <div
+                        className={`h-12 w-12 shrink-0 rounded-xl flex items-center justify-center transition-all ${
+                          formData.lat
+                            ? "bg-emerald-100 text-emerald-600 shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)]"
+                            : "bg-white text-slate-400 shadow-sm"
+                        }`}>
+                        <MapPin size={24} />
+                      </div>
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <p className="text-sm font-black text-slate-900 truncate">
+                          {formData.lat
+                            ? "Store Location Pin"
+                            : "Location Not Defined"}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed break-words">
+                          {formData.address ||
+                            "Click change to precisely mark your shop location on the map for delivery accuracy."}
+                        </p>
+                      </div>
+                    </div>
+                    {isEditing && (
+                      <div className="shrink-0 ml-16 sm:ml-0">
+                        <Button
+                          type="button"
+                          onClick={() => setIsMapOpen(true)}
+                          disabled={isLocationSaving}
+                          className="w-full sm:w-auto bg-white text-slate-900 border-2 border-slate-200 hover:border-slate-900 rounded-lg px-6 py-3 text-[10px] font-black tracking-[2px] shadow-sm hover:shadow-md transition-all">
+                          {isLocationSaving ? "UPDATING..." : "CHANGE PIN"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {formData.lat !== null && formData.lat !== undefined && (
+                    <div className="pt-6 border-t border-slate-200/60 flex flex-wrap gap-8">
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                          Service Radius
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-black text-slate-900">
+                            {formData.radius}
+                          </span>
+                          <span className="text-xs font-bold text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-md">
+                            KM
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                          Latitude
+                        </span>
+                        <span className="text-sm font-bold text-slate-700 tabular-nums">
+                          {formData.lat.toFixed(6)}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                          Longitude
+                        </span>
+                        <span className="text-sm font-bold text-slate-700 tabular-nums">
+                          {formData.lng.toFixed(6)}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {formData.lat !== null && formData.lat !== undefined && (
-                  <div className="pt-6 border-t border-slate-200/60 flex flex-wrap gap-8">
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                        Service Radius
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-slate-900">
-                          {formData.radius}
-                        </span>
-                        <span className="text-xs font-bold text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-md">
-                          KM
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                        Latitude
-                      </span>
-                      <span className="text-sm font-bold text-slate-700 tabular-nums">
-                        {formData.lat.toFixed(6)}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                        Longitude
-                      </span>
-                      <span className="text-sm font-bold text-slate-700 tabular-nums">
-                        {formData.lng.toFixed(6)}
-                      </span>
-                    </div>
+                <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                  <Shield size={16} className="text-amber-600 mt-0.5" />
+                  <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                    Your shop location and service radius determine which
+                    customers can view your products. Ensure the marker is placed
+                    exactly at your physical storefront for accurate delivery
+                    assignments.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Sidebar Card */}
+          <div className="space-y-8">
+            <Card className="p-6 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[30px] md:rounded-[40px] bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-800 text-white">
+              <h4 className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mb-6">
+                Security & Trust
+              </h4>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Shield size={20} className="text-white" />
                   </div>
-                )}
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-white/60">
+                      Verification
+                    </p>
+                    <p className="text-sm font-bold">
+                      {profile?.isVerified
+                        ? "Verified Merchant"
+                        : "Verification Pending"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Rocket size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-white/60">
+                      Partner Tier
+                    </p>
+                    <p className="text-sm font-bold">Standard Growth</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Globe size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-white/60">
+                      Region
+                    </p>
+                    <p className="text-sm font-bold">Pan India Reach</p>
+                  </div>
+                </div>
               </div>
-
-              <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                <Shield size={16} className="text-amber-600 mt-0.5" />
-                <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                  Your shop location and service radius determine which
-                  customers can view your products. Ensure the marker is placed
-                  exactly at your physical storefront for accurate delivery
-                  assignments.
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
 
-        {/* Sidebar Card */}
-        <div className="space-y-8">
-          <Card className="p-6 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[30px] md:rounded-[40px] bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-800 text-white">
-            <h4 className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mb-6">
-              Security & Trust
-            </h4>
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Shield size={20} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-white/60">
-                    Verification
-                  </p>
-                  <p className="text-sm font-bold">
-                    {profile?.isVerified
-                      ? "Verified Merchant"
-                      : "Verification Pending"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Rocket size={20} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-white/60">
-                    Partner Tier
-                  </p>
-                  <p className="text-sm font-bold">Standard Growth</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Globe size={20} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-white/60">
-                    Region
-                  </p>
-                  <p className="text-sm font-bold">Pan India Reach</p>
-                </div>
-              </div>
-            </div>
-          </Card>
+        <div className="mt-8 flex justify-center flex-wrap gap-4">
+          <Button
+            type="button"
+            onClick={async () => {
+              try {
+                await sellerApi.testPushNotification();
+                toast.success("Test push notification triggered!");
+              } catch (err) {
+                toast.error("Failed to trigger push notification.");
+              }
+            }}
+            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
+          >
+            <Globe size={18} />
+            TEST PUSH NOTIFICATION
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
+          >
+            <LogOut size={18} />
+            LOG OUT
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setDeleteInput("");
+              setShowDeleteConfirm(true);
+            }}
+            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
+          >
+            <Trash2 size={18} />
+            DELETE ACCOUNT
+          </Button>
         </div>
-      </div>
-
-      <div className="mt-8 flex justify-center flex-wrap gap-4">
-        <Button
-          type="button"
-          onClick={async () => {
-            try {
-              await sellerApi.testPushNotification();
-              toast.success("Test push notification triggered!");
-            } catch (err) {
-              toast.error("Failed to trigger push notification.");
-            }
-          }}
-          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-        >
-          <Globe size={18} />
-          TEST PUSH NOTIFICATION
-        </Button>
-        <Button
-          type="button"
-          onClick={() => setShowLogoutConfirm(true)}
-          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-        >
-          <LogOut size={18} />
-          LOG OUT
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            setDeleteInput("");
-            setShowDeleteConfirm(true);
-          }}
-          className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg px-8 py-3 text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-        >
-          <Trash2 size={18} />
-          DELETE ACCOUNT
-        </Button>
       </div>
 
       {showLogoutConfirm && (

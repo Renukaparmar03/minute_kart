@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
@@ -61,6 +61,11 @@ const DashboardLayout = ({ children, navItems, title }) => {
     const [isMuted, setIsMuted] = useState(false);
     const { user, logout, role } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const approved = user?.approved !== false && (!user?.approvalStatus || user?.approvalStatus === "approved");
+    const onboardingSubmitted = user?.onboardingSubmitted === true;
+    const requiresOnboarding = !approved && (!onboardingSubmitted || user?.approvalStatus === "draft");
 
     // Force light theme by removing dark class and preventing it from being added
     useEffect(() => {
@@ -408,8 +413,21 @@ const DashboardLayout = ({ children, navItems, title }) => {
             />
             <div className={cn("transition-all duration-300", (role === "admin" || role === "seller") ? "pl-0 md:pl-80" : "pl-80")}>
                 <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className={cn("min-h-screen", (role === "admin" || role === "seller") ? "pt-20 md:pt-6 pb-24 md:pb-8" : "pt-20")}>
-                    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12">
+                <main className={cn("min-h-screen flex flex-col", (role === "admin" || role === "seller") ? "pt-20 md:pt-6 pb-24 md:pb-8" : "pt-20")}>
+                    {role === 'seller' && requiresOnboarding && location.pathname !== '/seller/onboarding' && (
+                        <div className="bg-red-500 text-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md mb-6 relative z-10 mx-4 sm:mx-6 lg:mx-8 rounded-lg mt-2 md:mt-0 flex-shrink-0 border border-red-600">
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm sm:text-base">Please complete your onboarding details to add products and start selling.</span>
+                            </div>
+                            <button 
+                                onClick={() => navigate('/seller/onboarding')}
+                                className="bg-white text-red-600 font-bold px-4 py-2 rounded-md text-sm hover:bg-red-50 transition-colors shadow-sm whitespace-nowrap active:scale-95"
+                            >
+                                Complete Onboarding
+                            </button>
+                        </div>
+                    )}
+                    <div className="w-full px-4 sm:px-6 lg:px-8 pb-12 flex-1">
                         <SellerOrdersContext.Provider
                             value={{
                                 orders: role === 'seller' ? sellerOrders : [],

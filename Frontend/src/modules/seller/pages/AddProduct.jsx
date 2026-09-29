@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useAuth } from "@core/context/AuthContext";
 import Button from "@shared/components/ui/Button";
 import Badge from "@shared/components/ui/Badge";
 import {
@@ -24,6 +25,18 @@ import { sellerApi } from "../services/sellerApi";
 
 const AddProduct = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const approved = user?.approved !== false && (!user?.approvalStatus || user?.approvalStatus === "approved");
+  const onboardingSubmitted = user?.onboardingSubmitted === true;
+  const requiresOnboarding = !approved && (!onboardingSubmitted || user?.approvalStatus === "draft");
+
+  useEffect(() => {
+    if (requiresOnboarding) {
+      toast.error("Please complete your onboarding details first.");
+      navigate("/seller/products", { replace: true });
+    }
+  }, [requiresOnboarding, navigate]);
+
   const [modalTab, setModalTab] = useState(() => {
     return sessionStorage.getItem("addProductTab") || "general";
   });

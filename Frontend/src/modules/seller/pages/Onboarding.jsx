@@ -531,21 +531,21 @@ export default function SellerOnboarding() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#fffaf2_100%)] px-4 py-6 font-['Outfit'] sm:py-8 md:px-8">
+    <div className="relative min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#fffaf2_100%)] px-3 py-4 sm:px-4 sm:py-8 font-['Outfit'] md:px-8">
 
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_1.4fr]">
+        <div className="grid gap-4 sm:gap-8 lg:grid-cols-[1.05fr_1.4fr]">
           <div
-            className="rounded-[28px] sm:rounded-[34px] bg-[linear-gradient(160deg,#0f172a_0%,#0f766e_55%,#f59e0b_130%)] p-6 sm:p-8 text-white shadow-[0_35px_90px_rgba(15,23,42,0.22)] animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="rounded-[24px] sm:rounded-[34px] bg-[linear-gradient(160deg,#0f172a_0%,#0f766e_55%,#f59e0b_130%)] p-5 sm:p-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.15)] sm:shadow-[0_35px_90px_rgba(15,23,42,0.22)] animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.3em]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]">
               <ShieldCheck className="h-4 w-4" />
               Seller Onboarding
             </div>
-            <h1 className="mt-8 text-3xl sm:text-4xl font-black leading-tight">
+            <h1 className="mt-5 sm:mt-8 text-2xl sm:text-4xl font-black leading-tight">
               Set up your store once and send it straight for approval.
             </h1>
-            <p className="mt-4 max-w-lg text-sm font-medium leading-7 text-white/78">
+            <p className="mt-3 sm:mt-4 max-w-lg text-xs sm:text-sm font-medium leading-relaxed sm:leading-7 text-white/80">
               We&apos;ll save your banking, compliance, and shop details together,
               then raise a real joining request in quick-commerce admin.
             </p>
@@ -570,10 +570,10 @@ export default function SellerOnboarding() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-3xl border border-white/12 bg-white/10 p-4 sm:p-5 backdrop-blur-sm"
+                  className="rounded-2xl sm:rounded-3xl border border-white/12 bg-white/10 p-3 sm:p-5 backdrop-blur-sm"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-2xl bg-white/12 p-3">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="rounded-xl sm:rounded-2xl bg-white/12 p-2 sm:p-3">
                       <item.icon className="h-5 w-5" />
                     </div>
                     <div>
@@ -587,8 +587,8 @@ export default function SellerOnboarding() {
               ))}
             </div>
 
-            <div className="mt-8 rounded-3xl border border-white/12 bg-white/10 p-4 sm:p-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/60">
+            <div className="mt-6 sm:mt-8 rounded-2xl sm:rounded-3xl border border-white/12 bg-white/10 p-4 sm:p-5">
+              <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.28em] text-white/60">
                 Progress Signal
               </p>
               <p className="mt-2 text-2xl font-black">{completionText}</p>
@@ -601,9 +601,9 @@ export default function SellerOnboarding() {
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-6 rounded-[28px] sm:rounded-[34px] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-[0_35px_90px_rgba(15,23,42,0.08)] backdrop-blur xl:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="space-y-6 sm:space-y-6 rounded-[24px] sm:rounded-[34px] border border-white/70 bg-white/90 p-4 sm:p-6 shadow-sm sm:shadow-[0_35px_90px_rgba(15,23,42,0.08)] backdrop-blur xl:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
-            <section className="space-y-5">
+            <section className="space-y-4 sm:space-y-5">
               <div className="flex items-center gap-3">
                 <div className="rounded-2xl bg-amber-100 p-3 text-amber-700">
                   <Building2 className="h-5 w-5" />
@@ -617,36 +617,36 @@ export default function SellerOnboarding() {
                   </p>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">Seller name <span className="text-red-500">*</span></label>
-                  <input required className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-slate-900" placeholder="Seller name" value={form.name} onChange={(e) => updateField("name", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} />
+                  <label className="text-[11px] sm:text-xs font-bold text-slate-500">Seller name <span className="text-red-500">*</span></label>
+                  <input required className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm font-semibold outline-none focus:border-slate-900" placeholder="Seller name" value={form.name} onChange={(e) => updateField("name", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">Shop name <span className="text-red-500">*</span></label>
-                  <input required className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-slate-900" placeholder="Shop name" value={form.shopName} onChange={(e) => updateField("shopName", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} />
+                  <label className="text-[11px] sm:text-xs font-bold text-slate-500">Shop name <span className="text-red-500">*</span></label>
+                  <input required className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm font-semibold outline-none focus:border-slate-900" placeholder="Shop name" value={form.shopName} onChange={(e) => updateField("shopName", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">Email <span className="text-red-500">*</span></label>
+                  <label className="text-[11px] sm:text-xs font-bold text-slate-500">Email <span className="text-red-500">*</span></label>
                   <input
                     required
-                    className={`w-full rounded-2xl border px-4 py-3 font-semibold outline-none focus:border-slate-900 ${form.email && !/^(?!.*\.comm+$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/i.test(form.email) ? "border-red-400 bg-red-50" : "border-slate-200"}`}
+                    className={`w-full rounded-xl sm:rounded-2xl border px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm font-semibold outline-none focus:border-slate-900 ${form.email && !/^(?!.*\.comm+$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/i.test(form.email) ? "border-red-400 bg-red-50" : "border-slate-200"}`}
                     placeholder="Email (e.g. name@domain.com)"
                     type="email"
                     value={form.email}
                     onChange={(e) => updateField("email", e.target.value)}
                   />
                   {form.email && !/^(?!.*\.comm+$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/i.test(form.email) && (
-                    <p className="text-xs font-semibold text-red-500 px-1">Enter a valid email address (e.g. name@domain.com)</p>
+                    <p className="text-[10px] sm:text-xs font-semibold text-red-500 px-1">Enter a valid email address (e.g. name@domain.com)</p>
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">Primary phone <span className="text-red-500">*</span></label>
-                  <input className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 font-semibold text-slate-500 outline-none" placeholder="Primary phone" value={form.phone} readOnly title="Linked from the seller OTP login" />
+                  <label className="text-[11px] sm:text-xs font-bold text-slate-500">Primary phone <span className="text-red-500">*</span></label>
+                  <input className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm font-semibold text-slate-500 outline-none" placeholder="Primary phone" value={form.phone} readOnly title="Linked from the seller OTP login" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-500">Business type <span className="text-red-500">*</span></label>
-                  <select required className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-slate-900" value={form.businessType} onChange={(e) => updateField("businessType", e.target.value)}>
+                  <label className="text-[11px] sm:text-xs font-bold text-slate-500">Business type <span className="text-red-500">*</span></label>
+                  <select required className="w-full rounded-xl sm:rounded-2xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm font-semibold outline-none focus:border-slate-900" value={form.businessType} onChange={(e) => updateField("businessType", e.target.value)}>
                   <option value="">Select business type</option>
                   {businessTypes.map((item) => (
                     <option key={item} value={item}>

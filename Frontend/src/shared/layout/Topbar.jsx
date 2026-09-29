@@ -22,11 +22,36 @@ const Topbar = ({ onMenuClick }) => {
     const { user, logout, role } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const isSeller = location.pathname.startsWith('/seller');
 
     const [searchQuery, setSearchQuery] = React.useState('');
     const [notifications, setNotifications] = React.useState([]);
     const [unreadCount, setUnreadCount] = React.useState(0);
     const [showNotifications, setShowNotifications] = React.useState(false);
+    const [isOnline, setIsOnline] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isSeller) {
+            sellerApi.getProfile().then(res => {
+                if (res.data?.success) {
+                    setIsOnline(res.data.result.isActive);
+                }
+            }).catch(console.error);
+        }
+    }, [isSeller]);
+
+    const toggleOnlineStatus = async (e) => {
+        e.stopPropagation();
+        try {
+            const newStatus = !isOnline;
+            setIsOnline(newStatus);
+            await sellerApi.updateProfile({ isActive: newStatus });
+            toast.success(newStatus ? 'You are now online' : 'You are now offline');
+        } catch (err) {
+            setIsOnline(isOnline);
+            toast.error('Failed to update status');
+        }
+    };
 
     const isDashboard = location.pathname === '/seller' || location.pathname === '/admin' || location.pathname === '/seller/' || location.pathname === '/admin/';
     
@@ -41,7 +66,6 @@ const Topbar = ({ onMenuClick }) => {
     const pageTitle = getPageTitle(location.pathname);
     const notificationRef = React.useRef(null);
 
-    const isSeller = location.pathname.startsWith('/seller');
 
     const handleSearchSubmit = (e) => {
         e?.preventDefault();
@@ -120,18 +144,21 @@ const Topbar = ({ onMenuClick }) => {
                     className="flex items-center gap-3 md:gap-6 cursor-pointer hover:opacity-80 transition-opacity"
                 >
                     <div className="flex items-center gap-2 md:gap-4">
-                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-[15px] shrink-0">
-                            {user?.name?.[0]?.toUpperCase() || 'R'}
+                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden shrink-0">
+                            <img src="/minutekart-logo.jpg" alt="Logo" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex flex-col">
-                            <h2 className="text-[14px] md:text-[17px] font-bold text-white leading-none">{user?.name || "Raddison"}</h2>
+                            <h2 className="text-[14px] md:text-[17px] font-bold text-white leading-none">{user?.shopName || user?.name || "Minutekart"}</h2>
                             <p className="text-[9px] md:text-[11px] font-medium text-white/80 flex items-center gap-0.5 mt-1 max-w-[80px] md:max-w-[120px] truncate">
                                 <HiOutlineLocationMarker className="h-3 w-3 shrink-0" /> Corporate H...
                             </p>
                         </div>
-                        <div className="bg-white/10 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-white/20 shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                            <span className="text-[10px] md:text-[11px] font-bold">Online</span>
+                        <div 
+                           onClick={toggleOnlineStatus}
+                           className="bg-white/10 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-white/20 shrink-0 hover:bg-white/20 transition-colors cursor-pointer"
+                        >
+                            <span className={cn("h-1.5 w-1.5 rounded-full", isOnline ? "bg-emerald-400" : "bg-red-500")}></span>
+                            <span className="text-[10px] md:text-[11px] font-bold">{isOnline ? "Online" : "Offline"}</span>
                             <HiOutlineChevronRight className="h-3 w-3 ml-0.5" />
                         </div>
                     </div>
