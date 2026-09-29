@@ -33,19 +33,30 @@ const BottomNav = ({ navItems }) => {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-100 z-[60] md:hidden px-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className={cn(
+            "fixed z-[60] md:hidden flex items-center justify-around shadow-xl transition-all duration-300",
+            role === 'seller'
+                ? "bottom-4 left-4 right-4 h-16 bg-primary text-white rounded-3xl px-2 shadow-primary/30"
+                : "bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-100 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+        )}>
             {primaryItems.map((item) => (
                 <NavLink
                     key={item.path}
                     to={item.path}
                     end={item.end}
                     className={({ isActive }) => cn(
-                        "flex flex-col items-center justify-center space-y-1 w-16 transition-all duration-300",
-                        isActive ? "text-primary" : "text-gray-400 hover:text-gray-600"
+                        "flex flex-col items-center justify-center space-y-1 w-14 h-14 transition-all duration-300",
+                        role === 'seller'
+                            ? isActive 
+                                ? "text-white bg-white/20 rounded-2xl shadow-sm" 
+                                : "text-white/60 hover:text-white/80"
+                            : isActive 
+                                ? "text-primary" 
+                                : "text-gray-400 hover:text-gray-600"
                     )}
                 >
                     <item.icon className="h-5 w-5" />
-                    <span className="text-[10px] font-bold uppercase tracking-tight">{item.label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-tight">{item.label}</span>
                 </NavLink>
             ))}
         </div>

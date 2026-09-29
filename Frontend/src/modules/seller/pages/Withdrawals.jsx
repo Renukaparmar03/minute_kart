@@ -150,34 +150,64 @@ const Withdrawals = () => {
     return (
         <div className="space-y-8 pb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <BlurFade delay={0.1}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                            Money Requests
-                            <div className="p-1.5 bg-indigo-100 rounded-lg">
-                                <Wallet className="h-5 w-5 text-indigo-600" />
-                            </div>
-                        </h1>
-                        <p className="text-slate-600 text-base mt-1 font-medium">Request payouts and track your withdrawal history.</p>
+                <Card className="p-4 sm:p-6 border-none shadow-sm ring-1 ring-slate-100 bg-white">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                Money Requests
+                                <div className="p-1.5 bg-indigo-100 rounded-lg">
+                                    <Wallet className="h-5 w-5 text-indigo-600" />
+                                </div>
+                            </h1>
+                            <p className="text-slate-600 text-base mt-1 font-medium">Request payouts and track your withdrawal history.</p>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95 flex items-center gap-2 group"
+                        >
+                            <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            New Request
+                        </button>
                     </div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95 flex items-center gap-2 group"
-                    >
-                        <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        New Request
-                    </button>
-                </div>
+                </Card>
             </BlurFade>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {/* Mobile Stats Grid */}
+            <div className="flex flex-col gap-3 md:hidden mt-2">
                 {[
                     { label: 'Available Balance', value: `₹${balances.available.toLocaleString()}`, icon: Wallet, color: 'emerald', sub: 'Ready to withdraw' },
                     { label: 'Pending Requests', value: `₹${balances.pending.toLocaleString()}`, icon: Clock, color: 'amber', sub: 'Awaiting approval' },
                     { label: 'Last Withdrawal', value: `₹${balances.lastWithdrawal.toLocaleString()}`, icon: CheckCircle2, color: 'blue', sub: 'Sent to bank' },
                 ].map((stat, i) => (
-                    <BlurFade key={i} delay={0.2 + i * 0.1}>
+                    <BlurFade key={`mob-${i}`} delay={0.2 + i * 0.1}>
+                        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden group">
+                            <div className={cn(
+                                "h-12 w-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110",
+                                stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
+                                    stat.color === 'amber' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                            )}>
+                                <stat.icon className="h-6 w-6" />
+                            </div>
+                            <div className="z-10">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
+                                <h3 className="text-xl font-black text-slate-900 leading-tight">{stat.value}</h3>
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 opacity-[0.03]">
+                                <stat.icon className="h-16 w-16" />
+                            </div>
+                        </div>
+                    </BlurFade>
+                ))}
+            </div>
+
+            {/* Desktop Stats Grid */}
+            <div className="hidden md:grid grid-cols-3 gap-6">
+                {[
+                    { label: 'Available Balance', value: `₹${balances.available.toLocaleString()}`, icon: Wallet, color: 'emerald', sub: 'Ready to withdraw' },
+                    { label: 'Pending Requests', value: `₹${balances.pending.toLocaleString()}`, icon: Clock, color: 'amber', sub: 'Awaiting approval' },
+                    { label: 'Last Withdrawal', value: `₹${balances.lastWithdrawal.toLocaleString()}`, icon: CheckCircle2, color: 'blue', sub: 'Sent to bank' },
+                ].map((stat, i) => (
+                    <BlurFade key={`desk-${i}`} delay={0.2 + i * 0.1}>
                         <Card className="p-6 border-none shadow-sm ring-1 ring-slate-100 hover:ring-indigo-200 transition-all bg-white group relative overflow-hidden">
                             <div className="relative z-10">
                                 <div className={cn(
@@ -221,7 +251,49 @@ const Withdrawals = () => {
                             />
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
+                    {/* Mobile List View */}
+                    <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50/30">
+                        {filteredHistory.length === 0 ? (
+                            <div className="text-center p-8 text-slate-600 text-sm font-medium">
+                                {withdrawalHistory.length === 0 ? "No withdrawal requests yet." : "No matches for your search."}
+                            </div>
+                        ) : paginatedHistory.map((item, idx) => (
+                            <div key={item.id || item.ref || item.reference || `mob-wd-${idx}`} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col gap-3 relative">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-sm font-black text-slate-900">{item.id}</p>
+                                        <p className="text-[10px] font-bold text-slate-600 mt-0.5 uppercase tracking-widest">{item.customer || 'Bank Transfer'}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-black text-slate-900">₹{Math.abs(item.amount).toLocaleString()}</p>
+                                        <Badge
+                                            variant={item.status === 'Settled' ? 'success' : (item.status === 'Pending' || item.status === 'Processing') ? 'warning' : 'danger'}
+                                            className="text-[8px] font-black px-2 py-0.5 uppercase mt-1 border-none shadow-sm"
+                                        >
+                                            {item.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center border-t border-slate-50 pt-3 mt-1">
+                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {item.date} • {item.time}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDownloadReceipt(item)}
+                                        className="text-[10px] font-black text-indigo-500 hover:text-indigo-600 uppercase tracking-widest flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded-md"
+                                    >
+                                        Receipt <Download className="h-3 w-3" />
+                                    </button>
+                                </div>
+                                {item.reason && <p className="text-[9px] text-rose-500 font-bold uppercase italic mt-1">{item.reason}</p>}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left min-w-[640px]">
                             <thead>
                                 <tr className="bg-slate-50/50">

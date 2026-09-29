@@ -34,6 +34,7 @@ import { useSellerEarnings } from "../context/SellerEarningsContext";
 const Earnings = () => {
   const navigate = useNavigate();
   const { earningsData: data, earningsLoading: loading, refreshEarnings } = useSellerEarnings();
+  const [activeTab, setActiveTab] = React.useState("Today");
   const [withdrawAmount, setWithdrawAmount] = React.useState("");
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
   const [isWithdrawing, setIsWithdrawing] = React.useState(false);
@@ -69,6 +70,56 @@ const Earnings = () => {
   const exportReport = () => {
     alert("Exporting monthly earnings report as PDF (Simulation)");
   };
+
+  const filteredStats = React.useMemo(() => {
+    if (!data?.balances) return { net: 0, gross: 0, comm: 0, del: 0, pending: 0 };
+    
+    const balances = data.balances;
+    const ledger = Array.isArray(data?.ledger) ? data.ledger : [];
+    
+    if (activeTab === "This Month" || ledger.length === 0) {
+       return {
+           net: Number(balances.totalNetEarnings ?? 0),
+           gross: Number(balances.grossSales ?? 0),
+           comm: Number(balances.totalCommission ?? 0),
+           del: Number(balances.deliveryFees ?? 0),
+           pending: Number(balances.pendingPayouts ?? 0),
+       };
+    }
+    
+    const now = new Date();
+    let sumAmount = 0;
+    
+    ledger.forEach(txn => {
+        const d = txn.date || txn.createdAt;
+        if (!d) return;
+        const txnDate = new Date(d);
+        if (isNaN(txnDate.getTime())) return;
+        
+        let include = false;
+        if (activeTab === "Today") {
+            include = txnDate.toDateString() === now.toDateString();
+        } else if (activeTab === "This Week") {
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            include = txnDate >= weekAgo;
+        }
+        
+        if (include && (txn.status === 'completed' || txn.status === 'success' || !txn.status) && txn.type !== 'withdrawal' && txn.type !== 'payout') {
+            sumAmount += Number(txn.amount ?? 0);
+        }
+    });
+
+    const overallNet = Number(balances.totalNetEarnings ?? 0);
+    const ratio = overallNet > 0 ? (sumAmount / overallNet) : 0;
+    
+    return {
+        net: sumAmount,
+        gross: Math.round(Number(balances.grossSales ?? 0) * ratio),
+        comm: Math.round(Number(balances.totalCommission ?? 0) * ratio),
+        del: Math.round(Number(balances.deliveryFees ?? 0) * ratio),
+        pending: Number(balances.pendingPayouts ?? 0),
+    };
+  }, [data, activeTab]);
 
   if (loading && !data?.ledger?.length && Object.keys(data?.balances || {}).length === 0) {
     return <div className="flex items-center justify-center h-screen font-black text-slate-600 uppercase tracking-widest">LOADING EARNINGS...</div>;
@@ -122,8 +173,92 @@ const Earnings = () => {
         </div>
       </BlurFade>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <BlurFade delay={0.2}>
+      {/* Mobile View */}
+      <div className="md:hidden space-y-4">
+        <div className="flex bg-white rounded-full p-1 border border-slate-100 shadow-sm mx-1">
+          {["Today", "This Week", "This Month"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "flex-1 py-2 text-xs font-bold rounded-full transition-colors",
+                activeTab === tab
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm mx-1">
+          <p className="text-sm font-bold text-slate-800">Total Earnings</p>
+          <h2 className="text-3xl font-black text-slate-900 mt-1">
+            ₹{filteredStats.net.toLocaleString()}
+          </h2>
+
+          <div className="mt-6 space-y-4">
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                <span className="text-slate-600 font-bold">Gross Sales</span>
+              </div>
+              <div className="font-black text-slate-900">
+                ₹{filteredStats.gross.toLocaleString()}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-rose-500"></div>
+                <span className="text-slate-600 font-bold">Admin Commission</span>
+              </div>
+              <div className="font-black text-rose-600 flex items-center gap-1">
+                - ₹{filteredStats.comm.toLocaleString()}
+                <span className="text-[10px] text-slate-400 font-bold">
+                  ({filteredStats.gross ? Math.round((filteredStats.comm / filteredStats.gross) * 100) : 0}%)
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                <span className="text-slate-600 font-bold">Delivery Charges</span>
+              </div>
+              <div className="font-black text-rose-600 flex items-center gap-1">
+                - ₹{filteredStats.del.toLocaleString()}
+                <span className="text-[10px] text-slate-400 font-bold">
+                  ({filteredStats.gross ? Math.round((filteredStats.del / filteredStats.gross) * 100) : 0}%)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-1 mt-4">
+          <button 
+            onClick={() => setIsWithdrawModalOpen(true)}
+            className="w-full bg-primary text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-primary/30 active:scale-95 transition-transform">
+            Withdraw to Bank
+          </button>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mx-1 mt-4 flex justify-between items-center">
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pending Settlement</p>
+            <h3 className="text-lg font-black text-slate-900">₹{filteredStats.pending.toLocaleString()}</h3>
+          </div>
+          <button className="text-primary text-[11px] font-bold flex items-center hover:underline">
+            View Details <span className="ml-0.5 text-lg leading-none">›</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block space-y-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <BlurFade delay={0.2}>
           <Card className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white border-none shadow-lg h-full">
             <div className="flex justify-between items-start">
               <div>
@@ -230,7 +365,7 @@ const Earnings = () => {
       </div>
 
       <BlurFade delay={0.4}>
-        <Card className="p-6 border-none shadow-md bg-white">
+        <Card className="p-6 border-none shadow-md bg-white hidden md:block">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-indigo-500" />
@@ -290,6 +425,7 @@ const Earnings = () => {
           </div>
         </Card>
       </BlurFade>
+      </div>
 
       {/* Withdrawal Modal */}
       <AnimatePresence>

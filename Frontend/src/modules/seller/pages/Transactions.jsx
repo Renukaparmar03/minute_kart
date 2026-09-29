@@ -145,61 +145,63 @@ const Transactions = () => {
     <div className="space-y-8 pb-16">
       <BlurFade delay={0.1}>
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              Transaction Ledger
-              <Badge
-                variant="primary"
-                className="text-[10px] sm:text-xs px-1.5 py-0 font-bold tracking-wider uppercase bg-blue-100 text-blue-700">
-                Audit Trail
-              </Badge>
-            </h1>
-            <p className="text-slate-600 text-sm mt-0.5 font-medium">
-              Keep track of all financial movements, payouts, and settlements.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={() => {
-                setIsDownloading(true);
-                try {
-                  const exportData = filteredTransactions.map((txn) => ({
-                    id: txn.id ?? txn.ref ?? "",
-                    type: txn.type ?? "",
-                    amount: `₹${Number(txn.amount ?? 0).toLocaleString()}`,
-                    status: txn.status ?? "",
-                    date: txn.date ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleDateString() : ""),
-                    time: txn.time ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""),
-                    customer: txn.customer ?? "",
-                    ref: txn.ref ?? "",
-                  }));
+        <Card className="p-4 sm:p-6 border-none shadow-sm ring-1 ring-slate-100 bg-white">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                Transaction Ledger
+                <Badge
+                  variant="primary"
+                  className="text-[10px] sm:text-xs px-1.5 py-0 font-bold tracking-wider uppercase bg-blue-100 text-blue-700">
+                  Audit Trail
+                </Badge>
+              </h1>
+              <p className="text-slate-600 text-sm mt-0.5 font-medium">
+                Keep track of all financial movements, payouts, and settlements.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  setIsDownloading(true);
+                  try {
+                    const exportData = filteredTransactions.map((txn) => ({
+                      id: txn.id ?? txn.ref ?? "",
+                      type: txn.type ?? "",
+                      amount: `₹${Number(txn.amount ?? 0).toLocaleString()}`,
+                      status: txn.status ?? "",
+                      date: txn.date ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleDateString() : ""),
+                      time: txn.time ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""),
+                      customer: txn.customer ?? "",
+                      ref: txn.ref ?? "",
+                    }));
 
-                  exportToCSV(exportData, "Seller_Transactions", {
-                    id: "Transaction ID",
-                    type: "Type",
-                    amount: "Amount",
-                    status: "Status",
-                    date: "Date",
-                    time: "Time",
-                    customer: "Customer",
-                    ref: "Reference"
-                  });
-                  toast.success("Statement downloaded successfully!");
-                } catch (error) {
-                  console.error("Download Error:", error);
-                  toast.error("Failed to download statement");
-                } finally {
-                  setIsDownloading(false);
-                }
-              }}
-              className="rounded-lg px-4 py-2 shadow-lg shadow-primary/20 disabled:opacity-50"
-              disabled={isDownloading || filteredTransactions.length === 0}>
-              <HiOutlineDocumentText className="h-4 w-4 mr-2" />
-              {isDownloading ? "DOWNLOADING..." : "DOWNLOAD STATEMENTS"}
-            </Button>
+                    exportToCSV(exportData, "Seller_Transactions", {
+                      id: "Transaction ID",
+                      type: "Type",
+                      amount: "Amount",
+                      status: "Status",
+                      date: "Date",
+                      time: "Time",
+                      customer: "Customer",
+                      ref: "Reference"
+                    });
+                    toast.success("Statement downloaded successfully!");
+                  } catch (error) {
+                    console.error("Download Error:", error);
+                    toast.error("Failed to download statement");
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+                className="rounded-lg px-4 py-2 shadow-lg shadow-primary/20 disabled:opacity-50"
+                disabled={isDownloading || filteredTransactions.length === 0}>
+                <HiOutlineDocumentText className="h-4 w-4 mr-2" />
+                {isDownloading ? "DOWNLOADING..." : "DOWNLOAD STATEMENTS"}
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
       </BlurFade>
 
       {/* Stats Cards */}
@@ -262,8 +264,55 @@ const Transactions = () => {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
+          {/* Mobile List View */}
+          <div className="md:hidden flex flex-col gap-3 p-4 bg-slate-50/30">
+            <AnimatePresence>
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center p-8 text-slate-600 text-sm font-medium">
+                   {ledger.length === 0 ? "No transactions yet." : "No matches for your search or filter."}
+                </div>
+              ) : paginatedTransactions.map((txn, idx) => (
+                 <motion.div
+                   key={txn.id || txn.ref || txn.reference || `mob-txn-${idx}`}
+                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                   onClick={() => { setSelectedTxn(txn); setIsDetailModalOpen(true); }}
+                   className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col gap-3 cursor-pointer group hover:border-indigo-200 transition-all"
+                 >
+                   <div className="flex justify-between items-start">
+                     <div className="flex items-center gap-3">
+                       <div className={cn("h-10 w-10 rounded-full flex items-center justify-center font-black shrink-0 transition-transform group-hover:scale-110", txn.amount > 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
+                         {txn.amount > 0 ? <HiOutlineArrowDownLeft className="h-5 w-5" /> : <HiOutlineArrowUpRight className="h-5 w-5" />}
+                       </div>
+                       <div>
+                         <p className="text-sm font-black text-slate-900 group-hover:text-primary transition-colors">{txn.id ?? txn.ref ?? "—"}</p>
+                         <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">{txn.type ?? "—"} • {txn.customer ?? "—"}</p>
+                       </div>
+                     </div>
+                     <div className="text-right">
+                       <p className={cn("text-sm font-black tracking-tight", Number(txn.amount ?? 0) > 0 ? "text-emerald-600" : "text-rose-600")}>
+                         {Number(txn.amount ?? 0) > 0 ? "+" : ""}₹{Math.abs(Number(txn.amount ?? 0)).toLocaleString()}
+                       </p>
+                       <Badge variant={txn.status === "Settled" ? "success" : txn.status === "Pending" || txn.status === "Processing" ? "warning" : "default"} className="text-[8px] font-black uppercase px-2 py-0.5 mt-1 border-none shadow-sm">
+                         {txn.status}
+                       </Badge>
+                     </div>
+                   </div>
+                   <div className="flex justify-between items-center border-t border-slate-50 pt-3 mt-1">
+                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter flex items-center gap-1">
+                       <HiOutlineCalendarDays className="h-3 w-3" />
+                       {txn.date ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleDateString() : "—")} • {txn.time ?? (txn.createdAt ? new Date(txn.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—")}
+                     </span>
+                     <button onClick={(e) => { e.stopPropagation(); handleDownloadReceipt(txn); }} className="text-[10px] font-black text-indigo-500 hover:text-indigo-600 uppercase tracking-widest flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded-md">
+                        Receipt <HiOutlineArrowDownTray className="h-3 w-3" />
+                     </button>
+                   </div>
+                 </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left min-w-[720px]">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">

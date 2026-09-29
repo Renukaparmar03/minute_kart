@@ -111,23 +111,23 @@ const Topbar = ({ onMenuClick }) => {
     if (isSeller) {
         return (
             <header className={cn(
-                "bg-white border-b border-gray-100/50 flex items-center justify-between shadow-sm transition-all duration-300",
-                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:px-6 md:pl-6" // We'll let it be full width on mobile. On desktop, DashboardLayout has md:pl-80 so left-0 right-0 means it stretches over sidebar? Wait, Topbar is INSIDE the md:pl-80 div. So left-0 right-0 makes it stretch over the whole screen. We should use standard flex layout.
+                "bg-primary text-white border-b-0 flex items-center justify-between shadow-md transition-all duration-300",
+                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:px-6 md:pl-6"
             )} style={{ width: '100%' }}>
                 {/* Left: Store Info */}
                 <div className="flex items-center gap-3 md:gap-6">
                     <div className="flex items-center gap-2 md:gap-4">
-                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 font-bold text-[15px] shrink-0">
+                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-[15px] shrink-0">
                             {user?.name?.[0]?.toUpperCase() || 'R'}
                         </div>
                         <div className="flex flex-col">
-                            <h2 className="text-[14px] md:text-[17px] font-bold text-blue-900 leading-none">{user?.name || "Raddison"}</h2>
-                            <p className="text-[9px] md:text-[11px] font-medium text-slate-400 flex items-center gap-0.5 mt-1 max-w-[80px] md:max-w-[120px] truncate">
+                            <h2 className="text-[14px] md:text-[17px] font-bold text-white leading-none">{user?.name || "Raddison"}</h2>
+                            <p className="text-[9px] md:text-[11px] font-medium text-white/80 flex items-center gap-0.5 mt-1 max-w-[80px] md:max-w-[120px] truncate">
                                 <HiOutlineLocationMarker className="h-3 w-3 shrink-0" /> Corporate H...
                             </p>
                         </div>
-                        <div className="bg-emerald-50 text-emerald-600 px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-emerald-100 shrink-0">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        <div className="bg-white/10 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-white/20 shrink-0">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                             <span className="text-[10px] md:text-[11px] font-bold">Online</span>
                             <HiOutlineChevronRight className="h-3 w-3 ml-0.5" />
                         </div>
@@ -136,18 +136,18 @@ const Topbar = ({ onMenuClick }) => {
 
                 {/* Right: Icons */}
                 <div className="flex items-center gap-1 md:gap-2">
-                    <button className="p-1.5 md:p-2 text-slate-700 hover:bg-slate-50 rounded-full transition-colors">
+                    <button className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors">
                         <HiOutlineSearch className="h-5 w-5 md:h-6 md:w-6" />
                     </button>
                     
                     <div className="relative" ref={notificationRef}>
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
-                            className="p-1.5 md:p-2 text-slate-700 hover:bg-slate-50 rounded-full transition-colors relative"
+                            className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors relative"
                         >
                             <HiOutlineBell className="h-5 w-5 md:h-6 md:w-6" />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-white/20"></span>
                             )}
                         </button>
                         <AnimatePresence>
@@ -164,7 +164,7 @@ const Topbar = ({ onMenuClick }) => {
 
                     <button
                         onClick={onMenuClick}
-                        className="p-1.5 md:p-2 text-slate-700 hover:bg-slate-50 rounded-full transition-colors md:hidden"
+                        className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors md:hidden"
                     >
                         <HiOutlineMenu className="h-5 w-5 md:h-6 md:w-6" />
                     </button>

@@ -355,14 +355,14 @@ const Dashboard = () => {
                   <div className="flex-1 min-w-0 flex flex-col justify-center items-center w-full">
                     <h3
                       className={cn(
-                        "font-bold text-[10px] md:text-sm leading-tight",
+                        "font-bold text-[10px] md:text-sm leading-tight text-center w-full line-clamp-1 md:line-clamp-2",
                         isPrimary ? "text-white" : "text-slate-900",
                       )}>
                       {action.title}
                     </h3>
                     <p
                       className={cn(
-                        "text-[8px] md:text-xs mt-0.5 truncate md:whitespace-normal line-clamp-1 md:line-clamp-2",
+                        "text-[8px] md:text-xs mt-0.5 text-center w-full line-clamp-2",
                         isPrimary ? "text-white/90" : "text-slate-500",
                       )}>
                       {action.description}

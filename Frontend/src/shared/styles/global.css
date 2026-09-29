@@ -328,5 +328,12 @@
 .border-delivery-brand {
   border-color: #86bf24;
 }
-}
 
+.seller-theme {
+  --primary: #0a6919;
+  --primary-foreground: #ffffff;
+  --ring: #0a6919;
+  --sidebar-primary: #0a6919;
+  --sidebar-primary-foreground: #ffffff;
+}
+}
