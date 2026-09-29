@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { sellerApi } from "../services/sellerApi";
 import { toast } from "sonner";
 import { useSellerOrders } from "../context/SellerOrdersContext";
+import { useAuth } from "@core/context/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const Dashboard = () => {
     ordersLoading,
     refreshOrders,
   } = useSellerOrders();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -102,9 +104,11 @@ const Dashboard = () => {
       change: "+12.5%",
       changeType: "increase",
       icon: DollarSign,
-      iconBg: "bg-emerald-50",
-      iconColor: "text-emerald-600",
+      iconBg: "bg-emerald-100",
+      iconColor: "text-emerald-700",
       description: "vs last month",
+      cardBg: "bg-emerald-50/50",
+      cardBorder: "border-emerald-100",
     },
     {
       label: "Total Orders",
@@ -112,9 +116,11 @@ const Dashboard = () => {
       change: "+8.2%",
       changeType: "increase",
       icon: ShoppingBag,
-      iconBg: "bg-blue-50",
-      iconColor: "text-blue-600",
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-700",
       description: "vs last month",
+      cardBg: "bg-blue-50/50",
+      cardBorder: "border-blue-100",
     },
     {
       label: "Avg Order Value",
@@ -122,9 +128,11 @@ const Dashboard = () => {
       change: "+2",
       changeType: "increase",
       icon: Package,
-      iconBg: "bg-purple-50",
-      iconColor: "text-purple-600",
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-700",
       description: "per order",
+      cardBg: "bg-purple-50/50",
+      cardBorder: "border-purple-100",
     },
     {
       label: "Pending Orders",
@@ -132,9 +140,11 @@ const Dashboard = () => {
       change: "-3",
       changeType: "decrease",
       icon: Clock,
-      iconBg: "bg-red-50",
-      iconColor: "text-red-600",
+      iconBg: "bg-rose-100",
+      iconColor: "text-rose-700",
       description: "need attention",
+      cardBg: "bg-rose-50/50",
+      cardBorder: "border-rose-100",
     },
   ];
 
@@ -249,121 +259,130 @@ const Dashboard = () => {
 
   return (
     <div className="ds-section-spacing relative">
-      <PageHeader
-        title="Dashboard"
-        description="Welcome back! Here's what's happening with your store today."
-      />
+      {/* Welcome Banner */}
+      <div className="bg-emerald-50 rounded-3xl p-6 md:p-8 text-emerald-950 shadow-sm border border-emerald-100 mb-3 relative overflow-hidden">
+        <div className="relative z-10">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight">Dashboard</h1>
+          <p className="text-emerald-700 text-sm md:text-base mt-2 font-medium">Welcome back! Here's what's happening with your store today.</p>
+        </div>
+        {/* Decorative background circle */}
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 rounded-full bg-emerald-100 opacity-50 blur-2xl pointer-events-none"></div>
+      </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
         {stats.map((stat) => (
-          <Card key={stat.label} className="hover:shadow-lg transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-base font-medium text-slate-600">
+          <Card key={stat.label} className={cn("hover:shadow-md transition-shadow p-2.5 md:p-4 backdrop-blur-sm border", stat.cardBg || "bg-white", stat.cardBorder || "border-slate-100")}>
+            <div className="flex items-center gap-2">
+              <div className={cn("p-2 rounded-xl flex-shrink-0", stat.iconBg)}>
+                <stat.icon className={cn("h-4 w-4 md:h-5 md:w-5", stat.iconColor)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={cn("text-[10px] md:text-xs font-bold uppercase tracking-wider truncate", stat.isDark ? "text-white/80" : "text-slate-500")}>
                   {stat.label}
                 </p>
-                <p className="text-2xl font-bold text-slate-900 mt-2">
+                <p className={cn("text-sm md:text-xl font-black truncate mt-0.5", stat.isDark ? "text-white" : "text-slate-900")}>
                   {stat.value}
                 </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={cn(
-                      "text-xs font-semibold flex items-center gap-1",
-                      stat.changeType === "increase"
-                        ? "text-emerald-600"
-                        : "text-red-600",
-                    )}>
-                    <TrendingUp
-                      className={cn(
-                        "h-3 w-3",
-                        stat.changeType === "decrease" && "rotate-180",
-                      )}
-                    />
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-slate-600">
-                    {stat.description}
-                  </span>
-                </div>
               </div>
-              <div className={cn("p-3 rounded-lg", stat.iconBg)}>
-                <stat.icon className={cn("h-6 w-6", stat.iconColor)} />
-              </div>
+            </div>
+            
+            <div className={cn("mt-2 flex items-center justify-between border-t pt-1.5", stat.isDark ? "border-white/20" : "border-slate-50")}>
+              <span
+                className={cn(
+                  "text-[10px] font-bold flex items-center gap-0.5",
+                  stat.changeType === "increase"
+                    ? (stat.isDark ? "text-white" : "text-emerald-600")
+                    : (stat.isDark ? "text-white/90" : "text-rose-600"),
+                )}>
+                <TrendingUp
+                  className={cn(
+                    "h-3 w-3",
+                    stat.changeType === "decrease" && "rotate-180",
+                  )}
+                />
+                {stat.change}
+              </span>
+              <span className={cn("text-[9px] font-medium truncate ml-1", stat.isDark ? "text-white/60" : "text-slate-400")}>
+                {stat.description}
+              </span>
             </div>
           </Card>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {quickActions.map((action) => {
-          const isPrimary = action.variant === "primary";
-          const isEmerald = action.variant === "outline-emerald";
-          return (
-            <button
-              key={action.title}
-              onClick={() => navigate(action.path)}
-              className={cn(
-                "p-6 rounded-xl text-left transition-all duration-200 shadow-sm hover:shadow-md border-2",
-                isPrimary &&
-                  "bg-primary border-primary text-white hover:bg-primary/90 hover:border-primary/90",
-                action.variant === "outline" &&
-                  "bg-white border-slate-200 text-slate-900 hover:border-primary hover:bg-primary/5",
-                isEmerald &&
-                  "bg-white border-slate-200 text-slate-900 hover:border-emerald-500 hover:bg-emerald-50",
-              )}>
-              <div className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    "p-2 rounded-lg",
-                    isPrimary
-                      ? "bg-white/20"
-                      : isEmerald
-                        ? "bg-emerald-50"
-                        : "bg-slate-100",
-                  )}>
-                  <action.icon
+      <div className="mt-8 mb-4">
+        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-4 px-1">Quick Access</h2>
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
+          {quickActions.map((action) => {
+            const isPrimary = action.variant === "primary";
+            const isEmerald = action.variant === "outline-emerald";
+            return (
+              <button
+                key={action.title}
+                onClick={() => navigate(action.path)}
+                className={cn(
+                  "aspect-square p-2.5 md:p-4 rounded-xl text-center transition-all duration-200 shadow-sm hover:shadow-md border",
+                  isPrimary &&
+                    "bg-primary border-primary text-white hover:bg-primary/90 hover:border-primary/90",
+                  action.variant === "outline" &&
+                    "bg-white border-slate-100 text-slate-900 hover:border-primary hover:bg-primary/5",
+                  isEmerald &&
+                    "bg-white border-slate-100 text-slate-900 hover:border-emerald-500 hover:bg-emerald-50",
+                )}>
+                <div className="flex flex-col items-center justify-center gap-1.5 md:gap-3 h-full relative">
+                  <div
                     className={cn(
-                      "h-5 w-5",
+                      "p-2 md:p-3 rounded-full inline-flex flex-shrink-0",
                       isPrimary
-                        ? "text-white"
+                        ? "bg-white/20"
                         : isEmerald
-                          ? "text-emerald-600"
-                          : "text-slate-700",
+                          ? "bg-emerald-50"
+                          : "bg-slate-100",
+                    )}>
+                    <action.icon
+                      className={cn(
+                        "h-5 w-5 md:h-7 md:w-7",
+                        isPrimary
+                          ? "text-white"
+                          : isEmerald
+                            ? "text-emerald-600"
+                            : "text-slate-700",
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center items-center w-full">
+                    <h3
+                      className={cn(
+                        "font-bold text-[10px] md:text-sm leading-tight",
+                        isPrimary ? "text-white" : "text-slate-900",
+                      )}>
+                      {action.title}
+                    </h3>
+                    <p
+                      className={cn(
+                        "text-[8px] md:text-xs mt-0.5 truncate md:whitespace-normal line-clamp-1 md:line-clamp-2",
+                        isPrimary ? "text-white/90" : "text-slate-500",
+                      )}>
+                      {action.description}
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    className={cn(
+                      "absolute top-0 right-0 h-3 w-3 md:h-4 md:w-4 shrink-0",
+                      isPrimary ? "text-white/70" : "text-slate-600",
                     )}
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className={cn(
-                      "font-semibold text-sm",
-                      isPrimary ? "text-white" : "text-slate-900",
-                    )}>
-                    {action.title}
-                  </h3>
-                  <p
-                    className={cn(
-                      "text-xs mt-1",
-                      isPrimary ? "text-white/90" : "text-slate-600",
-                    )}>
-                    {action.description}
-                  </p>
-                </div>
-                <ArrowUpRight
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    isPrimary ? "text-white/70" : "text-slate-600",
-                  )}
-                />
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
+      {/* 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
         <Card
           title="Revenue Overview"
           subtitle="Last 7 days performance"
@@ -432,7 +451,6 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Product Performance */}
         <Card title="Top Categories" subtitle="Sales by category">
           <div className="h-[300px] min-h-[280px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -471,6 +489,7 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
+      */}
 
       {/* Recent Orders */}
       <Card
@@ -484,84 +503,60 @@ const Dashboard = () => {
             <ArrowUpRight className="h-4 w-4" />
           </button>
         }>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                  Action
-                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Order ID</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Customer</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Date</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Amount</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-slate-600 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {safeOrders.slice(0, 5).map((order) => (
-                <tr
-                  key={order.orderId}
-                  className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 px-4 align-middle">
-                    <span className="text-sm font-semibold text-slate-900">
-                      {order.orderId}
-                    </span>
-                  </td>
+                <tr key={order.orderId} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 px-4 align-middle"><span className="text-sm font-semibold text-slate-900">{order.orderId}</span></td>
                   <td className="py-4 px-4 align-middle">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
-                        {order.customer?.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("") || "C"}
-                      </div>
-                      <span className="text-sm font-medium text-slate-700">
-                        {order.customer?.name || "Customer"}
-                      </span>
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">{order.customer?.name?.split(" ").map((n) => n[0]).join("") || "C"}</div>
+                      <span className="text-sm font-medium text-slate-700">{order.customer?.name || "Customer"}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-4 align-middle">
-                    <span className="text-sm text-slate-600">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 align-middle">
-                    <span className="text-sm font-semibold text-slate-900">
-                      ₹{order.pricing?.total || 0}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 align-middle">
-                    <Badge
-                      variant={getStatusColor(order.status)}
-                      className="capitalize">
-                      {order.status}
-                    </Badge>
-                  </td>
+                  <td className="py-4 px-4 align-middle"><span className="text-sm text-slate-600">{new Date(order.createdAt).toLocaleDateString()}</span></td>
+                  <td className="py-4 px-4 align-middle"><span className="text-sm font-semibold text-slate-900">₹{order.pricing?.total || 0}</span></td>
+                  <td className="py-4 px-4 align-middle"><Badge variant={getStatusColor(order.status)} className="capitalize">{order.status}</Badge></td>
                   <td className="py-4 px-4 text-center align-middle">
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(normalizeOrderForModal(order));
-                        setIsOrderModalOpen(true);
-                      }}
-                      className="text-slate-600 hover:text-primary transition-colors p-1">
-                      <Eye className="h-4 w-4" />
-                    </button>
+                    <button onClick={() => { setSelectedOrder(normalizeOrderForModal(order)); setIsOrderModalOpen(true); }} className="text-slate-600 hover:text-primary transition-colors p-1"><Eye className="h-4 w-4" /></button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View for Recent Orders */}
+        <div className="md:hidden space-y-3 mt-2">
+          {safeOrders.slice(0, 5).map((order) => (
+            <div key={order.orderId} onClick={() => { setSelectedOrder(normalizeOrderForModal(order)); setIsOrderModalOpen(true); }} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex flex-col gap-3 active:scale-95 transition-transform cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(order.createdAt).toLocaleDateString()}</span>
+                  <p className="text-sm font-bold text-slate-900">#{order.orderId}</p>
+                </div>
+                <Badge variant={getStatusColor(order.status)} className="capitalize text-[10px] py-0.5 px-2">{order.status}</Badge>
+              </div>
+              <div className="flex items-center justify-between border-t border-slate-50 pt-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-semibold text-slate-600">{order.customer?.name?.split(" ").map((n) => n[0]).join("") || "C"}</div>
+                  <span className="text-xs font-medium text-slate-700">{order.customer?.name || "Customer"}</span>
+                </div>
+                <span className="text-sm font-black text-slate-900">₹{order.pricing?.total || 0}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
 

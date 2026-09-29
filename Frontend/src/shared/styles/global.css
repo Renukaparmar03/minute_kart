@@ -310,4 +310,23 @@
   color: #525252;
 }
 
+/* Delivery Partner App Green Theme (#86bf24) */
+:root {
+  --delivery-brand: #86bf24;
+  --delivery-brand-dark: #73a61d;
+  --delivery-brand-light: #f3f9e8;
 }
+
+.bg-delivery-brand {
+  background-color: #86bf24;
+}
+
+.text-delivery-brand {
+  color: #86bf24;
+}
+
+.border-delivery-brand {
+  border-color: #86bf24;
+}
+}
+

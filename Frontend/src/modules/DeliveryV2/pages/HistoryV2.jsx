@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowLeft, ChevronDown, Loader2, Gift, X, 
-  CheckCircle2, Clock, Search, History
+  CheckCircle2, Clock, Search, History, Wallet, HelpCircle, User as UserIcon, LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { deliveryAPI } from '@food/api';
@@ -12,13 +12,13 @@ import useDeliveryBackNavigation from '../hooks/useDeliveryBackNavigation';
 /**
  * HistoryV2 - EXACT 1:1 Match with User Screenshot.
  * Theme: Clean White
- * Accent: Emerald Green (#10B981)
+ * Accent: Emerald Green (#86bf24)
  * Font: Poppins
  */
 export const HistoryV2 = () => {
   const navigate = useNavigate();
   const goBack = useDeliveryBackNavigation();
-  const [activeTab, setActiveTab] = useState("daily");
+  const [activeTab, setActiveTab] = useState("quick access");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTripType, setSelectedTripType] = useState("ALL TRIPS");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -133,43 +133,64 @@ export const HistoryV2 = () => {
 
   return (
     <div className="min-h-screen bg-white font-poppins pb-32">
-       {/* 1. Header (Premium V2 Styled) */}
-       <div className="bg-[#121212] border-b border-white/10 px-6 py-3 flex items-center justify-between sticky top-0 z-[100] backdrop-blur-2xl">
-          <div className="flex items-center gap-4">
-            <button onClick={goBack} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/10 active:scale-90 transition-all">
-               <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-               <h1 className="text-xl font-black text-white uppercase tracking-tighter">Trip History</h1>
-               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Your delivery milestones</p>
-            </div>
-          </div>
-          <button onClick={() => setShowBonusModal(true)} className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-[#10B981] border border-green-500/20 relative active:scale-90 transition-all">
-             <Gift className="w-5 h-5" />
-             {bonusTransactions.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#10B981] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                   {bonusTransactions.length}
-                </span>
-             )}
-          </button>
-       </div>
+
 
        {/* 2. Selection Tabs (Matched to Image) */}
-       <div className="bg-white px-4 flex items-center gap-8 sticky top-[61px] z-[90] border-b border-gray-100">
-          {['daily', 'weekly', 'monthly'].map((tab) => (
+       <div className="bg-white px-4 flex items-center gap-8 sticky top-0 z-[90] border-b border-gray-100">
+          {['quick access', 'daily', 'weekly', 'monthly'].map((tab) => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab)}
-               className={`py-4 text-base font-medium capitalize relative ${activeTab === tab ? 'text-[#10B981]' : 'text-gray-400'}`}
+               className={`py-4 text-base font-medium capitalize relative ${activeTab === tab ? 'text-[#86bf24]' : 'text-gray-400'}`}
              >
                 {tab}
-                {activeTab === tab && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#10B981]" />}
+                {activeTab === tab && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#86bf24]" />}
              </button>
           ))}
        </div>
 
-       {/* 3. Filter Controls (Matched to Image) */}
-       <div className="bg-white px-4 py-4 flex gap-3 sticky top-[118px] z-[80]">
+       {activeTab === 'quick access' ? (
+           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-4 space-y-6">
+              {/* Static Banner */}
+              <div className="w-full bg-[#ffeaad] rounded-2xl overflow-hidden relative shadow-sm border border-[#ffdb70]/50 h-32">
+                 <div className="absolute inset-y-0 left-4 flex flex-col justify-center max-w-[60%] z-10">
+                    <h2 className="text-gray-900 font-black text-lg leading-tight">More Orders<br/>More Earnings!</h2>
+                 </div>
+                 {/* Decorative elements for the banner (static, as requested) */}
+                 <div className="absolute bottom-0 right-0 h-full w-[60%] bg-[url('https://i.ibb.co/6WhPcwH/scooter-delivery.png')] bg-contain bg-no-repeat bg-right-bottom mix-blend-multiply" />
+              </div>
+
+              <div>
+                 <h3 className="font-bold text-gray-900 text-lg mb-4 tracking-tight">Quick Access</h3>
+                 <div className="grid grid-cols-3 gap-3">
+                    <button onClick={() => setActiveTab('daily')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
+                       <div className="text-[#136a3e]"><History className="w-7 h-7 stroke-[2.5]" /></div>
+                       <span className="text-[#136a3e] font-bold text-xs">Orders</span>
+                    </button>
+                    <button onClick={() => navigate('/food/delivery/pocket')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
+                       <div className="text-[#136a3e]"><Wallet className="w-7 h-7 stroke-[2.5]" /></div>
+                       <span className="text-[#136a3e] font-bold text-xs">Wallet</span>
+                    </button>
+
+                    <button onClick={() => navigate('/food/delivery/help/tickets')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
+                       <div className="text-[#136a3e]"><HelpCircle className="w-7 h-7 stroke-[2.5]" /></div>
+                       <span className="text-[#136a3e] font-bold text-xs">Support</span>
+                    </button>
+                    <button onClick={() => navigate('/food/delivery/profile')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
+                       <div className="text-[#136a3e]"><UserIcon className="w-7 h-7 stroke-[2.5]" /></div>
+                       <span className="text-[#136a3e] font-bold text-xs">Profile</span>
+                    </button>
+                    <button onClick={() => navigate('/food/delivery/profile')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
+                       <div className="text-[#136a3e]"><LayoutGrid className="w-7 h-7 stroke-[2.5]" /></div>
+                       <span className="text-[#136a3e] font-bold text-xs">More</span>
+                    </button>
+                 </div>
+              </div>
+           </motion.div>
+       ) : (
+         <>
+           {/* 3. Filter Controls (Matched to Image) */}
+           <div className="bg-white px-4 py-4 flex gap-3 sticky top-[57px] z-[80]">
           <button 
              onClick={() => { setShowDatePicker(!showDatePicker); setShowTripTypePicker(false); }}
              className="flex-1 px-4 py-3 bg-[#f8f9fa] border border-gray-100 rounded-xl flex items-center justify-between text-gray-800"
@@ -194,7 +215,7 @@ export const HistoryV2 = () => {
                    <button 
                       key={idx} 
                       onClick={() => { setSelectedDate(date); setShowDatePicker(false); }}
-                      className={`w-full text-left p-4 rounded-xl text-sm font-medium ${date.toDateString() === selectedDate.toDateString() ? 'bg-green-50 text-[#10B981] font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                      className={`w-full text-left p-4 rounded-xl text-sm font-medium ${date.toDateString() === selectedDate.toDateString() ? 'bg-[#f3f9e8] text-[#86bf24] font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                    >
                       {formatDateDisplay(date)}
                    </button>
@@ -207,7 +228,7 @@ export const HistoryV2 = () => {
                    <button 
                       key={idx} 
                       onClick={() => { setSelectedTripType(type); setShowTripTypePicker(false); }}
-                      className={`w-full text-left p-4 rounded-xl text-sm font-medium ${type === selectedTripType ? 'bg-green-50 text-[#10B981] font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                      className={`w-full text-left p-4 rounded-xl text-sm font-medium ${type === selectedTripType ? 'bg-[#f3f9e8] text-[#86bf24] font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                    >
                       {type}
                    </button>
@@ -219,13 +240,13 @@ export const HistoryV2 = () => {
        {/* 4. Page Content */}
        <div className="px-4 py-2 space-y-5">
           {/* Performance Summary Banner (Matched to Image) */}
-          <div className="bg-[#E9F9F4] rounded-2xl p-6 border border-[#D1F2E8] flex justify-between items-center">
+          <div className="bg-[#f3f9e8] rounded-2xl p-6 border border-[#e6f4cf] flex justify-between items-center">
              <div>
-                <p className="text-[11px] font-bold text-[#10B981] mb-1">COD Collected</p>
+                <p className="text-[11px] font-bold text-[#86bf24] mb-1">COD Collected</p>
                 <h3 className="text-xl font-bold text-gray-950">₹{metrics.cod.toFixed(2)}</h3>
              </div>
              <div className="text-right">
-                <p className="text-[11px] font-bold text-[#10B981] mb-1">Earnings</p>
+                <p className="text-[11px] font-bold text-[#86bf24] mb-1">Earnings</p>
                 <h3 className="text-xl font-bold text-gray-950">₹{metrics.earnings.toFixed(2)}</h3>
              </div>
           </div>
@@ -233,7 +254,7 @@ export const HistoryV2 = () => {
           {/* Trip List */}
           {loading ? (
              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-[#10B981]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#86bf24]" />
                 <p className="text-gray-400 text-xs font-medium">Fetching trips...</p>
              </div>
           ) : trips.length > 0 ? (
@@ -250,7 +271,7 @@ export const HistoryV2 = () => {
                       <div 
                          key={trip.orderId || idx} 
                          onClick={() => handleTripClick(trip, isPending)}
-                         className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:scale-[0.99] transition-all ${isPending ? 'cursor-pointer hover:border-[#10B981]/30 hover:shadow-md' : ''}`}
+                         className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm active:scale-[0.99] transition-all ${isPending ? 'cursor-pointer hover:border-[#86bf24]/30 hover:shadow-md' : ''}`}
                       >
                          <div className="flex justify-between items-start mb-2">
                              <div>
@@ -258,13 +279,13 @@ export const HistoryV2 = () => {
                                 <p className="text-sm font-medium text-gray-500 mt-0.5">{trip.restaurant || trip.restaurantName || 'Store/Restaurant'}</p>
                                 <p className="text-xs text-gray-400 font-medium mt-0.5 line-clamp-1">{extractItems(trip)}</p>
                              </div>
-                             <span className={`text-sm font-bold ${isCompleted ? 'text-[#10B981]' : isCancelled ? 'text-red-500' : 'text-orange-500'}`}>
+                             <span className={`text-sm font-bold ${isCompleted ? 'text-[#86bf24]' : isCancelled ? 'text-red-500' : 'text-orange-500'}`}>
                                 {trip.status || 'Status'}
                              </span>
                          </div>
                          
                          <div className="flex gap-2 mb-4 mt-3">
-                             <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isCOD ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-[#10B981]'}`}>
+                             <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${isCOD ? 'bg-orange-50 text-orange-600' : 'bg-[#f3f9e8] text-[#86bf24]'}`}>
                                 {isCOD ? 'COD' : 'Online'}
                              </span>
                          </div>
@@ -296,6 +317,8 @@ export const HistoryV2 = () => {
              </div>
           )}
        </div>
+       </>
+       )}
 
        {/* Bonus Drawer (The Gift Modal) */}
        <AnimatePresence>
@@ -318,7 +341,7 @@ export const HistoryV2 = () => {
                    <div className="w-12 h-1 bg-gray-100 rounded-full mx-auto mb-8 shrink-0" />
                    <div className="flex items-center justify-between mb-8 shrink-0">
                       <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-[#10B981] border border-green-100">
+                         <div className="w-12 h-12 bg-[#f3f9e8] rounded-xl flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]">
                             <Gift className="w-6 h-6" />
                          </div>
                          <div>
@@ -330,7 +353,7 @@ export const HistoryV2 = () => {
                    
                    <div className="flex-1 overflow-y-auto pr-1 space-y-4">
                       {bonusLoading ? (
-                         <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#10B981]" /></div>
+                         <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#86bf24]" /></div>
                       ) : bonusTransactions.length > 0 ? bonusTransactions.map((tx, i) => (
                          <div key={i} className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex justify-between items-center">
                             <div>
@@ -338,7 +361,7 @@ export const HistoryV2 = () => {
                                <p className="text-sm font-medium text-gray-600 line-clamp-1">{tx.description || 'Bonus Payout'}</p>
                                <p className="text-[10px] text-gray-400 font-medium mt-1">{new Date(tx.createdAt || tx.date).toLocaleDateString()}</p>
                             </div>
-                            <span className="bg-green-100 text-[#10B981] text-[10px] font-bold px-3 py-1 rounded-full uppercase">DELIVERED</span>
+                            <span className="bg-[#e6f4cf] text-[#86bf24] text-[10px] font-bold px-3 py-1 rounded-full uppercase">DELIVERED</span>
                          </div>
                       )) : (
                          <div className="py-20 text-center flex flex-col items-center">

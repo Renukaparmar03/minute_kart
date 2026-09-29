@@ -516,7 +516,7 @@ export const ProfileDetailsV2 = () => {
            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2 mb-4">Delivery Partner • {profile?.location?.city}</p>
            
            <div className="flex items-center justify-center gap-2">
-              <div className="bg-[#10B981]/10 text-[#10B981] px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border border-[#10B981]/20 flex items-center gap-2">
+              <div className="bg-[#86bf24]/10 text-[#86bf24] px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border border-[#86bf24]/20 flex items-center gap-2">
                  <CheckCircle className="w-4 h-4" /> {profile?.status}
               </div>
               <div className="bg-orange-500/10 text-orange-500 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border border-orange-500/20 flex items-center gap-2">

@@ -148,7 +148,7 @@ const ActiveReturnPickup = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="animate-spin text-emerald-600" size={24} />
+        <Loader2 className="animate-spin text-[#86bf24]" size={24} />
       </div>
     );
   }
@@ -182,7 +182,7 @@ const ActiveReturnPickup = () => {
           <h3 className="font-semibold text-gray-900 mb-4 uppercase tracking-wide text-xs">Customer Details (Pickup)</h3>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+              <MapPin className="w-5 h-5 text-[#86bf24] mt-0.5 shrink-0" />
               <div>
                 <p className="text-base text-gray-800 font-bold">{returnReq.userId?.name || "Customer"}</p>
                 <p className="text-sm text-gray-600 mt-1">{customerAddressResolved}</p>
@@ -195,7 +195,7 @@ const ActiveReturnPickup = () => {
                 if (url) window.open(url, "_blank");
                 else toast.error("Customer location not available");
               }}
-              className="p-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors shrink-0 flex items-center justify-center border border-blue-100 active:scale-95"
+              className="p-2.5 bg-[#f3f9e8] text-[#86bf24] rounded-lg hover:bg-blue-100 transition-colors shrink-0 flex items-center justify-center border border-[#e6f4cf] active:scale-95"
               title="Open Customer Location in Google Maps"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -253,7 +253,7 @@ const ActiveReturnPickup = () => {
                 value={otp}
                 onChange={e => setOtp(e.target.value)}
                 placeholder="4-digit OTP"
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:ring-2 focus:ring-[#86bf24]"
               />
             </div>
 
@@ -284,7 +284,7 @@ const ActiveReturnPickup = () => {
             <button
               onClick={handleConfirmPickup}
               disabled={actionLoading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-70"
+              className="w-full bg-[#86bf24] hover:bg-[#73a61d] text-white font-bold py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-70"
             >
               {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
               Verify & Confirm Pickup
@@ -327,18 +327,18 @@ const ActiveReturnPickup = () => {
         )}
 
         {returnReq.status === "PICKED_UP" && (
-          <div className="bg-emerald-50 rounded-xl shadow-sm border border-emerald-100 p-5 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+          <div className="bg-[#f3f9e8] rounded-xl shadow-sm border border-[#e6f4cf] p-5 text-center space-y-4">
+            <div className="w-16 h-16 bg-[#e6f4cf] text-[#86bf24] rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-bold text-emerald-900 text-lg">Product Picked Up</h3>
-              <p className="text-sm text-emerald-700 mt-1">Please drop the item at the seller's location.</p>
+              <h3 className="font-bold text-[#3d590e] text-lg">Product Picked Up</h3>
+              <p className="text-sm text-[#66941a] mt-1">Please drop the item at the seller's location.</p>
             </div>
 
-            <div className="text-left bg-white p-4 rounded-lg border border-emerald-100 flex items-start justify-between gap-3">
+            <div className="text-left bg-white p-4 rounded-lg border border-[#e6f4cf] flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                <MapPin className="w-5 h-5 text-[#86bf24] mt-0.5 shrink-0" />
                 <div>
                   <h4 className="font-semibold text-gray-900 text-sm mb-1">Drop to Seller</h4>
                   <p className="text-gray-800 font-bold">{sellerNameResolved}</p>
@@ -348,7 +348,7 @@ const ActiveReturnPickup = () => {
               </div>
               <button 
                 onClick={handleNavigateToDrop}
-                className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors shrink-0 flex items-center justify-center border border-emerald-100 active:scale-95"
+                className="p-2.5 bg-[#f3f9e8] text-[#86bf24] rounded-lg hover:bg-[#e6f4cf] transition-colors shrink-0 flex items-center justify-center border border-[#e6f4cf] active:scale-95"
                 title="Open Seller Location in Google Maps"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -360,15 +360,15 @@ const ActiveReturnPickup = () => {
 
             <button
               onClick={handleNavigateToDrop}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2"
+              className="w-full bg-[#86bf24] hover:bg-[#73a61d] text-white font-bold py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2"
             >
               Navigate to Drop Location <ArrowRight className="w-4 h-4" />
             </button>
 
             <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-emerald-200/50"></div>
-              <span className="flex-shrink mx-4 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">Or</span>
-              <div className="flex-grow border-t border-emerald-200/50"></div>
+              <div className="flex-grow border-t border-[#d0eb9f]/50"></div>
+              <span className="flex-shrink mx-4 text-[#86bf24] text-[10px] font-bold uppercase tracking-wider">Or</span>
+              <div className="flex-grow border-t border-[#d0eb9f]/50"></div>
             </div>
 
             <button
@@ -395,7 +395,7 @@ const ActiveReturnPickup = () => {
                 }
               }}
               disabled={actionLoading}
-              className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[#e6f4cf] hover:bg-[#d0eb9f] text-[#66941a] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               Mark as Received by Seller
             </button>
@@ -403,15 +403,15 @@ const ActiveReturnPickup = () => {
         )}
 
         {(returnReq.status === "RETURN_RECEIVED_BY_SELLER" || returnReq.status === "REFUND_COMPLETED") && (
-          <div className="bg-emerald-50 rounded-xl shadow-sm border border-emerald-100 p-5 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+          <div className="bg-[#f3f9e8] rounded-xl shadow-sm border border-[#e6f4cf] p-5 text-center space-y-4">
+            <div className="w-16 h-16 bg-[#e6f4cf] text-[#86bf24] rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-bold text-emerald-900 text-lg">Return Dropped Off</h3>
-              <p className="text-sm text-emerald-700 mt-1">This package has been successfully delivered to the seller.</p>
+              <h3 className="font-bold text-[#3d590e] text-lg">Return Dropped Off</h3>
+              <p className="text-sm text-[#66941a] mt-1">This package has been successfully delivered to the seller.</p>
             </div>
-            <div className="text-left bg-white p-4 rounded-lg border border-emerald-100">
+            <div className="text-left bg-white p-4 rounded-lg border border-[#e6f4cf]">
               <p className="text-sm font-semibold text-gray-500 uppercase">Seller</p>
               <p className="text-base text-gray-800 font-bold mt-0.5">{sellerNameResolved}</p>
               <p className="text-sm text-gray-600 mt-1">{sellerAddressResolved}</p>

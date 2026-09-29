@@ -311,8 +311,8 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
   const emergencyOptions = [
     { title: "Medical Emergency", subtitle: "Call an ambulance", icon: <AlertTriangle className="text-red-600" />, phone: emergencyNumbers.medicalEmergency },
     { title: "Accident Helpline", subtitle: "Report an accident", icon: <AlertTriangle className="text-orange-600" />, phone: emergencyNumbers.accidentHelpline },
-    { title: "Contact Police", subtitle: "Nearest police support", icon: <AlertTriangle className="text-blue-600" />, phone: emergencyNumbers.contactPolice },
-    { title: "Insurance", subtitle: "Policy & claim help", icon: <AlertTriangle className="text-green-600" />, phone: emergencyNumbers.insurance },
+    { title: "Contact Police", subtitle: "Nearest police support", icon: <AlertTriangle className="text-[#86bf24]" />, phone: emergencyNumbers.contactPolice },
+    { title: "Insurance", subtitle: "Policy & claim help", icon: <AlertTriangle className="text-[#86bf24]" />, phone: emergencyNumbers.insurance },
   ];
 
     // Reset simulation only when a new trip/mode starts.
@@ -677,8 +677,8 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
   return (
     <div className="relative h-screen w-full bg-white text-gray-900 overflow-hidden flex flex-col">
       {/* ─── 1. TOP HEADER (Premium Dark Gray) ─── */}
-      {currentTab === 'feed' && (
-      <div className="absolute top-0 inset-x-0 bg-[#121212]/95 backdrop-blur-2xl shadow-2xl z-[200] safe-top pb-2 border-b border-white/10">
+      {['feed', 'history'].includes(currentTab) && (
+      <div className="absolute top-0 inset-x-0 bg-[#86bf24] backdrop-blur-2xl shadow-2xl z-[200] safe-top pb-2 border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-4">
              <div 
@@ -687,38 +687,18 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
              >
                 <img src={profileImage || "https://i.ibb.co/3m2Yh7r/Appzeto-Brand-Image.png"} alt="Profile" className="w-full h-full object-cover rounded-full" />
              </div>
-             <button 
-               onClick={async () => {
-                 const nextState = !isOnline;
-                 toggleOnline(); // Store action
-                 if (nextState) {
-                    // Try to get location and sync immediately so we are visible for dispatch right away
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        deliveryAPI.updateLocation(pos.coords.latitude, pos.coords.longitude, true).catch(() => {});
-                    }, (err) => console.warn('Online sync position failed:', err), { enableHighAccuracy: true });
-                 } else {
-                    deliveryAPI.updateOnlineStatus(false).catch(() => {});
-                 }
-               }}
-               className={`relative w-[92px] h-8 rounded-full p-1 transition-all duration-500 flex items-center ${isOnline ? 'bg-green-500 shadow-lg shadow-green-500/20' : 'bg-gray-400'}`}
-             >
-               <div className={`flex items-center justify-between w-full px-2 text-[8.5px] font-black uppercase tracking-widest text-white`}>
-                 <span>{isOnline ? 'Online' : ''}</span>
-                 <span>{!isOnline ? 'Offline' : ''}</span>
-               </div>
-               <motion.div animate={{ x: isOnline ? 59 : 0 }} className="absolute left-1 w-6 h-6 bg-white rounded-full shadow-sm" />
-             </button>
+             <span className="text-white font-black text-lg tracking-wide uppercase">Minutekart</span>
           </div>
           <div className="flex items-center gap-3">
              <button onClick={() => setShowEmergencyPopup(true)} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-95 transition-all shadow-lg"><AlertTriangle className="w-4 h-4" /></button>
-             <button onClick={() => navigate('/food/delivery/help/id-card')} className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20 active:scale-95 transition-all shadow-lg"><Contact className="w-4 h-4" /></button>
+             <button onClick={() => navigate('/food/delivery/help/id-card')} className="w-9 h-9 rounded-full bg-[#86bf24]/10 flex items-center justify-center text-[#86bf24] border border-[#86bf24]/20 active:scale-95 transition-all shadow-lg"><Contact className="w-4 h-4" /></button>
              <button onClick={() => navigate('/food/delivery/notifications')} className="relative w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all shadow-lg"><Bell className="w-4 h-4" />{notificationUnreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-400 border border-[#1f1f1f]" />}</button>
           </div>
         </div>
 
         {/* ─── LIVE STATUS / PROGRESS BADGE (MATCHED PRO) ─── */}
         <AnimatePresence>
-          {currentTab === 'feed' && (
+          {['feed', 'history'].includes(currentTab) && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -744,7 +724,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                   </div>
 
                   {/* RIGHT: TIME (Emerald PRO Content) */}
-                  <div className="bg-[#10B981] rounded-2xl p-3.5 shadow-xl shadow-green-500/20 border border-green-400/50 flex items-center justify-between relative overflow-hidden group">
+                  <div className="bg-[#86bf24] rounded-2xl p-3.5 shadow-xl shadow-[#86bf24]/20 border border-[#9cd33b]/50 flex items-center justify-between relative overflow-hidden group">
                     <div className="flex flex-col z-10">
                       <span className="text-[9px] text-white/70 font-black uppercase tracking-[0.15em] mb-1">Arrival</span>
                       <div className="flex items-end gap-1">
@@ -755,21 +735,44 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                       </div>
                     </div>
                     <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center z-10 shadow-lg">
-                       <Clock className="w-4 h-4 text-[#10B981]" />
+                       <Clock className="w-4 h-4 text-[#86bf24]" />
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-white/5 rounded-2xl p-4 flex items-center border border-white/5 shadow-sm backdrop-blur-md">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
-                      <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-black text-[11px] uppercase tracking-widest leading-none mb-1">{isOnline ? 'System Online' : 'System Offline'}</h3>
-                      <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tight">{isOnline ? 'Waiting for order requests' : 'Go online to receive jobs'}</p>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      if (!isOnline) {
+                        toggleOnline();
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                            deliveryAPI.updateLocation(pos.coords.latitude, pos.coords.longitude, true).catch(() => {});
+                        }, (err) => console.warn('Online sync position failed:', err), { enableHighAccuracy: true });
+                      }
+                    }}
+                    className={`flex-1 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${
+                      isOnline 
+                        ? 'bg-white text-[#86bf24] shadow-lg shadow-black/10 border border-white' 
+                        : 'bg-white text-gray-400 opacity-80 border border-transparent hover:opacity-100'
+                    }`}
+                  >
+                    Go Online
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (isOnline) {
+                        toggleOnline();
+                        deliveryAPI.updateOnlineStatus(false).catch(() => {});
+                      }
+                    }}
+                    className={`flex-1 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${
+                      !isOnline 
+                        ? 'bg-white text-red-500 shadow-lg shadow-black/10 border border-white' 
+                        : 'bg-white text-gray-400 opacity-80 border border-transparent hover:opacity-100'
+                    }`}
+                  >
+                    Go Offline
+                  </button>
                 </div>
               )}
             </motion.div>
@@ -781,7 +784,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
       {/* ─── 2. MAIN CONTENT ─── */}
       <div 
         ref={scrollContainerRef}
-        className={`flex-1 relative overflow-y-auto ${currentTab === 'feed' ? 'pt-[120px]' : 'pt-0'} no-scrollbar`}
+        className={`flex-1 relative overflow-y-auto ${['feed', 'history'].includes(currentTab) ? 'pt-[120px]' : 'pt-0'} no-scrollbar`}
       >
          {currentTab === 'feed' ? (
            <div className="absolute inset-0 top-[-120px]">
@@ -838,17 +841,17 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                       }
                     }
                   }}
-                  className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center border border-gray-100 transition-all ${isSimMode ? 'bg-orange-500 text-white' : 'bg-white text-green-500'}`}
+                  className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center border border-gray-100 transition-all ${isSimMode ? 'bg-orange-500 text-white' : 'bg-white text-[#86bf24]'}`}
                 >
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isSimMode ? 'border-white' : 'border-green-500'}`}>
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isSimMode ? 'border-white' : 'border-[#86bf24]'}`}>
                     <Play className={`w-4 h-4 fill-current ml-0.5 ${isSimMode ? 'animate-pulse' : ''}`} />
                   </div>
                 </button>
                 <button 
                    onClick={() => mapRef.current?.setOptions({ gestureHandling: 'greedy' })} 
-                   className="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center text-blue-600 border border-gray-100 active:scale-90 transition-all"
+                   className="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center text-[#86bf24] border border-gray-100 active:scale-90 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full border-2 border-blue-600 flex items-center justify-center"><Navigation2 className="w-4 h-4" /></div>
+                  <div className="w-8 h-8 rounded-full border-2 border-[#86bf24] flex items-center justify-center"><Navigation2 className="w-4 h-4" /></div>
                 </button>
                 <button 
                   onClick={handleCenterMap}
@@ -923,7 +926,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                             </div>
                             <div>
                                <h3 className="text-gray-950 text-2xl font-bold uppercase">Handover Drop</h3>
-                               <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mt-1.5 ${isWithinRange ? 'text-green-600' : 'text-orange-500'}`}>
+                               <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mt-1.5 ${isWithinRange ? 'text-[#86bf24]' : 'text-orange-500'}`}>
                                  {isWithinRange ? 'Ready - Swipe to Arrive √' : `${(distanceToTarget / 1000).toFixed(1)} km • ${eta || '--'} min Arrival`}
                                </p>
                             </div>
@@ -942,12 +945,12 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                              </div>
                           </div>
                         )}
-                        <ActionSlider label="Slide to Arrive" successLabel="Arrived ✓" disabled={!isWithinRange} onConfirm={reachDrop} color="bg-blue-600" />
+                        <ActionSlider label="Slide to Arrive" successLabel="Arrived ✓" disabled={!isWithinRange} onConfirm={reachDrop} color="bg-[#86bf24]" />
                       </div>
                     ) : (
                       <button 
                         onClick={() => setShowVerification(true)} 
-                        className="w-full bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/30 rounded-2xl py-5 font-bold text-sm tracking-[0.2em] transform transition-all active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full bg-[#86bf24] hover:bg-[#86bf24] text-white shadow-xl shadow-[#86bf24]/30 rounded-2xl py-5 font-bold text-sm tracking-[0.2em] transform transition-all active:scale-95 flex items-center justify-center gap-3"
                       >
                         <CheckCircle2 className="w-6 h-6" /> VERIFY & COMPLETE
                       </button>
@@ -1026,10 +1029,10 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
         >
            <button 
              onClick={() => navigate(`/food/delivery/quick-commerce/returns/${activeReturn._id}/active`)}
-             className="w-full bg-blue-600/95 text-white rounded-2xl py-4 flex items-center justify-between px-6 shadow-2xl backdrop-blur-md border border-white/10"
+             className="w-full bg-[#86bf24]/95 text-white rounded-2xl py-4 flex items-center justify-between px-6 shadow-2xl backdrop-blur-md border border-white/10"
            >
               <div className="flex flex-col items-start gap-0.5">
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-blue-200">Active Return Pending</span>
+                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#f3f9e8]">Active Return Pending</span>
                  <span className="text-xs font-bold uppercase tracking-wider">Tap to open return flow</span>
               </div>
               <div className="bg-white/20 p-2 rounded-xl text-white">

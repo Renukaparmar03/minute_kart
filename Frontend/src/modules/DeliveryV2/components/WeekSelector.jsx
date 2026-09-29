@@ -66,7 +66,7 @@ export default function WeekSelector({ weekStartsOn = 0, onChange, className }) 
           className={cn(
             "rounded-md px-2 h-10 text-xs whitespace-nowrap",
             isSameRange(range, computeRange(new Date())) &&
-            "bg-emerald-50 text-emerald-900 border-emerald-200"
+            "bg-[#f3f9e8] text-[#3d590e] border-[#d0eb9f]"
           )}
         >
           This week

@@ -129,7 +129,7 @@ const OtpModal = ({ order, onVerified, onClose }) => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isOtpVerified ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500"}`}>
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isOtpVerified ? "bg-[#e6f4cf] text-[#86bf24]" : "bg-gray-100 text-gray-500"}`}>
               <ShieldCheck className="w-7 h-7" />
             </div>
             <div>
@@ -160,8 +160,8 @@ const OtpModal = ({ order, onVerified, onClose }) => {
               onKeyDown={(e) => handleKeyDown(i, e)}
               className={`w-14 h-18 bg-gray-50 border-2 rounded-2xl text-center text-3xl font-bold transition-all ${
                 isOtpVerified
-                  ? "border-green-500 bg-green-50 text-green-700"
-                  : "border-gray-200 focus:border-green-600 text-gray-700"
+                  ? "border-[#86bf24] bg-[#f3f9e8] text-[#66941a]"
+                  : "border-gray-200 focus:border-[#86bf24] text-gray-700"
               }`}
             />
           ))}
@@ -317,7 +317,7 @@ const PaymentModal = ({ order, otpString, onComplete, onClose }) => {
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
               <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPaid ? "bg-green-100 text-green-600" : "bg-amber-100 text-amber-600"}`}>
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPaid ? "bg-[#e6f4cf] text-[#86bf24]" : "bg-amber-100 text-amber-600"}`}>
                 <IndianRupee className="w-7 h-7" />
               </div>
               <div>
@@ -349,7 +349,7 @@ const PaymentModal = ({ order, otpString, onComplete, onClose }) => {
                 </p>
               </div>
               {isPaid && (
-                <div className="bg-green-500 text-white px-4 py-2 rounded-full text-[10px] font-bold">
+                <div className="bg-[#86bf24] text-white px-4 py-2 rounded-full text-[10px] font-bold">
                   PAID ✓
                 </div>
               )}
@@ -405,8 +405,8 @@ const PaymentModal = ({ order, otpString, onComplete, onClose }) => {
                       onKeyDown={(e) => handlePaymentKeyDown(i, e)}
                       className={`w-14 h-18 bg-gray-50 border-2 rounded-2xl text-center text-3xl font-bold transition-all ${
                         isPaymentOtpVerified
-                          ? "border-green-500 bg-green-50 text-green-700"
-                          : "border-gray-200 focus:border-green-600 text-gray-700"
+                          ? "border-[#86bf24] bg-[#f3f9e8] text-[#66941a]"
+                          : "border-gray-200 focus:border-[#86bf24] text-gray-700"
                       }`}
                     />
                   ))}
@@ -441,7 +441,7 @@ const PaymentModal = ({ order, otpString, onComplete, onClose }) => {
                 throw e;
               }
             }}
-            color="bg-green-600"
+            color="bg-[#86bf24]"
           />
         </motion.div>
       </div>
@@ -475,7 +475,7 @@ const PaymentModal = ({ order, otpString, onComplete, onClose }) => {
                 <button
                   onClick={handleManualCheck}
                   disabled={isSyncing}
-                  className="absolute top-2 right-2 flex gap-1.5 items-center bg-green-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                  className="absolute top-2 right-2 flex gap-1.5 items-center bg-[#86bf24] text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                   {isSyncing ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
                   ) : (
@@ -567,14 +567,14 @@ export const DeliveryVerificationModal = ({ order, onComplete, onClose }) => {
             className="w-full bg-white rounded-t-[2.5rem] shadow-[0_-20px_60px_rgba(0,0,0,0.3)] p-6 pb-12 pointer-events-auto max-w-lg">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-green-100 text-green-600">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#e6f4cf] text-[#86bf24]">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
                   OTP Verified
                 </h2>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-green-600">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#86bf24]">
                   Payment Received Online
                 </p>
               </div>
@@ -586,7 +586,7 @@ export const DeliveryVerificationModal = ({ order, onComplete, onClose }) => {
               onConfirm={async () => {
                 await onComplete(verifiedOtp);
               }}
-              color="bg-green-600"
+              color="bg-[#86bf24]"
             />
           </motion.div>
         </div>

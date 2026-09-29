@@ -272,8 +272,8 @@ export const PocketV2 = () => {
                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Valid till {formatOfferValidTill(activeOffer.validTill)}</span>
                      {activeOffer.isLive && (
                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                          <span className="text-[10px] font-bold text-green-500 uppercase">Live</span>
+                          <div className="w-1.5 h-1.5 bg-[#86bf24] rounded-full animate-pulse" />
+                          <span className="text-[10px] font-bold text-[#86bf24] uppercase">Live</span>
                        </div>
                      )}
                   </div>
@@ -377,7 +377,7 @@ export const PocketV2 = () => {
           <div className="space-y-4">
              <div className="grid grid-cols-2 gap-4">
                 <div onClick={() => navigate('/food/delivery/pocket/payout')} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 active:bg-gray-50">
-                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4 border border-blue-100">
+                   <div className="w-10 h-10 bg-[#f3f9e8] rounded-xl flex items-center justify-center text-[#86bf24] mb-4 border border-[#e6f4cf]">
                       <IndianRupee className="w-5 h-5" />
                    </div>
                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Last Payout</p>
@@ -396,7 +396,7 @@ export const PocketV2 = () => {
              {/* Referral Bonus Row */}
              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between active:bg-gray-50 transition-all" onClick={() => navigate('/food/delivery/pocket/balance')}>
                 <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 border border-green-100">
+                   <div className="w-12 h-12 bg-[#f3f9e8] rounded-xl flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]">
                       <Gift className="w-6 h-6" />
                    </div>
                    <div>
@@ -405,7 +405,7 @@ export const PocketV2 = () => {
                    </div>
                 </div>
                 <div className="text-right">
-                   <p className="text-lg font-black text-green-600">+{formatCurrency(walletState.totalBonus)}</p>
+                   <p className="text-lg font-black text-[#86bf24]">+{formatCurrency(walletState.totalBonus)}</p>
                 </div>
              </div>
 

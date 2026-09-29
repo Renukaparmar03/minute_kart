@@ -153,7 +153,7 @@ export const PickupActionModal = ({
               )}
               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1.5">
                 {isAtPickup ? (
-                  <span className="text-green-600">Reached Location √</span>
+                  <span className="text-[#86bf24]">Reached Location √</span>
                 ) : (
                   <span className="text-orange-500">
                     {(distanceToTarget / 1000).toFixed(1)} km • {eta || '--'} min to {primaryDestinationLabel}
@@ -167,7 +167,7 @@ export const PickupActionModal = ({
             {primaryPhone && (
               <button
                 onClick={() => window.location.href = `tel:${primaryPhone}`}
-                className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 border border-green-100"
+                className="w-10 h-10 rounded-full bg-[#f3f9e8] flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]"
               >
                 <Phone className="w-5 h-5" />
               </button>
@@ -187,7 +187,7 @@ export const PickupActionModal = ({
             const label = isQuickStore ? 'Store Pickup' : 'Restaurant Pickup';
             const accentClasses = isQuickStore
               ? 'text-orange-600 bg-orange-50 border-orange-100'
-              : 'text-green-600 bg-green-50 border-green-100';
+              : 'text-[#86bf24] bg-[#f3f9e8] border-[#e6f4cf]';
 
             return (
               <div
@@ -210,7 +210,7 @@ export const PickupActionModal = ({
           {!isAtPickup ? (
             <div>
               <p className={`text-center text-[10px] font-bold uppercase tracking-widest mb-3 transition-colors ${
-                isWithinRange ? 'text-green-600' : 'text-orange-500 animate-pulse'
+                isWithinRange ? 'text-[#86bf24]' : 'text-orange-500 animate-pulse'
               }`}>
                 {isWithinRange ? 'Ready - Swipe to confirm arrival' : 'Get closer to pickup point'}
               </p>
@@ -220,7 +220,7 @@ export const PickupActionModal = ({
                 successLabel="Reached!"
                 disabled={!isWithinRange}
                 onConfirm={onReachedPickup}
-                color="bg-green-600"
+                color="bg-[#86bf24]"
               />
             </div>
           ) : (
@@ -253,7 +253,7 @@ export const PickupActionModal = ({
                  )}
 
                  {billImageUploaded && (
-                    <div className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-green-100 text-green-700 font-bold text-xs uppercase tracking-widest">
+                    <div className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#e6f4cf] text-[#66941a] font-bold text-xs uppercase tracking-widest">
                        <CheckCircle2 className="w-4 h-4" />
                        <span>Bill Uploaded</span>
                     </div>
@@ -269,7 +269,7 @@ export const PickupActionModal = ({
               </div>
 
               <div>
-                <p className={`text-center text-[10px] font-bold uppercase tracking-widest mb-3 ${billImageUploaded ? 'text-green-600' : 'text-gray-400'}`}>
+                <p className={`text-center text-[10px] font-bold uppercase tracking-widest mb-3 ${billImageUploaded ? 'text-[#86bf24]' : 'text-gray-400'}`}>
                   {billImageUploaded ? "Check the restaurant logo - Swipe to pick up" : "Capture bill to unlock swipe"}
                 </p>
                 <ActionSlider 
@@ -312,7 +312,7 @@ export const PickupActionModal = ({
               {items.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center p-3 border-b border-gray-50 last:border-0">
                   <span className="text-gray-700 text-sm font-bold">{item.name || 'Item Name'}</span>
-                  <span className="text-green-600 font-bold bg-green-50 px-2.5 py-1 rounded-lg text-xs">x{item.quantity || 1}</span>
+                  <span className="text-[#86bf24] font-bold bg-[#f3f9e8] px-2.5 py-1 rounded-lg text-xs">x{item.quantity || 1}</span>
                 </div>
               ))}
             </div>

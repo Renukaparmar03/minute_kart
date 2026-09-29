@@ -30,7 +30,7 @@ const ReturnPickupHistory = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="animate-spin text-emerald-600" size={24} />
+        <Loader2 className="animate-spin text-[#86bf24]" size={24} />
       </div>
     );
   }
@@ -61,11 +61,11 @@ const ReturnPickupHistory = () => {
                   <p className="text-xs text-gray-500 mt-0.5">{new Date(item.updatedAt).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-bold text-emerald-600">+ ₹{item.returnPickupEarning || '20.00'}</span>
+                  <span className="text-sm font-bold text-[#86bf24]">+ ₹{item.returnPickupEarning || '20.00'}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <CheckCircle className="w-4 h-4 text-[#86bf24]" />
                 <span className="text-xs font-semibold text-gray-700">Completed</span>
               </div>
             </div>

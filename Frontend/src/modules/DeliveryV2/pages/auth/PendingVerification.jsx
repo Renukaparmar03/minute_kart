@@ -12,13 +12,13 @@ export default function PendingVerification() {
   return (
     <div className="min-h-screen bg-[#f8faf8] px-6 py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md flex-col justify-center">
-        <div className="rounded-[28px] border border-[#d8e7d8] bg-white p-7 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e9f8ef] text-[#00B761]">
+        <div className="rounded-[28px] border border-[#e6f4cf] bg-white p-7 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f3f9e8] text-[#86bf24]">
             <ShieldCheck className="h-8 w-8" />
           </div>
 
           <div className="space-y-3">
-            <p className="inline-flex items-center gap-2 rounded-full bg-[#f3faf5] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0f7a42]">
+            <p className="inline-flex items-center gap-2 rounded-full bg-[#f3faf5] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#66941a]">
               <Clock3 className="h-3.5 w-3.5" />
               Verification In Progress
             </p>
@@ -45,7 +45,7 @@ export default function PendingVerification() {
             <button
               type="button"
               onClick={() => navigate("/food/delivery/login", { replace: true })}
-              className="w-full rounded-2xl bg-[#00B761] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#00A055]"
+              className="w-full rounded-2xl bg-[#86bf24] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#73a61d]"
             >
               Back to Login
             </button>

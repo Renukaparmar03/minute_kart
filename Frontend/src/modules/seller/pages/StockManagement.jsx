@@ -161,8 +161,8 @@ const StockManagement = () => {
     }
 
     return (
-        <div className="space-y-6 pb-16">
-            <BlurFade delay={0.1}>
+        <div className="space-y-0 md:space-y-6 pb-20 sm:pb-16">
+            <BlurFade delay={0.1} className="hidden md:block">
                 {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div>
@@ -182,7 +182,7 @@ const StockManagement = () => {
             {activeView === 'inventory' ? (
                 <>
                     {/* Quick Stats */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, i) => (
                             <BlurFade key={i} delay={0.1 + (i * 0.05)}>
                                 <div onClick={() => setFilterStatus(stat.status)} className="cursor-pointer">
@@ -206,11 +206,11 @@ const StockManagement = () => {
                     </div>
 
                     <BlurFade delay={0.3}>
-                        <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden rounded-3xl">
-                            {/* Toolbox */}
-                            <div className="p-4 border-b border-slate-50 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/30">
-                                <div className="flex flex-col md:flex-row gap-3 items-center w-full">
-                                    <div className="relative w-full md:w-72">
+                        <div className="border-none shadow-none ring-0 md:shadow-xl md:shadow-slate-200/50 overflow-visible md:rounded-3xl bg-transparent md:bg-white">
+                            {/* Toolbox & Tabs */}
+                            <div className="p-0 md:p-4 border-b border-transparent md:border-slate-50 flex flex-col md:flex-row gap-0 md:gap-4 items-center justify-between bg-transparent md:bg-slate-50/30 -mt-2 md:mt-0">
+                                <div className="flex flex-col md:flex-row gap-0 md:gap-3 items-center w-full">
+                                    <div className="hidden md:block relative w-full md:w-72">
                                         <HiOutlineMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
                                         <Input
                                             placeholder="Search by product name or SKU..."
@@ -219,7 +219,7 @@ const StockManagement = () => {
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
-                                    <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-sm">
+                                    <div className="flex overflow-x-auto w-full md:w-auto scrollbar-hide px-4 py-0 md:p-1 md:bg-slate-100 md:rounded-2xl md:border md:border-slate-200 md:shadow-sm gap-2 md:gap-0 mb-3 md:mb-0">
                                         {['All', 'In Stock', 'Out of Stock'].map((status) => (
                                             <button
                                                 key={status}
@@ -228,10 +228,10 @@ const StockManagement = () => {
                                                     setPage(1);
                                                 }}
                                                 className={cn(
-                                                    "px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all",
+                                                    "relative py-2 md:py-1.5 px-4 md:px-3 text-sm md:text-[11px] font-semibold md:font-bold whitespace-nowrap transition-all duration-300 rounded-full md:rounded-xl border md:border-none",
                                                     filterStatus === status
-                                                        ? "bg-white text-slate-900 shadow-md"
-                                                        : "text-slate-600 hover:text-slate-700"
+                                                        ? "bg-[#49AB14] text-white border-[#49AB14] md:bg-white md:text-slate-900 md:shadow-md"
+                                                        : "bg-white text-slate-600 border-slate-100 md:border-none md:bg-transparent hover:text-slate-700"
                                                 )}
                                             >
                                                 {status}
@@ -239,7 +239,7 @@ const StockManagement = () => {
                                         ))}
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="hidden md:flex items-center gap-2">
                                     <Button
                                         onClick={() => navigate('/seller/products/add')}
                                         className="rounded-xl px-4 py-2 text-[10px] font-bold shadow-lg shadow-primary/20"
@@ -250,8 +250,116 @@ const StockManagement = () => {
                                 </div>
                             </div>
 
-                            {/* Stock Table */}
-                            <div className="overflow-x-auto">
+                            {/* Mobile Title */}
+                            <div className="md:hidden flex items-baseline justify-between px-3 pb-2 mt-2">
+                                <h2 className="text-base font-semibold text-black">{filterStatus === "All" ? "All" : filterStatus} Products</h2>
+                                <span className="text-xs text-gray-500">{filteredInventory.length} total</span>
+                            </div>
+
+                            {/* Mobile Cards */}
+                            <div className="md:hidden px-2 space-y-2 pb-4">
+                                {filteredInventory.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-12 px-4">
+                                        <div className="h-14 w-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-3">
+                                            <HiOutlineArchiveBoxXMark className="h-7 w-7" />
+                                        </div>
+                                        <h3 className="text-sm font-bold text-slate-900">No products found</h3>
+                                    </div>
+                                ) : (
+                                    <AnimatePresence mode="popLayout">
+                                        {filteredInventory
+                                            .slice((page - 1) * pageSize, page * pageSize)
+                                            .map((item) => (
+                                                <motion.div
+                                                    key={item.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="w-full bg-white rounded-2xl p-3 mb-2 border border-gray-200 hover:border-gray-400 transition-colors relative"
+                                                >
+                                                    <div className="w-full text-left flex gap-2.5 items-stretch">
+                                                        <div className="h-16 w-16 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 my-auto text-2xl font-black text-slate-300 border border-slate-200">
+                                                            {item.mainImage ? (
+                                                                <img src={item.mainImage} alt={item.name} className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                <HiOutlineCube className="h-6 w-6" />
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex-1 flex flex-col justify-between min-h-[64px]">
+                                                            <div className="flex items-start justify-between gap-1.5">
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-black leading-tight line-clamp-1">
+                                                                        {item.name}
+                                                                    </p>
+                                                                    <p className="text-[11px] text-gray-500 mt-0.5">{item.sku || 'No SKU'}</p>
+                                                                </div>
+
+                                                                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                                                                    <span
+                                                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border text-right whitespace-normal break-words leading-tight ${
+                                                                            item.status === 'In Stock'
+                                                                                ? "border-green-500 text-green-600"
+                                                                                : item.status === 'Low Stock'
+                                                                                    ? "border-amber-500 text-amber-600"
+                                                                                    : "border-rose-500 text-rose-600"
+                                                                        }`}
+                                                                    >
+                                                                        <span
+                                                                            className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
+                                                                                item.status === 'In Stock' ? "bg-green-500" : item.status === 'Low Stock' ? "bg-amber-500" : "bg-rose-500"
+                                                                            }`}
+                                                                        />
+                                                                        {item.status}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-gray-500 font-medium">
+                                                                        Qty: {item.stock}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="mt-1">
+                                                                <p className="text-[11px] text-gray-600 line-clamp-1">{item.category}</p>
+                                                            </div>
+
+                                                            <div className="mt-1.5 flex items-end justify-between gap-2">
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <p className="text-[11px] font-bold text-black">
+                                                                        ₹{item.price}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setAdjustType('Restock');
+                                                                            openAdjustModal(item);
+                                                                        }}
+                                                                        className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-indigo-600 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                                                                    >
+                                                                        Restock
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setAdjustType('Correction');
+                                                                            openAdjustModal(item);
+                                                                        }}
+                                                                        className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-slate-600 text-slate-600 bg-slate-50 hover:bg-slate-100 transition-colors"
+                                                                    >
+                                                                        Adjust
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                    </AnimatePresence>
+                                )}
+                            </div>
+
+                            {/* Desktop Stock Table */}
+                            <div className="hidden md:block overflow-x-auto bg-white rounded-b-3xl">
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -348,11 +456,12 @@ const StockManagement = () => {
                                     </tbody>
                                 </table>
                             </div>
-                        </Card>
+                        </div>
                     </BlurFade>
 
-                    <div className="mt-4">
+                    <div className="mt-0 md:mt-4 pb-32 md:pb-0 px-4 md:px-0 border-t border-slate-100 pt-4 md:border-none md:pt-0">
                         <Pagination
+                            className="flex-col md:flex-row gap-4"
                             page={page}
                             totalPages={Math.ceil(filteredInventory.length / pageSize) || 1}
                             total={filteredInventory.length}

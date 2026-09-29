@@ -322,7 +322,7 @@ export const LiveMap = ({
   }, [parsedRiderLocation, remainingPath]);
 
   if (loadError) return <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-red-500 font-bold">Map Load Error</div>;
-  if (!isLoaded) return <div className="absolute inset-0 flex items-center justify-center bg-gray-50"><div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (!isLoaded) return <div className="absolute inset-0 flex items-center justify-center bg-gray-50"><div className="w-10 h-10 border-4 border-[#86bf24] border-t-transparent rounded-full animate-spin" /></div>;
 
   const directionsServiceOptions = (parsedRiderLocation && routeDestination) ? {
     origin: parsedRiderLocation,
@@ -373,7 +373,7 @@ export const LiveMap = ({
             }}
             icon={{
               path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: point.pickupType === 'quick' ? '#3b82f6' : '#ef4444',
+              fillColor: point.pickupType === 'quick' ? '#86bf24' : '#ef4444',
               fillOpacity: 1,
               strokeColor: '#ffffff',
               strokeWeight: 2,

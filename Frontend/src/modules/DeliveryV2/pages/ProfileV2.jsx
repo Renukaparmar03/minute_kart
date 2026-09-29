@@ -124,7 +124,7 @@ export const ProfileV2 = () => {
       {/* 0. Header */}
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-[100] safe-top">
          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
+            <div className="w-10 h-10 rounded-full bg-[#f3f9e8] flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]">
                <User className="w-5 h-5" />
             </div>
             <div>

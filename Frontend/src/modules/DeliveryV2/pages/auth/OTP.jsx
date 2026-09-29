@@ -529,7 +529,7 @@ export default function DeliveryOTP() {
     >
       {/* Top Blue Section */}
       <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
-        <div className="w-full relative overflow-hidden bg-[#005b96] pb-4">
+        <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
           {/* Back Button */}
           <button
             onClick={() => navigate("/food/delivery/login", { replace: true })}
@@ -541,16 +541,16 @@ export default function DeliveryOTP() {
           {/* Abstract wavy background layers */}
           <div className="absolute inset-0 z-0">
              {/* Darker blue gradient in the corners */}
-             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#004b7c] via-transparent to-transparent opacity-80" />
-             <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#004b7c] via-transparent to-transparent opacity-80" />
+             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#73a61d] via-transparent to-transparent opacity-80" />
+             <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#73a61d] via-transparent to-transparent opacity-80" />
              
              {/* Dotted pattern top left */}
              <div className="absolute -top-10 -left-10 w-40 h-40 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '12px 12px' }} />
 
              {/* Curved shape top right */}
-             <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#0074bf] rounded-full blur-2xl opacity-40" />
+             <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#97ce32] rounded-full blur-2xl opacity-40" />
              {/* Curved shape bottom left */}
-             <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#0074bf] rounded-full blur-3xl opacity-40" />
+             <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#97ce32] rounded-full blur-3xl opacity-40" />
           </div>
 
           {/* Background Icons */}
@@ -589,7 +589,7 @@ export default function DeliveryOTP() {
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#005b96] ring-[4px] ring-white"
+              className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#86bf24] ring-[4px] ring-white"
             >
               <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
             </motion.div>
@@ -611,7 +611,7 @@ export default function DeliveryOTP() {
         {/* Wave SVG directly below the blue section */}
         <div className="w-full overflow-hidden leading-[0] -mt-0.5">
           <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block">
-            <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#005b96" />
+            <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#86bf24" />
           </svg>
         </div>
       </div>
@@ -675,19 +675,19 @@ export default function DeliveryOTP() {
               <div className="text-center mb-5">
                 <div className="flex items-center justify-center gap-3 mb-1.5">
                    <div className="relative w-5 h-5">
-                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#005b96] transform rotate-45" />
-                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#005b96]" />
-                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#005b96] transform -rotate-45" />
+                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
+                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#86bf24]" />
+                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
                    </div>
                    <h2 className="text-2xl font-black text-[#1c1c1c]">Full Name</h2>
                    <div className="relative w-5 h-5">
-                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#005b96] transform -rotate-45" />
-                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#005b96]" />
-                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#005b96] transform rotate-45" />
+                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
+                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#86bf24]" />
+                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
                    </div>
                 </div>
                 <p className="text-sm text-gray-500 font-medium">Please enter your name to complete registration</p>
-                <div className="h-1 w-8 bg-[#005b96] mx-auto mt-2 rounded-full" />
+                <div className="h-1 w-8 bg-[#86bf24] mx-auto mt-2 rounded-full" />
               </div>
 
               <div className="space-y-4">
@@ -719,7 +719,7 @@ export default function DeliveryOTP() {
                   disabled={isLoading || !name.trim()}
                   className={`w-full py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
                     !isLoading && name.trim()
-                    ? "bg-[#005b96] hover:bg-[#004b7c] text-white shadow-lg shadow-[#005b96]/30 active:scale-[0.98]"
+                    ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
                     : "bg-gray-100 cursor-not-allowed opacity-50 text-gray-400 shadow-none"
                   }`}
                 >
@@ -733,21 +733,21 @@ export default function DeliveryOTP() {
               <div className="text-center mb-5">
                 <div className="flex items-center justify-center gap-3 mb-1.5">
                    <div className="relative w-5 h-5">
-                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#005b96] transform rotate-45" />
-                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#005b96]" />
-                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#005b96] transform -rotate-45" />
+                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
+                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#86bf24]" />
+                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
                    </div>
                    <h2 className="text-2xl font-black text-[#1c1c1c]">Verify OTP</h2>
                    <div className="relative w-5 h-5">
-                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#005b96] transform -rotate-45" />
-                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#005b96]" />
-                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#005b96] transform rotate-45" />
+                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
+                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#86bf24]" />
+                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
                    </div>
                 </div>
                 <p className="text-sm text-gray-500 font-medium">
-                  Sent to <span className="text-[#005b96] font-bold">{getPhoneNumber()}</span>
+                  Sent to <span className="text-[#86bf24] font-bold">{getPhoneNumber()}</span>
                 </p>
-                <div className="h-1 w-8 bg-[#005b96] mx-auto mt-2 rounded-full" />
+                <div className="h-1 w-8 bg-[#86bf24] mx-auto mt-2 rounded-full" />
               </div>
 
               <div className="space-y-6">
@@ -783,7 +783,7 @@ export default function DeliveryOTP() {
                     disabled={isLoading || otp.some(d => !d)}
                     className={`w-full py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
                       !isLoading && otp.every(d => d)
-                        ? "bg-[#005b96] hover:bg-[#004b7c] text-white shadow-lg shadow-[#005b96]/30 active:scale-[0.98]"
+                        ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
                         : "bg-gray-100 cursor-not-allowed opacity-50 text-gray-400 shadow-none"
                     }`}
                   >
@@ -810,7 +810,7 @@ export default function DeliveryOTP() {
                         type="button"
                         onClick={handleResend}
                         disabled={isLoading}
-                        className="text-xs text-[#005b96] font-bold tracking-wider uppercase hover:underline disabled:opacity-50"
+                        className="text-xs text-[#86bf24] font-bold tracking-wider uppercase hover:underline disabled:opacity-50"
                       >
                         Resend SMS
                       </button>

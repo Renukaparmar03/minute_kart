@@ -423,7 +423,7 @@ export default function FeedNavbar({ className = "" }) {
               aria-checked={isOnline}
               style={{ pointerEvents: "auto", zIndex: 100, WebkitTapHighlightColor: "transparent" }}
             >
-              <div className={`relative w-20 h-8 rounded-full transition-colors duration-300 ${isOnline ? "bg-green-500" : "bg-gray-400"}`}>
+              <div className={`relative w-20 h-8 rounded-full transition-colors duration-300 ${isOnline ? "bg-[#86bf24]" : "bg-gray-400"}`}>
               <span
                 className={`text-[11px] font-bold text-white absolute top-1/2 -translate-y-1/2 whitespace-nowrap transition-all duration-300 ${
                     isOnline ? "left-2" : "right-2"
@@ -562,10 +562,10 @@ export default function FeedNavbar({ className = "" }) {
                   <AlertTriangle className="w-6 h-6 text-orange-600" />
                 )}
                 {option.icon === "police" && (
-                  <Shield className="w-6 h-6 text-blue-600" />
+                  <Shield className="w-6 h-6 text-[#86bf24]" />
                 )}
                 {option.icon === "insurance" && (
-                  <ShieldCheck className="w-6 h-6 text-green-600" />
+                  <ShieldCheck className="w-6 h-6 text-[#86bf24]" />
                 )}
               </div>
 

@@ -384,8 +384,8 @@ const ProductManagement = () => {
   };
 
   return (
-    <div className="space-y-6 pb-16">
-      <BlurFade delay={0.1}>
+    <div className="space-y-0 md:space-y-6 pb-20 sm:pb-16">
+      <BlurFade delay={0.1} className="hidden md:block">
         {/* Page Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
@@ -412,7 +412,7 @@ const ProductManagement = () => {
       </BlurFade>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
             label: "All Items",
@@ -492,8 +492,8 @@ const ProductManagement = () => {
       </div>
 
       {/* Toolbox */}
-      <BlurFade delay={0.25} className="relative z-50">
-        <Card className="relative z-30 border-none shadow-sm ring-1 ring-slate-100 p-3 bg-white/60 backdrop-blur-xl">
+      <BlurFade delay={0.25} className="hidden md:block relative z-50 mt-2 md:mt-0">
+        <div className="relative z-30 border-none md:shadow-sm ring-0 md:ring-1 md:ring-slate-100 p-0 md:p-3 bg-transparent md:bg-white/60 md:backdrop-blur-xl rounded-3xl px-3 md:px-0">
           <div className="flex flex-col lg:flex-row gap-3 items-center">
             <div className="relative flex-1 group w-full">
               <HiOutlineMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 group-focus-within:text-primary transition-all" />
@@ -519,7 +519,7 @@ const ProductManagement = () => {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="flex-1 lg:flex-none px-4 py-2.5 bg-white ring-1 ring-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:ring-2 focus:ring-primary/5 outline-none appearance-none cursor-pointer">
+                className="hidden md:block flex-1 lg:flex-none px-4 py-2.5 bg-white ring-1 ring-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:ring-2 focus:ring-primary/5 outline-none appearance-none cursor-pointer">
                 <option value="all">All Categories</option>
                 {categories.map((h) => (
                   <optgroup key={h._id || h.id} label={h.name}>
@@ -625,13 +625,147 @@ const ProductManagement = () => {
               )}
             </div>
           </div>
-        </Card>
+        </div>
       </BlurFade>
 
       {/* Product Table */}
       <BlurFade delay={0.3}>
-        <Card className="relative z-10 border-none shadow-xl ring-1 ring-slate-100 overflow-hidden rounded-3xl">
-          <div className="overflow-x-auto">
+        <div className="relative z-10 border-none md:shadow-xl md:ring-1 md:ring-slate-100 overflow-visible md:overflow-hidden md:rounded-3xl bg-transparent md:bg-white -mt-2 md:mt-0">
+          
+          {/* Mobile Title */}
+          <div className="md:hidden flex items-baseline justify-between px-4 pt-1 pb-2">
+            <h2 className="text-base font-semibold text-black">Product List</h2>
+            <span className="text-xs text-gray-500">{filteredProducts.length} total</span>
+          </div>
+
+          {/* Mobile Category Pills */}
+          <div className="md:hidden flex overflow-x-auto w-full scrollbar-hide px-3 py-1 gap-1 mb-2 items-center">
+            <button
+                onClick={() => { setFilterCategory('all'); setPage(1); }}
+                className={cn(
+                    "relative py-1.5 px-4 text-xs font-bold whitespace-nowrap transition-all duration-300 rounded-full",
+                    filterCategory === 'all'
+                        ? "bg-[#0e7a2b] text-white"
+                        : "bg-transparent text-slate-600 hover:text-slate-900"
+                )}
+            >
+                All
+            </button>
+            {categories.filter(c => c.name.toLowerCase() !== 'all').map((c) => (
+                <button
+                    key={c._id || c.id}
+                    onClick={() => { setFilterCategory(c._id || c.id); setPage(1); }}
+                    className={cn(
+                        "relative py-1.5 px-4 text-xs font-bold whitespace-nowrap transition-all duration-300 rounded-full",
+                        filterCategory === (c._id || c.id)
+                            ? "bg-[#0e7a2b] text-white"
+                            : "bg-transparent text-slate-600 hover:text-slate-900"
+                    )}
+                >
+                    {c.name}
+                </button>
+            ))}
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden px-3 space-y-2 pb-20">
+            {filteredProducts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 px-4">
+                    <div className="h-14 w-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-3">
+                        <HiOutlineCube className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900">No products found</h3>
+                </div>
+            ) : (
+                <AnimatePresence mode="popLayout">
+                    {filteredProducts.map((p) => {
+                        const totalStock = p.variants?.length > 0
+                          ? p.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0)
+                          : p.stock;
+                        const stockStatus = totalStock === 0 ? 'Out of Stock' : totalStock <= (p.lowStockAlert || 5) ? 'Low Stock' : 'Active';
+                        
+                        return (
+                            <motion.div
+                                key={p._id || p.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="w-full bg-white rounded-2xl p-3 mb-2 border border-gray-200 hover:border-gray-400 transition-colors relative shadow-sm"
+                            >
+                                <div className="w-full text-left flex gap-2.5 items-stretch">
+                                    <div className="h-16 w-16 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 my-auto text-2xl font-black text-slate-300 border border-slate-200">
+                                        <img
+                                          src={p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2"}
+                                          alt={p.name}
+                                          className="h-full w-full object-cover"
+                                        />
+                                    </div>
+
+                                    <div className="flex-1 flex flex-col justify-between min-h-[64px]">
+                                        <div className="flex items-start justify-between gap-1.5">
+                                            <div>
+                                                <p className="text-sm font-semibold text-black leading-tight line-clamp-1">
+                                                    {p.name}
+                                                </p>
+                                                <p className="text-[11px] text-gray-500 mt-0.5">{p.sku || (Array.isArray(p.variants) && p.variants.length > 0 && p.variants[0]?.sku) || "No SKU"}</p>
+                                            </div>
+
+                                            <div className="flex flex-col items-end gap-0.5 shrink-0">
+                                                <span
+                                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border text-right whitespace-normal break-words leading-tight ${
+                                                        stockStatus === 'Active'
+                                                            ? "border-emerald-500 text-emerald-600"
+                                                            : stockStatus === 'Low Stock'
+                                                                ? "border-amber-500 text-amber-600"
+                                                                : "border-rose-500 text-rose-600"
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
+                                                            stockStatus === 'Active' ? "bg-emerald-500" : stockStatus === 'Low Stock' ? "bg-amber-500" : "bg-rose-500"
+                                                        }`}
+                                                    />
+                                                    {stockStatus}
+                                                </span>
+                                                <span className="text-[10px] text-gray-500 font-medium mt-0.5">
+                                                    Qty: {totalStock}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-1">
+                                            <p className="text-[11px] text-gray-600 line-clamp-1">{p.categoryId?.name || p.category || "N/A"}</p>
+                                        </div>
+
+                                        <div className="mt-1.5 flex items-end justify-between gap-2">
+                                            <div className="flex flex-col gap-0.5">
+                                                <p className="text-[11px] font-bold text-black">
+                                                    ₹{p.salePrice || p.price}
+                                                    {p.salePrice && p.price && p.salePrice !== p.price && (
+                                                      <span className="text-[9px] line-through text-gray-400 ml-1">₹{p.price}</span>
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(p)}
+                                                    className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-slate-600 text-slate-600 bg-slate-50 hover:bg-slate-100 transition-colors"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto bg-white md:rounded-b-3xl">
             <table className="w-full text-left border border-slate-200 border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
@@ -777,13 +911,14 @@ const ProductManagement = () => {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       </BlurFade>
 
 
 
-      <div className="mt-4">
+      <div className="mt-0 md:mt-4 pb-32 md:pb-0 px-4 md:px-0 border-t border-slate-100 pt-4 md:border-none md:pt-0">
         <Pagination
+          className="flex-col md:flex-row gap-4"
           page={page}
           totalPages={Math.ceil(total / pageSize) || 1}
           total={total}
@@ -799,6 +934,17 @@ const ProductManagement = () => {
       </div>
 
       {/* Edit Modal (Copy from Admin) */}
+      {/* Mobile Sticky Add Product Button */}
+      <div className="md:hidden fixed bottom-[70px] left-0 right-0 px-4 py-3 bg-gradient-to-t from-white via-white to-transparent z-40 pointer-events-none">
+          <button 
+              onClick={() => navigate('/seller/products/add')}
+              className="w-full bg-[#0e7a2b] text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 pointer-events-auto active:scale-95 transition-transform"
+          >
+              <HiOutlinePlus className="h-5 w-5" />
+              ADD PRODUCT
+          </button>
+      </div>
+
       <AnimatePresence>
         {isProductModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-12 overflow-y-auto">

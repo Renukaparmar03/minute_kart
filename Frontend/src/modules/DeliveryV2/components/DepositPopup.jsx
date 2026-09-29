@@ -113,7 +113,7 @@ export default function DepositPopup({ onSuccess, cashInHand = 0 }) {
             placeholder="0.00"
             value={amount}
             onChange={handleAmountChange}
-            className="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#86bf24] focus:border-[#86bf24]"
           />
         </div>
         {cashInHandNum > 0 && (

@@ -32,8 +32,9 @@ const Profile = React.lazy(() => import("../pages/Profile"));
 const Withdrawals = React.lazy(() => import("../pages/Withdrawals"));
 const Onboarding = React.lazy(() => import("../pages/Onboarding"));
 const PendingApproval = React.lazy(() => import("../pages/PendingApproval"));
+const Explore = React.lazy(() => import("../pages/Explore"));
 
-const navItems = [
+export const navItems = [
   { label: "Dashboard", path: "/seller", icon: HiOutlineSquares2X2, end: true },
   { label: "Products", path: "/seller/products", icon: HiOutlineCube },
   { label: "Stock", path: "/seller/inventory", icon: HiOutlineArchiveBox },
@@ -86,6 +87,7 @@ const SellerWorkspace = () => (
       <Route path="earnings" element={<Earnings />} />
       <Route path="withdrawals" element={<Withdrawals />} />
       <Route path="profile" element={<Profile />} />
+      <Route path="explore" element={<Explore />} />
       <Route path="*" element={<Navigate to="/seller" replace />} />
     </Routes>
   </DashboardLayout>

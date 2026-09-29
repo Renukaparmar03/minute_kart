@@ -182,7 +182,7 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
         </div>
 
         {/* Header Ribbon (Old Green Style) */}
-        <div className="bg-green-500 p-5 flex justify-between items-center text-white border-b border-green-600/20">
+        <div className="bg-[#86bf24] p-5 flex justify-between items-center text-white border-b border-[#86bf24]/20">
           <div>
             <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Incoming Request</p>
             {mixedOrder && (
@@ -201,9 +201,9 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
         <div className="p-5 pb-8 space-y-6">
           <div className="flex gap-4">
             <div className="flex flex-col items-center gap-1 mt-1.5 py-0.5">
-              <div className={`w-4 h-4 rounded-full ${isReturnPickup ? 'bg-blue-500 border-blue-50 shadow-blue-500/20' : 'bg-green-500 border-green-50 shadow-green-500/20'} border-[3px] shadow-lg`} />
+              <div className={`w-4 h-4 rounded-full ${isReturnPickup ? 'bg-[#f3f9e8]0 border-blue-50 shadow-[#86bf24]/20' : 'bg-[#86bf24] border-[#f3f9e8] shadow-[#86bf24]/20'} border-[3px] shadow-lg`} />
               <div className={`w-0.5 ${pickupStops.length > 1 ? 'h-24' : 'h-14'} bg-dashed border-l-2 border-gray-100`} />
-              <div className={`w-4 h-4 rounded-full ${isReturnPickup ? 'bg-green-500 border-green-50 shadow-green-500/20' : 'bg-blue-500 border-blue-50 shadow-blue-500/20'} border-[3px] shadow-lg`} />
+              <div className={`w-4 h-4 rounded-full ${isReturnPickup ? 'bg-[#86bf24] border-[#f3f9e8] shadow-[#86bf24]/20' : 'bg-[#f3f9e8]0 border-blue-50 shadow-[#86bf24]/20'} border-[3px] shadow-lg`} />
             </div>
             <div className="flex-1 space-y-6">
               <div className="space-y-4">
@@ -211,7 +211,7 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
                   const isReturn = pickup.pickupType === 'return';
                   const isQuickStore = pickup.pickupType === 'quick';
                   const pickupLabel = isReturn ? 'Customer Pickup' : (isQuickStore ? 'Store Pickup' : 'Restaurant Pickup');
-                  const pickupAccent = isReturn ? 'text-blue-600' : (isQuickStore ? 'text-orange-600' : 'text-green-600');
+                  const pickupAccent = isReturn ? 'text-[#86bf24]' : (isQuickStore ? 'text-orange-600' : 'text-[#86bf24]');
                   const pickupAddress = pickup.address || 'Address not available';
                   return (
                     <div key={pickup.id || `${pickup.pickupType}-${index}`}>
@@ -226,7 +226,7 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
                 })}
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1.5 font-bold text-[9px] uppercase tracking-widest text-blue-600">
+                <div className="flex items-center gap-2 mb-1.5 font-bold text-[9px] uppercase tracking-widest text-[#86bf24]">
                   <MapPin className="w-3.5 h-3.5" />
                   <span>{isReturnPickup ? 'Seller Drop' : 'Customer Drop'}</span>
                 </div>
@@ -239,7 +239,7 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
                     href={mapsLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex mt-1 text-[9px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-700"
+                    className="inline-flex mt-1 text-[9px] font-bold uppercase tracking-widest text-[#86bf24] hover:text-[#73a61d]"
                   >
                     Open in Google Maps
                   </a>
@@ -270,7 +270,7 @@ export const NewOrderModal = ({ order, onAccept, onReject, onMinimize }) => {
             <ActionSlider 
               label="Slide to Accept" 
               onConfirm={() => onAccept(order)} 
-              color="bg-green-600"
+              color="bg-[#86bf24]"
               successLabel="Order Accepted ✓"
             />
 

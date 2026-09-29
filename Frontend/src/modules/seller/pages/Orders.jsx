@@ -552,10 +552,10 @@ const Orders = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-16">
+    <div className="space-y-0 md:space-y-4 sm:space-y-6 pb-20 sm:pb-16">
       <BlurFade delay={0.1}>
         {/* Page Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+        <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-2">
               Order Management
@@ -597,7 +597,7 @@ const Orders = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {stats.map((stat, i) => (
               <BlurFade key={i} delay={0.1 + i * 0.05}>
                 <MagicCard
@@ -636,25 +636,25 @@ const Orders = () => {
 
           {/* Main Content Area */}
           <BlurFade delay={0.3}>
-            <Card className="border-none shadow-xl ring-1 ring-slate-100 rounded-lg bg-white overflow-visible">
+            <div className="border-none shadow-none ring-0 md:shadow-xl md:ring-1 md:ring-slate-100 rounded-lg bg-transparent md:bg-white overflow-visible">
               {/* Tabs */}
-              <div className="border-b border-slate-100 bg-slate-50/30 overflow-x-auto scrollbar-hide">
-                <div className="flex px-3 sm:px-6 items-center min-w-max">
+              <div className="md:border-b md:border-slate-100 bg-transparent md:bg-slate-50/30 overflow-x-auto scrollbar-hide mb-3 md:mb-0">
+                <div className="flex px-4 sm:px-6 items-center min-w-max gap-2 md:gap-0 pb-1 md:pb-0">
                   {tabs.map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
                       className={cn(
-                        "relative py-3 sm:py-4 px-2.5 sm:px-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300",
+                        "relative py-2 md:py-4 px-4 md:px-4 text-sm font-semibold md:font-bold whitespace-nowrap transition-all duration-300 rounded-full md:rounded-none",
                         activeTab === tab
-                          ? "text-primary scale-105"
-                          : "text-slate-600 hover:text-slate-700",
+                          ? "bg-[#49AB14] text-white md:bg-transparent md:text-primary md:scale-105"
+                          : "bg-white text-slate-600 border border-slate-100 md:border-none md:bg-transparent hover:text-slate-700",
                       )}>
                       {tab}
                       {activeTab === tab && (
                         <motion.div
                           layoutId="tab-underline"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full mx-2 sm:mx-4"
+                          className="hidden md:block absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full mx-2 sm:mx-4"
                         />
                       )}
                     </button>
@@ -663,7 +663,7 @@ const Orders = () => {
               </div>
 
               {/* Toolbox */}
-              <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+              <div className="hidden md:flex p-3 sm:p-4 border-b border-slate-100 flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                 <div className="relative flex-1 group w-full">
                   <HiOutlineMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 group-focus-within:text-primary transition-all" />
                   <input
@@ -760,8 +760,14 @@ const Orders = () => {
                 </div>
               </div>
 
+              {/* Mobile Title */}
+              <div className="md:hidden flex items-baseline justify-between px-3 pb-2">
+                <h2 className="text-base font-semibold text-black">{activeTab === "All" ? "All" : activeTab} orders</h2>
+                <span className="text-xs text-gray-500">{filteredOrders.length} total</span>
+              </div>
+
               {/* Mobile: Card list */}
-              <div className="md:hidden p-3 sm:p-4 space-y-3">
+              <div className="md:hidden px-2 space-y-2 pb-4">
                 {filteredOrders.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4">
                     <div className="h-14 w-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-3">
@@ -787,82 +793,104 @@ const Orders = () => {
                   <AnimatePresence mode="popLayout">
                     {filteredOrders
                       .slice((page - 1) * pageSize, page * pageSize)
-                      .map((order) => (
+                      .map((order) => {
+                        const statusLabel = String(order.status).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+                        const isReady = String(order.status).toLowerCase() === "ready";
+                        
+                        return (
                         <motion.div
                           key={order.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm active:bg-slate-50/50">
-                          <div className="flex items-start justify-between gap-3">
-                            <div
-                              className="min-w-0 flex-1"
-                              onClick={() => handleViewDetails(order)}>
-                              <p className="text-xs font-black text-slate-900 truncate">
-                                #{order.id}
-                              </p>
-                              <div className="mt-1">
-                                <Badge
-                                  variant={
-                                    order.orderType === "mixed"
-                                      ? "secondary"
-                                      : "primary"
-                                  }
-                                  className="text-[10px] px-2 py-0 font-black uppercase tracking-wider">
-                                  {order.orderType}
-                                </Badge>
-                              </div>
-                              <p className="text-xs font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
-                                <HiOutlineCalendarDays className="h-3 w-3 shrink-0" />
-                                {order.date} • {order.time}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center text-[10px] font-black text-white shrink-0">
-                                  {order.customer.avatar}
-                                </div>
-                                <p className="text-xs font-bold text-slate-800 truncate">
-                                  {order.customer.name}
-                                </p>
-                              </div>
-                              <p className="text-[11px] font-bold mt-2 text-slate-600">
-                                {order.deliveryPartner
-                                  ? `${order.dispatchStatus === "accepted" ? "Rider accepted" : "Rider notified"}: ${order.deliveryPartner.name}`
-                                  : order.dispatchStatus === "assigned"
-                                    ? "Closest rider notified, waiting for acceptance"
-                                    : "No rider accepted yet"}
-                              </p>
-                              <p className="text-sm font-black text-slate-900 mt-2">
-                                {formatMoney(order.total)}
-                              </p>
+                          className="w-full bg-white rounded-2xl p-3 mb-2 border border-gray-200 hover:border-gray-400 transition-colors relative"
+                          onClick={() => handleViewDetails(order)}>
+                          
+                          <div className="w-full text-left flex gap-2.5 items-stretch cursor-pointer">
+                            <div className="h-16 w-16 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 my-auto text-2xl font-black text-slate-300 border border-slate-200">
+                                {order.customer.avatar}
                             </div>
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <Badge
-                                variant={getStatusColor(order.status)}
-                                className="text-[10px] font-black uppercase px-2 py-0">
-                                {order.status.replace(/_/g, " ")}
-                              </Badge>
-                              <button
-                                onClick={() => handleViewDetails(order)}
-                                className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
-                                <HiOutlineEye className="h-4 w-4" />
-                              </button>
-                              {canResendDispatch(order) && (
-                                <button
-                                  onClick={() => handleResendDispatch(order.id)}
-                                  className="px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider">
-                                  Resend Rider
-                                </button>
-                              )}
+                            
+                            <div className="flex-1 flex flex-col justify-between min-h-[64px]">
+                              <div className="flex items-start justify-between gap-1.5">
+                                <div>
+                                  <p className="text-sm font-semibold text-black leading-tight">
+                                    Order #{order.id}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500 mt-0.5">{order.customer.name}</p>
+                                </div>
+                    
+                                <div className="flex flex-col items-end gap-0.5">
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border text-right whitespace-normal break-words max-w-[140px] leading-tight ${
+                                      isReady
+                                        ? "border-green-500 text-green-600"
+                                        : "border-gray-800 text-gray-900"
+                                    }`}>
+                                    <span
+                                      className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
+                                        isReady ? "bg-green-500" : "bg-gray-800"
+                                      }`}
+                                    />
+                                    {statusLabel}
+                                  </span>
+                                  <span className="text-[10px] text-gray-500 text-right whitespace-normal break-words max-w-[120px] leading-tight">
+                                    {order.time}
+                                  </span>
+                                </div>
+                              </div>
+                    
+                              <div className="mt-1">
+                                <p className="text-[11px] text-gray-600 line-clamp-1">{order.orderType === "mixed" ? "Mixed Order" : "Quick Commerce"}</p>
+                              </div>
+                    
+                              <div className="mt-1.5 flex items-end justify-between gap-2">
+                                <div className="flex flex-col gap-0.5">
+                                  <p className="text-[11px] font-bold text-black">
+                                    {formatMoney(order.total)}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span
+                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
+                                          order.deliveryPartner
+                                            ? "bg-[#49AB14]/10 text-[#49AB14] border border-[#49AB14]/30"
+                                            : "bg-orange-100 text-orange-700 border border-orange-300"
+                                        }`}>
+                                        <span
+                                          className={`h-1 w-1 rounded-full ${
+                                            order.deliveryPartner ? "bg-[#49AB14]" : "bg-orange-500"
+                                          }`}
+                                        />
+                                        {order.deliveryPartner ? "Assigned" : "Not Assigned"}
+                                      </span>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  {canResendDispatch(order) && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleResendDispatch(order.id);
+                                      }}
+                                      className="px-2 py-1 rounded-lg text-[10px] font-semibold border border-[#49AB14] text-[#49AB14] bg-[#49AB14]/5 hover:bg-[#49AB14]/10 transition-colors">
+                                      Resend Rider
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </motion.div>
-                      ))}
+                      );
+                    })}
                   </AnimatePresence>
                 )}
               </div>
 
               {/* Desktop: Table */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto bg-white rounded-b-lg">
                 <table className="w-full text-left border-collapse min-w-[640px]">
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -1054,7 +1082,7 @@ const Orders = () => {
                 )}
               </div>
 
-              <div className="p-3 sm:p-4 border-t border-slate-50 bg-slate-50/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-3 sm:px-6">
+              <div className="p-3 sm:p-4 border-t border-slate-50 bg-slate-50/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-3 sm:px-6 pb-24 md:pb-4">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-widest text-center sm:text-left">
                   Showing {filteredOrders.length} of {orders.length} Orders
                 </p>
@@ -1071,7 +1099,7 @@ const Orders = () => {
                   </button>
                 </div>
               </div>
-            </Card>
+            </div>
           </BlurFade>
 
           <div className="mt-3 sm:mt-4 px-2 sm:px-0">

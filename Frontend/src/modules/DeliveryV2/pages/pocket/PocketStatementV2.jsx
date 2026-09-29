@@ -138,7 +138,7 @@ export const PocketStatementV2 = () => {
           {/* Summary (Original Grid Style) */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 mt-4 mb-6 shadow-sm">
              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <CheckCircle className="w-4 h-4 text-[#86bf24]" />
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-tight">
                    Pocket summary
                 </span>
@@ -201,8 +201,8 @@ export const PocketStatementV2 = () => {
                          <div className="flex items-start justify-between">
                             <div className="flex items-start gap-4">
                                <div className={`w-2 h-2 rounded mt-1.5 ${
-                                  index % 3 === 0 ? 'bg-green-500' : 
-                                  index % 3 === 1 ? 'bg-orange-500' : 'bg-blue-500'
+                                  index % 3 === 0 ? 'bg-[#86bf24]' : 
+                                  index % 3 === 1 ? 'bg-orange-500' : 'bg-[#f3f9e8]0'
                                }`}></div>
                                <div>
                                   <p className="text-gray-900 text-sm font-bold mb-0.5">
@@ -225,8 +225,8 @@ export const PocketStatementV2 = () => {
                                </div>
                                {amounts.bonus > 0 && (
                                   <div className="mb-2">
-                                     <p className="text-[10px] text-emerald-500 font-bold uppercase">Bonus</p>
-                                     <p className="text-sm font-bold text-emerald-600">
+                                     <p className="text-[10px] text-[#86bf24] font-bold uppercase">Bonus</p>
+                                     <p className="text-sm font-bold text-[#86bf24]">
                                         + ₹{amounts.bonus}
                                      </p>
                                   </div>

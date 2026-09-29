@@ -61,16 +61,16 @@ export const LimitSettlementV2 = () => {
       case 'approved':
         return {
           icon: CheckCircle2,
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200'
+          color: 'text-[#86bf24]',
+          bgColor: 'bg-[#f3f9e8]',
+          borderColor: 'border-[#d0eb9f]'
         };
       case 'pending':
         return {
           icon: Clock,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200'
+          color: 'text-[#86bf24]',
+          bgColor: 'bg-[#f3f9e8]',
+          borderColor: 'border-[#d0eb9f]'
         };
       case 'denied':
       case 'rejected':

@@ -89,7 +89,7 @@ const ReturnPickups = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="animate-spin text-emerald-600" size={24} />
+        <Loader2 className="animate-spin text-[#86bf24]" size={24} />
       </div>
     );
   }
@@ -119,14 +119,14 @@ const ReturnPickups = () => {
                   })()}
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-bold text-emerald-600">₹{pickup.returnPickupEarning || '20.00'}</span>
+                  <span className="text-lg font-bold text-[#86bf24]">₹{pickup.returnPickupEarning || '20.00'}</span>
                   <p className="text-xs text-gray-400">Estimated Earning</p>
                 </div>
               </div>
 
               <div className="space-y-3 mb-4">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                  <MapPin className="w-5 h-5 text-[#86bf24] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Pickup From Customer</p>
                     <p className="text-sm text-gray-800 font-medium">{pickup.userId?.name || "Customer"}</p>
@@ -135,7 +135,7 @@ const ReturnPickups = () => {
                 </div>
                 
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                  <MapPin className="w-5 h-5 text-[#86bf24] mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase">Drop to Seller</p>
                     <p className="text-sm text-gray-800 font-medium">{pickup.sellerId?.shopName || pickup.sellerId?.name || "Seller Store"}</p>
@@ -156,7 +156,7 @@ const ReturnPickups = () => {
                 <button
                   onClick={() => handleAccept(pickup._id)}
                   disabled={actionLoading}
-                  className="flex-[2] py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors shadow-sm flex justify-center items-center gap-2"
+                  className="flex-[2] py-3 bg-[#86bf24] hover:bg-[#73a61d] text-white font-bold rounded-lg transition-colors shadow-sm flex justify-center items-center gap-2"
                 >
                   {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />} Accept
                 </button>

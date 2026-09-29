@@ -52,9 +52,9 @@ export default function ShowIdCardV2() {
 
   // Get status color
   const getStatusColor = () => {
-    if (!profileData) return "bg-green-500";
+    if (!profileData) return "bg-[#86bf24]";
     const status = profileData.status?.toLowerCase() || (profileData.isActive ? 'active' : 'inactive');
-    if (status === 'active' || status === 'approved') return "bg-green-500";
+    if (status === 'active' || status === 'approved') return "bg-[#86bf24]";
     if (status === 'pending') return "bg-yellow-500";
     if (status === 'suspended' || status === 'blocked') return "bg-red-500";
     return "bg-gray-500";
@@ -94,7 +94,7 @@ export default function ShowIdCardV2() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Failed to load ID card data</p>
-          <button onClick={goBack} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Go Back</button>
+          <button onClick={goBack} className="px-4 py-2 bg-[#86bf24] text-white rounded-lg">Go Back</button>
         </div>
       </div>
     );
@@ -153,7 +153,7 @@ export default function ShowIdCardV2() {
 
             {/* Active Status Badge */}
             <div className="mb-8">
-              <span className={`${idCardData.statusColor} text-white px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-green-500/20`}>
+              <span className={`${idCardData.statusColor} text-white px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-[#86bf24]/20`}>
                 {idCardData.status}
               </span>
             </div>

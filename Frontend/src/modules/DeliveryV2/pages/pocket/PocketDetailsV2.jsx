@@ -114,7 +114,7 @@ export const PocketDetailsV2 = () => {
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Trips & Earnings History</p>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
+        <div className="w-10 h-10 rounded-xl bg-[#f3f9e8] flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]">
           <Receipt className="w-5 h-5" />
         </div>
       </div>
@@ -148,7 +148,7 @@ export const PocketDetailsV2 = () => {
                  </div>
                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                     <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Weekly Bonus</p>
-                    <p className="text-lg font-black text-green-500">+{formatCurrency(summary.totalBonus)}</p>
+                    <p className="text-lg font-black text-[#86bf24]">+{formatCurrency(summary.totalBonus)}</p>
                  </div>
               </div>
            </div>
@@ -197,8 +197,8 @@ export const PocketDetailsV2 = () => {
                     <div className="text-right">
                        <p className="text-base font-black text-gray-950 leading-none mb-1">{formatCurrency(earning + bonus)}</p>
                        <div className="flex items-center justify-end gap-1.5">
-                          {bonus > 0 && <span className="text-[9px] font-bold text-green-500 uppercase">+{formatCurrency(bonus)} BP</span>}
-                          <div className={`px-2 py-0.5 rounded-md ${order.paymentMethod?.toLowerCase() === 'cod' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-green-50 text-green-600 border border-green-100'} text-[8px] font-black uppercase`}>
+                          {bonus > 0 && <span className="text-[9px] font-bold text-[#86bf24] uppercase">+{formatCurrency(bonus)} BP</span>}
+                          <div className={`px-2 py-0.5 rounded-md ${order.paymentMethod?.toLowerCase() === 'cod' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-[#f3f9e8] text-[#86bf24] border border-[#e6f4cf]'} text-[8px] font-black uppercase`}>
                              {order.paymentMethod || 'Online'}
                           </div>
                        </div>

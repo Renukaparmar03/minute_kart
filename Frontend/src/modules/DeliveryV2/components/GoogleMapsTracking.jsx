@@ -307,7 +307,7 @@ export default function GoogleMapsTracking({
         suppressMarkers: true, // We'll use custom markers
         preserveViewport: true, // Preserve viewport - we'll center manually
                       polylineOptions: {
-                        strokeColor: '#3b82f6', // Bright blue like Zomato/Swiggy
+                        strokeColor: '#86bf24', // Bright blue like Zomato/Swiggy
                         strokeWeight: 6,
                         strokeOpacity: 1.0, // Fully visible - plain solid line
                         icons: [], // No icons/dots - plain solid line only
@@ -383,7 +383,7 @@ export default function GoogleMapsTracking({
               if (directionsRendererRef.current) {
                 directionsRendererRef.current.setOptions({
                   polylineOptions: {
-                    strokeColor: '#3b82f6',
+                    strokeColor: '#86bf24',
                     strokeWeight: 6,
                     strokeOpacity: 1.0,
                     icons: [] // Explicitly remove all icons/dots - plain solid line only
@@ -515,7 +515,7 @@ export default function GoogleMapsTracking({
       <div className={`absolute ${isFullScreen ? 'left-6 top-6' : 'left-3 top-3'} flex flex-col gap-2 z-10`}>
         {isTracking && (
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
+            <div className="h-3 w-3 rounded-full bg-[#86bf24] animate-pulse"></div>
             <span className="text-white bg-black/70 px-2 py-1 rounded text-sm font-medium">Live</span>
           </div>
         )}
@@ -541,7 +541,7 @@ export default function GoogleMapsTracking({
               <span className="text-sm text-gray-500 mb-0.5">({routeInfo.distance})</span>
             </div>
             {destinationName && (
-              <div className="text-xs text-blue-600 mt-1 font-medium truncate">
+              <div className="text-xs text-[#86bf24] mt-1 font-medium truncate">
                 to {destinationName}
               </div>
             )}
