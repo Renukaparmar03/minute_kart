@@ -74,6 +74,7 @@ export const config = {
 
     // Socket.io
     socketCorsOrigin: process.env.SOCKET_CORS_ORIGIN || '*',
+    socketPort: process.env.SOCKET_PORT || 5001,
 
     // Razorpay (payments)
     razorpayKeyId: process.env.RAZORPAY_KEY_ID,

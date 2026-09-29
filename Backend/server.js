@@ -8,7 +8,6 @@ import { initSocket } from './src/config/socket.js';
 import { initializeQueues, closeBullMQConnection } from './src/queues/index.js';
 import { expireExpiredOffers } from './src/modules/food/admin/services/admin.service.js';
 import { syncExpiredFssaiNotifications } from './src/modules/food/restaurant/services/fssaiExpiry.service.js';
-import { initMilkPlanCron } from './src/modules/dudhwala/jobs/milkPlan.job.js';
 
 import { logger } from './src/utils/logger.js';
 import { initializeFirebaseRealtime } from './src/config/firebase.js';
@@ -17,8 +16,6 @@ import { ensureAllSellersHaveFcId } from './src/modules/quick-commerce/services/
 
 const SHUTDOWN_TIMEOUT_MS = 10000;
 let server = null;
-let expireOffersInterval = null;
-let fssaiExpiryInterval = null;
 
 const gracefulShutdown = async (signal) => {
     logger.info(`${signal} received, starting graceful shutdown`);
@@ -31,8 +28,6 @@ const gracefulShutdown = async (signal) => {
             await disconnectDB();
             await closeRedis();
             await closeBullMQConnection();
-            if (expireOffersInterval) clearInterval(expireOffersInterval);
-            if (fssaiExpiryInterval) clearInterval(fssaiExpiryInterval);
             logger.info('Graceful shutdown complete');
             process.exit(0);
         } catch (err) {
@@ -57,8 +52,7 @@ const startServer = async () => {
         // 2. Create HTTP server from Express app
         const httpServer = http.createServer(app);
 
-        // 3. Initialize Socket.IO with the HTTP server (Redis adapter when Redis enabled)
-        await initSocket(httpServer);
+        // 3. Socket.IO is now handled in a separate process (socket-server.js)
 
         if (config.redisEnabled) {
             await connectRedis();
@@ -93,28 +87,7 @@ const startServer = async () => {
             console.log(`🌐 [URL] http://localhost:${config.port}`);
         });
 
-        const runExpire = async () => {
-            try {
-                await expireExpiredOffers();
-            } catch (err) {
-                logger.error(`Expire offers error: ${err.message}`);
-            }
-        };
-        runExpire();
-        expireOffersInterval = setInterval(runExpire, 5 * 60 * 1000);
-
-        const runFssaiExpirySync = async () => {
-            try {
-                await syncExpiredFssaiNotifications();
-            } catch (err) {
-                logger.error(`FSSAI expiry sync error: ${err.message}`);
-            }
-        };
-        runFssaiExpirySync();
-        fssaiExpiryInterval = setInterval(runFssaiExpirySync, 60 * 60 * 1000);
-
-        // Milk Subscription Automation
-        initMilkPlanCron();
+        // Schedulers (expireOffers, fssai, milkPlan) have been moved to scheduler-server.js
 
         process.on('SIGINT', () => gracefulShutdown('SIGINT'));
         process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
