@@ -282,21 +282,23 @@ const Analytics = () => {
     <div className="space-y-6 sm:space-y-8 pb-20 sm:pb-16">
       <BlurFade delay={0.1}>
         {/* Header */}
-        <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-2">
-              Advanced Analytics
-              <Badge
-                variant="success"
-                className="text-[9px] px-1.5 py-0 font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700">
-                Real-time Insights
-              </Badge>
-            </h1>
-            <p className="text-slate-600 text-sm sm:text-base mt-0.5 font-medium">
-              Detailed breakdown of your business performance and customer
-              behavior.
-            </p>
-          </div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <Card className="p-4 sm:p-6 border-none shadow-sm ring-1 ring-slate-100 bg-white">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 flex flex-wrap items-center gap-2">
+                Advanced Analytics
+                <Badge
+                  variant="success"
+                  className="text-[9px] px-1.5 py-0 font-bold tracking-wider uppercase bg-emerald-100 text-emerald-700">
+                  Real-time Insights
+                </Badge>
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base mt-0.5 font-medium">
+                Detailed breakdown of your business performance and customer
+                behavior.
+              </p>
+            </div>
+          </Card>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto scrollbar-hide min-w-0">
               {["Overview", "Sales", "Customers"].map((tab) => (
@@ -304,7 +306,7 @@ const Analytics = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm sm:text-xs font-bold transition-all whitespace-nowrap shrink-0",
+                    "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0",
                     activeTab === tab
                       ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                       : "text-slate-600 hover:text-slate-700",
@@ -315,7 +317,7 @@ const Analytics = () => {
             </div>
             <ShimmerButton
               onClick={handleDownloadReport}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 rounded-lg text-xs sm:text-sm sm:text-xs font-bold text-white shadow-lg disabled:opacity-50 shrink-0"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 rounded-lg text-xs sm:text-sm font-bold text-white shadow-lg disabled:opacity-50 shrink-0"
               disabled={isExporting}>
               <HiOutlineArrowDownTray className="h-4 w-4 shrink-0" />
               <span>{isExporting ? "DOWNLOADING..." : "DOWNLOAD REPORT"}</span>
@@ -325,7 +327,7 @@ const Analytics = () => {
       </BlurFade>
 
       {/* Quick Stats Grid - show for all tabs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {stats
           .filter((_, i) => {
             if (activeTab === "Customers") return i === 0 || i === 1; // Total Sales, Total Orders only
@@ -344,17 +346,17 @@ const Analytics = () => {
                       ? "#fffbeb"
                       : "#fff1f2"
               }>
-              <div className="p-6 relative z-10 flex items-start justify-between">
+              <div className="p-3 md:p-6 relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-2 md:gap-0">
                 <div>
-                  <p className="text-xs font-black text-slate-600 uppercase tracking-widest">
+                  <p className="text-[10px] md:text-xs font-black text-slate-600 uppercase tracking-widest">
                     {stat.label}
                   </p>
-                  <h4 className="text-2xl font-black text-slate-900 mt-1 tracking-tight">
+                  <h4 className="text-lg md:text-2xl font-black text-slate-900 mt-1 tracking-tight">
                     {stat.value}
                   </h4>
                   <div
                     className={cn(
-                      "flex items-center mt-3 text-xs sm:text-sm font-black px-2 py-0.5 rounded-full w-fit",
+                      "flex items-center mt-2 md:mt-3 text-[9px] md:text-xs sm:text-sm font-black px-2 py-0.5 rounded-full w-fit",
                       stat.trend.startsWith("+")
                         ? "text-emerald-600 bg-emerald-50"
                         : "text-rose-600 bg-rose-50",
@@ -372,11 +374,11 @@ const Analytics = () => {
                 </div>
                 <div
                   className={cn(
-                    "h-12 w-12 rounded-lg flex items-center justify-center shadow-inner",
+                    "h-8 w-8 md:h-12 md:w-12 rounded-lg flex items-center justify-center shadow-inner absolute top-3 right-3 md:relative md:top-0 md:right-0",
                     stat.bg,
                     stat.color,
                   )}>
-                  <stat.icon className="h-6 w-6 transition-transform group-hover:scale-125 duration-300" />
+                  <stat.icon className="h-4 w-4 md:h-6 md:w-6 transition-transform group-hover:scale-125 duration-300" />
                 </div>
               </div>
             </MagicCard>
@@ -394,11 +396,11 @@ const Analytics = () => {
       )}
 
       {(activeTab === "Overview" || activeTab === "Sales") && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="w-full">
         {/* Sales Performance Chart */}
-        <BlurFade delay={0.4} className="lg:col-span-2">
-          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-3xl p-6 bg-white overflow-hidden group h-full">
-            <div className="flex items-center justify-between mb-8">
+        <BlurFade delay={0.4}>
+          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-3xl p-4 md:p-6 bg-white overflow-hidden group h-full">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-8 gap-3">
               <div>
                 <h3 className="text-lg font-black text-slate-900">
                   Revenue & Trends
@@ -423,7 +425,7 @@ const Analytics = () => {
                 ))}
               </div>
             </div>
-            <div className="h-[400px] w-full mt-4">
+            <div className="h-[200px] md:h-[400px] w-full mt-2 md:mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={statsData?.salesTrend || []}
@@ -500,138 +502,15 @@ const Analytics = () => {
           </Card>
         </BlurFade>
 
-        {/* Category Mix (Radar Chart) */}
-        <BlurFade delay={0.5} className="lg:col-span-1">
-          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-lg p-6 bg-white flex flex-col items-center justify-center group h-full">
-            <div className="w-full text-center mb-6">
-              <h3 className="text-lg font-black text-slate-900">
-                Category Mix
-              </h3>
-              <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                Inventory Distribution
-              </p>
-            </div>
-            <div className="h-[350px] w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="70%"
-                  data={statsData?.categoryMix || []}>
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis
-                    dataKey="subject"
-                    tick={{ fill: "#64748b", fontSize: 10, fontWeight: 800 }}
-                  />
-                  <PolarRadiusAxis
-                    angle={30}
-                    domain={[0, 150]}
-                    tick={false}
-                    axisLine={false}
-                  />
-                  <Radar
-                    name="Volume"
-                    dataKey="A"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    fill="#10b981"
-                    fillOpacity={0.15}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full mt-4">
-              {(statsData?.categoryMix || []).slice(0, 3).map((cat, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-50 p-3 rounded-lg flex flex-col items-center border border-slate-100/50">
-                  <p className="text-[10px] font-black text-slate-900">
-                    {cat.A}
-                  </p>
-                  <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase">
-                    {cat.subject}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </BlurFade>
       </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Selling Products - Overview & Sales */}
-        {(activeTab === "Overview" || activeTab === "Sales") && (
-        <BlurFade delay={0.6}>
-          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-lg p-0 overflow-hidden bg-white">
-            <div className="p-6 border-b border-slate-50">
-              <h3 className="text-lg font-black text-slate-900">
-                Top Performing Products
-              </h3>
-              <p className="text-xs text-slate-600 font-medium">
-                Bestsellers by sales volume and revenue generation.
-              </p>
-            </div>
-            <div className="divide-y divide-slate-50">
-              {(statsData?.topProducts || []).map((product, i) => (
-                <div
-                  key={i}
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setIsProductModalOpen(true);
-                  }}
-                  className="px-6 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors group cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-black text-xs group-hover:bg-primary group-hover:text-white transition-all">
-                      {i + 1}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-black text-slate-900">
-                        {product.name}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-slate-600 font-bold">
-                        {product.sales} units sold
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-slate-900">
-                      {product.revenue}
-                    </p>
-                    <div
-                      className={cn(
-                        "flex items-center justify-end text-[10px] font-black mt-0.5",
-                        product.trend > 0
-                          ? "text-emerald-600"
-                          : "text-rose-600",
-                      )}>
-                      {product.trend > 0 ? (
-                        <HiOutlineArrowUpRight className="h-3 w-3 mr-0.5" />
-                      ) : (
-                        <HiOutlineArrowDownRight className="h-3 w-3 mr-0.5" />
-                      )}
-                      {Math.abs(product.trend)}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-4 bg-slate-50/50 border-t border-slate-50 text-center">
-              <button
-                onClick={() => navigate("/seller/products")}
-                className="text-xs font-black text-primary uppercase tracking-widest hover:underline">
-                View All Products Analytics
-              </button>
-            </div>
-          </Card>
-        </BlurFade>
-        )}
-
+      <div className="w-full mt-8">
         {/* Traffic Sources & Customer Insights - Overview & Customers */}
         {(activeTab === "Overview" || activeTab === "Customers") && (
         <BlurFade delay={0.7}>
-          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-3xl p-6 bg-white overflow-hidden group h-full">
-            <div className="mb-8">
+          <Card className="border-none shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-3xl p-4 md:p-6 bg-white overflow-hidden group h-full">
+            <div className="mb-4 md:mb-8">
               <h3 className="text-lg font-black text-slate-900">
                 New Customers
               </h3>
@@ -640,8 +519,8 @@ const Analytics = () => {
               </p>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="h-[250px] w-full md:w-1/2">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+              <div className="h-[200px] md:h-[250px] w-full md:w-1/2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

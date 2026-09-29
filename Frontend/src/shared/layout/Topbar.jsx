@@ -112,10 +112,13 @@ const Topbar = ({ onMenuClick }) => {
         return (
             <header className={cn(
                 "bg-primary text-white border-b-0 flex items-center justify-between shadow-md transition-all duration-300",
-                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:px-6 md:pl-6"
+                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:hidden"
             )} style={{ width: '100%' }}>
                 {/* Left: Store Info */}
-                <div className="flex items-center gap-3 md:gap-6">
+                <div 
+                    onClick={() => navigate('/seller/profile')}
+                    className="flex items-center gap-3 md:gap-6 cursor-pointer hover:opacity-80 transition-opacity"
+                >
                     <div className="flex items-center gap-2 md:gap-4">
                         <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-[15px] shrink-0">
                             {user?.name?.[0]?.toUpperCase() || 'R'}
