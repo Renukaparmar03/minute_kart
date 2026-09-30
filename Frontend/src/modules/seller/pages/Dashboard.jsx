@@ -13,6 +13,9 @@ import {
   ArrowUpRight,
   Plus,
   Eye,
+  Grid,
+  Briefcase,
+  Tag,
 } from "lucide-react";
 import {
   HiOutlineTruck,
@@ -105,10 +108,11 @@ const Dashboard = () => {
       changeType: "increase",
       icon: DollarSign,
       iconBg: "bg-emerald-100",
-      iconColor: "text-emerald-700",
+      iconColor: "text-emerald-600",
       description: "vs last month",
-      cardBg: "bg-emerald-50/50",
+      cardBg: "bg-emerald-50",
       cardBorder: "border-emerald-100",
+      isDark: false,
     },
     {
       label: "Total Orders",
@@ -116,11 +120,12 @@ const Dashboard = () => {
       change: "+8.2%",
       changeType: "increase",
       icon: ShoppingBag,
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-700",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
       description: "vs last month",
-      cardBg: "bg-blue-50/50",
-      cardBorder: "border-blue-100",
+      cardBg: "bg-orange-50",
+      cardBorder: "border-orange-100",
+      isDark: false,
     },
     {
       label: "Avg Order Value",
@@ -128,11 +133,12 @@ const Dashboard = () => {
       change: "+2",
       changeType: "increase",
       icon: Package,
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-700",
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
       description: "per order",
-      cardBg: "bg-purple-50/50",
-      cardBorder: "border-purple-100",
+      cardBg: "bg-blue-50",
+      cardBorder: "border-blue-100",
+      isDark: false,
     },
     {
       label: "Pending Orders",
@@ -140,35 +146,43 @@ const Dashboard = () => {
       change: "-3",
       changeType: "decrease",
       icon: Clock,
-      iconBg: "bg-rose-100",
-      iconColor: "text-rose-700",
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-600",
       description: "need attention",
-      cardBg: "bg-rose-50/50",
-      cardBorder: "border-rose-100",
+      cardBg: "bg-purple-50",
+      cardBorder: "border-purple-100",
+      isDark: false,
     },
   ];
 
   const quickActions = [
     {
-      title: "Add New Product",
+      title: "New Orders",
+      description: "View and manage incoming orders",
+      icon: ShoppingBag,
+      path: "/seller/orders",
+      variant: "orange",
+    },
+    {
+      title: "Add Product",
       description: "List a new item in your store",
       icon: Plus,
       path: "/seller/products/add",
-      variant: "primary", // dark bg, white text
+      variant: "rose",
     },
     {
-      title: "Process Orders",
-      description: "View and manage pending orders",
-      icon: Truck,
-      path: "/seller/orders",
-      variant: "outline", // white bg, border, primary accent
+      title: "Inventory",
+      description: "Manage stock & items",
+      icon: Package,
+      path: "/seller/inventory",
+      variant: "purple",
     },
     {
-      title: "View Earnings",
-      description: "Check your revenue and payouts",
-      icon: DollarSign,
-      path: "/seller/earnings",
-      variant: "outline-emerald", // white bg, border, emerald accent
+      title: "Coupons & Offers",
+      description: "Create discounts & promo codes",
+      icon: Tag,
+      path: "/seller/coupons",
+      variant: "blue",
     },
   ];
 
@@ -257,20 +271,23 @@ const Dashboard = () => {
     );
   }
 
+  const FirstStatIcon = stats[0].icon;
+
   return (
-    <div className="ds-section-spacing relative">
-      {/* Welcome Banner */}
-      <div className="bg-emerald-50 rounded-3xl p-6 md:p-8 text-emerald-950 shadow-sm border border-emerald-100 mb-3 relative overflow-hidden">
-        <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">Dashboard</h1>
-          <p className="text-emerald-700 text-sm md:text-base mt-2 font-medium">Welcome back! Here's what's happening with your store today.</p>
+    <div className="flex flex-col gap-2 relative">
+      {/* Store Info Banner */}
+      <div className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-2">
+        <div className="h-12 w-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+          <ShoppingBag className="h-6 w-6" />
         </div>
-        {/* Decorative background circle */}
-        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 rounded-full bg-emerald-100 opacity-50 blur-2xl pointer-events-none"></div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-black text-slate-900 truncate">{user?.shopName || "Sharma General Store"}</h2>
+          <p className="text-xs font-medium text-slate-500 truncate mt-0.5">{user?.address || "Banmankhi, Purnea"}</p>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+      {/* Stats Grid - Web View */}
+      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat) => (
           <Card key={stat.label} className={cn("hover:shadow-md transition-shadow p-2.5 md:p-4 backdrop-blur-sm border", stat.cardBg || "bg-white", stat.cardBorder || "border-slate-100")}>
             <div className="flex items-center gap-2">
@@ -311,69 +328,72 @@ const Dashboard = () => {
         ))}
       </div>
 
+      {/* Stats - Mobile View */}
+      <div className="md:hidden block mb-1">
+        <Card className="hover:shadow-md transition-shadow p-4 backdrop-blur-sm border-none bg-gradient-to-br from-[#127a3c] to-[#084f22] rounded-[24px] text-white">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-white/90">
+                Today's Sales
+              </p>
+              <p className="text-[26px] leading-tight font-black mt-1">
+                {stats[0].value}
+              </p>
+            </div>
+            <div className="p-1.5 border border-white/20 rounded-[12px]">
+              <FirstStatIcon className="h-5 w-5 text-white/90" />
+            </div>
+          </div>
+          
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-[#86f3b0]">
+              {stats[0].change}
+            </span>
+            <span className="text-[11px] font-medium flex items-center gap-1 cursor-pointer">
+              View Report <ArrowUpRight className="h-3 w-3" />
+            </span>
+          </div>
+        </Card>
+      </div>
+
       {/* Quick Actions */}
-      <div className="mt-8 mb-4">
-        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-4 px-1">Quick Access</h2>
-        <div className="grid grid-cols-3 gap-2 md:gap-4">
+      <div className="mt-2 mb-0">
+        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-2 px-1">QUICK ACCESS</h2>
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           {quickActions.map((action) => {
-            const isPrimary = action.variant === "primary";
-            const isEmerald = action.variant === "outline-emerald";
+            const v = action.variant;
             return (
               <button
                 key={action.title}
-                onClick={() => navigate(action.path)}
+                onClick={() => {
+                  if (action.path) {
+                    navigate(action.path);
+                  } else {
+                    toast.info("Coupons & Offers feature coming soon!");
+                  }
+                }}
                 className={cn(
-                  "aspect-square p-2.5 md:p-4 rounded-xl text-center transition-all duration-200 shadow-sm hover:shadow-md border",
-                  isPrimary &&
-                    "bg-primary border-primary text-white hover:bg-primary/90 hover:border-primary/90",
-                  action.variant === "outline" &&
-                    "bg-white border-slate-100 text-slate-900 hover:border-primary hover:bg-primary/5",
-                  isEmerald &&
-                    "bg-white border-slate-100 text-slate-900 hover:border-emerald-500 hover:bg-emerald-50",
+                  "p-3.5 md:p-4 rounded-xl text-center transition-all duration-200 shadow-sm hover:shadow-md border",
+                  v === "rose" && "bg-rose-500 border-rose-600 text-white hover:bg-rose-500/90",
+                  v === "orange" && "bg-[#fd8a2e] border-[#fd8a2e] text-white hover:bg-[#fd8a2e]/90",
+                  v === "emerald" && "bg-emerald-600 border-emerald-700 text-white hover:bg-emerald-600/90",
+                  v === "blue" && "bg-[#258df7] border-[#258df7] text-white hover:bg-[#258df7]/90",
+                  v === "purple" && "bg-[#8f39f7] border-[#8f39f7] text-white hover:bg-[#8f39f7]/90",
+                  v === "slate" && "bg-slate-800 border-slate-900 text-white hover:bg-slate-800/90",
                 )}>
                 <div className="flex flex-col items-center justify-center gap-1.5 md:gap-3 h-full relative">
-                  <div
-                    className={cn(
-                      "p-2 md:p-3 rounded-full inline-flex flex-shrink-0",
-                      isPrimary
-                        ? "bg-white/20"
-                        : isEmerald
-                          ? "bg-emerald-50"
-                          : "bg-slate-100",
-                    )}>
-                    <action.icon
-                      className={cn(
-                        "h-5 w-5 md:h-7 md:w-7",
-                        isPrimary
-                          ? "text-white"
-                          : isEmerald
-                            ? "text-emerald-600"
-                            : "text-slate-700",
-                      )}
-                    />
+                  <div className="p-2.5 md:p-3 rounded-full inline-flex flex-shrink-0 bg-white/20">
+                    <action.icon className="h-5 w-5 md:h-7 md:w-7 text-white" />
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center items-center w-full">
-                    <h3
-                      className={cn(
-                        "font-bold text-[10px] md:text-sm leading-tight text-center w-full line-clamp-1 md:line-clamp-2",
-                        isPrimary ? "text-white" : "text-slate-900",
-                      )}>
+                    <h3 className="font-bold text-xs md:text-sm leading-tight text-center w-full line-clamp-1 text-white">
                       {action.title}
                     </h3>
-                    <p
-                      className={cn(
-                        "text-[8px] md:text-xs mt-0.5 text-center w-full line-clamp-2",
-                        isPrimary ? "text-white/90" : "text-slate-500",
-                      )}>
+                    <p className="text-[10px] md:text-xs mt-0.5 text-center w-full line-clamp-1 text-white/90">
                       {action.description}
                     </p>
                   </div>
-                  <ArrowUpRight
-                    className={cn(
-                      "absolute top-0 right-0 h-3 w-3 md:h-4 md:w-4 shrink-0",
-                      isPrimary ? "text-white/70" : "text-slate-600",
-                    )}
-                  />
+                  <ArrowUpRight className="absolute top-0 right-0 h-3.5 w-3.5 md:h-4 md:w-4 shrink-0 text-white/70" />
                 </div>
               </button>
             );
@@ -538,20 +558,20 @@ const Dashboard = () => {
         </div>
 
         {/* Mobile View for Recent Orders */}
-        <div className="md:hidden space-y-3 mt-2">
+        <div className="md:hidden space-y-2 -mt-4">
           {safeOrders.slice(0, 5).map((order) => (
-            <div key={order.orderId} onClick={() => { setSelectedOrder(normalizeOrderForModal(order)); setIsOrderModalOpen(true); }} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex flex-col gap-3 active:scale-95 transition-transform cursor-pointer">
+            <div key={order.orderId} onClick={() => { setSelectedOrder(normalizeOrderForModal(order)); setIsOrderModalOpen(true); }} className="bg-white border border-slate-100 p-3 rounded-[16px] shadow-sm flex flex-col gap-2 active:scale-95 transition-transform cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(order.createdAt).toLocaleDateString()}</span>
-                  <p className="text-sm font-bold text-slate-900">#{order.orderId}</p>
+                  <p className="text-xs font-bold text-slate-900 mt-0.5">#{order.orderId}</p>
                 </div>
-                <Badge variant={getStatusColor(order.status)} className="capitalize text-[10px] py-0.5 px-2">{order.status}</Badge>
+                <Badge variant={getStatusColor(order.status)} className="capitalize text-[9px] py-0.5 px-2">{order.status}</Badge>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-50 pt-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-semibold text-slate-600">{order.customer?.name?.split(" ").map((n) => n[0]).join("") || "C"}</div>
-                  <span className="text-xs font-medium text-slate-700">{order.customer?.name || "Customer"}</span>
+              <div className="flex items-center justify-between border-t border-slate-50 pt-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-semibold text-slate-600">{order.customer?.name?.split(" ").map((n) => n[0]).join("") || "C"}</div>
+                  <span className="text-[11px] font-medium text-slate-700">{order.customer?.name || "Customer"}</span>
                 </div>
                 <span className="text-sm font-black text-slate-900">₹{order.pricing?.total || 0}</span>
               </div>

@@ -135,8 +135,8 @@ const Topbar = ({ onMenuClick }) => {
     if (isSeller) {
         return (
             <header className={cn(
-                "bg-primary text-white border-b-0 flex items-center justify-between shadow-md transition-all duration-300",
-                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:hidden"
+                "bg-gradient-to-r from-[#127a3c] to-[#084f22] text-white border-none flex items-center justify-between shadow-md transition-all duration-300",
+                "fixed top-0 left-0 right-0 z-50 h-16 px-3 md:static md:px-6"
             )} style={{ width: '100%' }}>
                 {/* Left: Store Info */}
                 <div 
@@ -144,40 +144,51 @@ const Topbar = ({ onMenuClick }) => {
                     className="flex items-center gap-3 md:gap-6 cursor-pointer hover:opacity-80 transition-opacity"
                 >
                     <div className="flex items-center gap-2 md:gap-4">
-                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0">
                             <img src="/minutekart-logo.jpg" alt="Logo" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex flex-col">
-                            <h2 className="text-[14px] md:text-[17px] font-bold text-white leading-none">{user?.shopName || user?.name || "Minutekart"}</h2>
-                            <p className="text-[9px] md:text-[11px] font-medium text-white/80 flex items-center gap-0.5 mt-1 max-w-[80px] md:max-w-[120px] truncate">
-                                <HiOutlineLocationMarker className="h-3 w-3 shrink-0" /> Corporate H...
-                            </p>
+                            <p className="text-[10px] md:text-[12px] font-medium text-white/80 leading-none">Good Morning</p>
+                            <h2 className="text-[14px] md:text-[16px] font-bold text-white mt-0.5">{user?.name || "Ramesh Kumar"}</h2>
                         </div>
                         <div 
                            onClick={toggleOnlineStatus}
-                           className="bg-white/10 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-white/20 shrink-0 hover:bg-white/20 transition-colors cursor-pointer"
+                           className="bg-white/10 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full flex items-center gap-1 border border-white/20 shrink-0 hover:bg-white/20 transition-colors cursor-pointer ml-1"
                         >
-                            <span className={cn("h-1.5 w-1.5 rounded-full", isOnline ? "bg-emerald-400" : "bg-red-500")}></span>
+                            <span className={cn("h-1.5 w-1.5 rounded-full", isOnline ? "bg-[#86f3b0]" : "bg-rose-400")}></span>
                             <span className="text-[10px] md:text-[11px] font-bold">{isOnline ? "Online" : "Offline"}</span>
-                            <HiOutlineChevronRight className="h-3 w-3 ml-0.5" />
+                            <HiOutlineChevronRight className="h-3 w-3 ml-0.5 text-white/70" />
                         </div>
                     </div>
                 </div>
 
+                {/* Center: Search Bar (Desktop) */}
+                <form onSubmit={handleSearchSubmit} className="hidden md:flex relative flex-1 max-w-md mx-4 group">
+                    <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60 group-focus-within:text-white transition-all duration-300" />
+                    <input
+                        type="text"
+                        placeholder="Search anything..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                        className="w-full pl-9 pr-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-medium text-white placeholder-white/60 focus:bg-white/20 focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300 outline-none"
+                    />
+                </form>
+
                 {/* Right: Icons */}
                 <div className="flex items-center gap-1 md:gap-2">
-                    <button className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors">
+                    <button className="md:hidden p-1.5 md:p-2 text-white hover:bg-white/10 rounded-full transition-colors">
                         <HiOutlineSearch className="h-5 w-5 md:h-6 md:w-6" />
                     </button>
                     
                     <div className="relative" ref={notificationRef}>
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
-                            className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors relative"
+                            className="p-1.5 md:p-2 text-white hover:bg-white/10 rounded-full transition-colors relative"
                         >
                             <HiOutlineBell className="h-5 w-5 md:h-6 md:w-6" />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-white/20"></span>
+                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
                             )}
                         </button>
                         <AnimatePresence>
@@ -194,7 +205,7 @@ const Topbar = ({ onMenuClick }) => {
 
                     <button
                         onClick={onMenuClick}
-                        className="p-1.5 md:p-2 text-white/90 hover:bg-white/10 rounded-full transition-colors md:hidden"
+                        className="p-1.5 md:p-2 text-white hover:bg-white/10 rounded-full transition-colors md:hidden"
                     >
                         <HiOutlineMenu className="h-5 w-5 md:h-6 md:w-6" />
                     </button>

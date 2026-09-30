@@ -17,6 +17,12 @@ import {
   LogOut,
   Trash2,
   Clock,
+  CreditCard,
+  FileText,
+  Landmark,
+  ShieldCheck,
+  Settings,
+  Building2,
 } from "lucide-react";
 import { authAPI } from "../../../services/api";
 import { sellerApi } from "../services/sellerApi";
@@ -47,6 +53,15 @@ const SellerProfile = () => {
     radius: 5,
     address: "",
     openingHours: "",
+    bankName: "",
+    accountHolderName: "",
+    accountNumber: "",
+    ifscCode: "",
+    upiId: "",
+    panNumber: "",
+    gstNumber: "",
+    fssaiNumber: "",
+    shopLicenseNumber: "",
   });
 
   useEffect(() => {
@@ -65,15 +80,24 @@ const SellerProfile = () => {
       const data = response.data.result;
       setProfile(data);
       setFormData({
-        name: data.name,
-        shopName: data.shopName,
-        phone: data.phone,
-        email: data.email,
+        name: data.name || "",
+        shopName: data.shopName || "",
+        phone: data.phone || "",
+        email: data.email || "",
         lat: (data.location?.coordinates && data.location.coordinates[1] !== undefined) ? data.location.coordinates[1] : null,
         lng: (data.location?.coordinates && data.location.coordinates[0] !== undefined) ? data.location.coordinates[0] : null,
         radius: data.serviceRadius || 5,
         address: data.address || "",
         openingHours: data.shopInfo?.openingHours || "",
+        bankName: data.bankInfo?.bankName || "",
+        accountHolderName: data.bankInfo?.accountHolderName || "",
+        accountNumber: data.bankInfo?.accountNumber || "",
+        ifscCode: data.bankInfo?.ifscCode || "",
+        upiId: data.bankInfo?.upiId || "",
+        panNumber: data.documents?.panNumber || "",
+        gstNumber: data.documents?.gstNumber || "",
+        fssaiNumber: data.documents?.fssaiNumber || "",
+        shopLicenseNumber: data.documents?.shopLicenseNumber || "",
       });
     } catch (error) {
       if (error?.response?.status !== 401) {
@@ -138,16 +162,15 @@ const SellerProfile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "name") {
-      // Disallow numbers and special characters in seller name
       const cleaned = value.replace(/[^a-zA-Z\s]/g, "");
       setFormData({ ...formData, [name]: cleaned });
     } else if (name === "phone") {
-      // Allow only digits, max 10 characters
       const digitsOnly = value.replace(/[^0-9]/g, "").slice(0, 10);
       setFormData({ ...formData, [name]: digitsOnly });
     } else if (name === "email") {
-      // Trim spaces, keep as-is otherwise; HTML5 type=email will help validate shape
       setFormData({ ...formData, [name]: value.trimStart() });
+    } else if (name === "panNumber" || name === "ifscCode" || name === "gstNumber") {
+      setFormData({ ...formData, [name]: value.toUpperCase() });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -166,7 +189,6 @@ const SellerProfile = () => {
       .slice(-10);
     const trimmedEmail = String(formData.email || "").trim().toLowerCase();
 
-    // Seller phone is required, but email is optional in the backend model.
     if (!/^[0-9]{10}$/.test(normalizedPhone)) {
       toast.error("Please enter a valid 10-digit phone number.");
       return;
@@ -187,9 +209,22 @@ const SellerProfile = () => {
         lng: formData.lng,
         radius: formData.radius,
         shopInfo: { openingHours: formData.openingHours },
+        bankInfo: {
+          bankName: formData.bankName,
+          accountHolderName: formData.accountHolderName,
+          accountNumber: formData.accountNumber,
+          ifscCode: formData.ifscCode,
+          upiId: formData.upiId,
+        },
+        documents: {
+          panNumber: formData.panNumber,
+          gstNumber: formData.gstNumber,
+          fssaiNumber: formData.fssaiNumber,
+          shopLicenseNumber: formData.shopLicenseNumber,
+        },
       };
       await sellerApi.updateProfile(payload);
-      toast.success("Profile updated successfully");
+      toast.success("Profile and Settings updated successfully");
       setIsEditing(false);
       await fetchProfile();
     } catch (error) {
@@ -246,8 +281,8 @@ const SellerProfile = () => {
             {/* Menu List */}
             <div className="flex flex-col px-2">
               <button onClick={() => setIsEditing(true)} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
-                <Edit2 className="text-slate-600 shrink-0" size={22} />
-                <span className="text-[15px] font-bold text-slate-700">Edit Profile</span>
+                <Settings className="text-slate-600 shrink-0" size={22} />
+                <span className="text-[15px] font-bold text-slate-700">Setting and Edit Profile</span>
               </button>
               
               <button onClick={() => setIsMapOpen(true)} className="flex items-center gap-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
@@ -282,9 +317,9 @@ const SellerProfile = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-t-[32px] px-5 pt-6 pb-24 shadow-sm mt-16 min-h-[calc(100vh-64px)]">
+          <div className="bg-white rounded-t-[32px] px-5 pt-6 pb-24 shadow-sm mt-2 min-h-[calc(100vh-64px)]">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-slate-800">Edit Profile</h2>
+              <h2 className="text-xl font-black text-slate-800">Setting and Edit Profile</h2>
               <button onClick={() => setIsEditing(false)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-full">
                 <X size={20} />
               </button>
@@ -379,6 +414,127 @@ const SellerProfile = () => {
                       placeholder="e.g. 09:00 AM - 10:00 PM"
                       className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
                     />
+                  </div>
+                </div>
+
+                {/* Bank & Payment Details */}
+                <div className="pt-4 border-t border-slate-100">
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Landmark size={16} className="text-[#16a34a]" /> Bank & Payment Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Bank Name</label>
+                      <input
+                        type="text"
+                        name="bankName"
+                        value={formData.bankName}
+                        onChange={handleChange}
+                        placeholder="e.g. HDFC Bank"
+                        className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Account Holder Name</label>
+                      <input
+                        type="text"
+                        name="accountHolderName"
+                        value={formData.accountHolderName}
+                        onChange={handleChange}
+                        placeholder="e.g. John Doe"
+                        className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Account Number</label>
+                        <input
+                          type="text"
+                          name="accountNumber"
+                          value={formData.accountNumber}
+                          onChange={handleChange}
+                          placeholder="e.g. 501000123456"
+                          className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">IFSC Code</label>
+                        <input
+                          type="text"
+                          name="ifscCode"
+                          value={formData.ifscCode}
+                          onChange={handleChange}
+                          placeholder="e.g. HDFC0001234"
+                          className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">UPI ID</label>
+                      <input
+                        type="text"
+                        name="upiId"
+                        value={formData.upiId}
+                        onChange={handleChange}
+                        placeholder="e.g. storename@upi"
+                        className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business & Tax Details */}
+                <div className="pt-4 border-t border-slate-100">
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <FileText size={16} className="text-[#16a34a]" /> Business & Tax Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">PAN Number</label>
+                      <input
+                        type="text"
+                        name="panNumber"
+                        value={formData.panNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. ABCDE1234F"
+                        className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">GST Number</label>
+                      <input
+                        type="text"
+                        name="gstNumber"
+                        value={formData.gstNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. 27ABCDE1234F1Z5"
+                        className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">FSSAI Number</label>
+                      <input
+                        type="text"
+                        name="fssaiNumber"
+                        value={formData.fssaiNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. 12345678901234"
+                        className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Shop License</label>
+                      <input
+                        type="text"
+                        name="shopLicenseNumber"
+                        value={formData.shopLicenseNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. LIC-2024-9988"
+                        className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:bg-white focus:border-primary/50"
+                      />
+                    </div>
                   </div>
                 </div>
             </form>
@@ -580,6 +736,136 @@ const SellerProfile = () => {
                         className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 transition-all disabled:opacity-70"
                       />
                     </div>
+                  </div>
+                </div>
+              </form>
+            </Card>
+
+            {/* Bank & Payment Details Card */}
+            <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
+              <h3 className="text-xl font-black text-slate-900 mb-8 border-b border-slate-50 pb-4 flex items-center gap-3">
+                <Landmark className="text-[#16a34a]" size={24} /> Bank & Payout Details
+              </h3>
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">Bank Name</label>
+                    <input
+                      type="text"
+                      name="bankName"
+                      value={formData.bankName}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. HDFC Bank"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">Account Holder Name</label>
+                    <input
+                      type="text"
+                      name="accountHolderName"
+                      value={formData.accountHolderName}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. John Doe"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">Account Number</label>
+                    <input
+                      type="text"
+                      name="accountNumber"
+                      value={formData.accountNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. 501000123456"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">IFSC Code</label>
+                    <input
+                      type="text"
+                      name="ifscCode"
+                      value={formData.ifscCode}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. HDFC0001234"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">UPI ID</label>
+                    <input
+                      type="text"
+                      name="upiId"
+                      value={formData.upiId}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. storename@upi"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                </div>
+              </form>
+            </Card>
+
+            {/* Business & Tax Compliance Details Card */}
+            <Card className="p-4 md:p-8 border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-lg">
+              <h3 className="text-xl font-black text-slate-900 mb-8 border-b border-slate-50 pb-4 flex items-center gap-3">
+                <FileText className="text-[#16a34a]" size={24} /> Business & Tax Compliance
+              </h3>
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">PAN Number</label>
+                    <input
+                      type="text"
+                      name="panNumber"
+                      value={formData.panNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. ABCDE1234F"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">GST Number</label>
+                    <input
+                      type="text"
+                      name="gstNumber"
+                      value={formData.gstNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. 27ABCDE1234F1Z5"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold uppercase text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">FSSAI License</label>
+                    <input
+                      type="text"
+                      name="fssaiNumber"
+                      value={formData.fssaiNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. 12345678901234"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-600 ml-1">Shop License</label>
+                    <input
+                      type="text"
+                      name="shopLicenseNumber"
+                      value={formData.shopLicenseNumber}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      placeholder="e.g. LIC-2024-9988"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-lg text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-100 disabled:opacity-70"
+                    />
                   </div>
                 </div>
               </form>

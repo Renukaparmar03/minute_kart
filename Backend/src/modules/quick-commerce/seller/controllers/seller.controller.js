@@ -823,9 +823,35 @@ const serializeLedger = (transactions) =>
 export const requestSellerOtpController = async (req, res) => {
   try {
     const phone = str(req.body?.phone);
+    const mode = str(req.body?.mode || "login");
     const digits = normalizePhone(phone);
     if (digits.length < 10) {
       return sendError(res, 400, "Enter a valid phone number");
+    }
+
+    const phoneSuffix = digits.slice(-10);
+    const existingSeller = await Seller.findOne({
+      $or: [
+        { phone },
+        { phoneDigits: digits },
+        ...(phoneSuffix ? [{ phoneLast10: phoneSuffix }] : []),
+      ],
+    });
+
+    if (mode === "login" && !existingSeller) {
+      return sendError(res, 404, "Your account is not created. Please register");
+    }
+
+    if (
+      mode === "register" &&
+      existingSeller &&
+      (existingSeller.approved || existingSeller.onboardingSubmitted)
+    ) {
+      return sendError(
+        res,
+        400,
+        "Account already exists with this number. Please login.",
+      );
     }
 
     const otp = await createOrUpdateOtp(phone);
@@ -842,6 +868,7 @@ export const requestSellerOtpController = async (req, res) => {
       phone,
       deliveryMode: shouldExposeOtp && !hasSmsProvider ? "debug" : "sms",
       ...(shouldExposeOtp ? { otp } : {}),
+      isNewUser: !existingSeller,
     });
   } catch (error) {
     return sendError(res, 400, error.message || "Failed to send OTP");
@@ -2400,5 +2427,192 @@ export const testSellerPushController = async (req, res) => {
     return res.json({ success: true, message: "Test push notification sent successfully" });
   } catch (error) {
     return sendError(res, 500, error.message || "Failed to send test push notification");
+  }
+};
+
+export const getSellerCouponsController = async (req, res) => {
+  try {
+    const sellerId = sellerScope(req);
+    const { status } = req.query;
+    const collection = mongoose.connection.db.collection("quick_coupons");
+
+    const query = {
+      $or: [
+        { sellerId: new mongoose.Types.ObjectId(sellerId) },
+        { sellerId: String(sellerId) },
+        { isGlobal: true },
+      ],
+    };
+
+    let coupons = await collection.find(query).sort({ createdAt: -1 }).toArray();
+
+    // Default sample coupons if seller has no coupons yet
+    if (coupons.length === 0) {
+      const defaultSamples = [
+        {
+          _id: new mongoose.Types.ObjectId(),
+          sellerId: new mongoose.Types.ObjectId(sellerId),
+          title: "Flat ₹20 Off",
+          code: "FLAT20",
+          description: "Min. Order ₹199",
+          discountType: "flat",
+          discountValue: 20,
+          minOrderValue: 199,
+          validFrom: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          isActive: true,
+          createdAt: new Date(),
+        },
+        {
+          _id: new mongoose.Types.ObjectId(),
+          sellerId: new mongoose.Types.ObjectId(sellerId),
+          title: "Buy 1 Get 1 Free",
+          code: "BOGO",
+          description: "Selected Items",
+          discountType: "flat",
+          discountValue: 50,
+          minOrderValue: 299,
+          validFrom: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          validTill: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          isActive: true,
+          createdAt: new Date(),
+        },
+        {
+          _id: new mongoose.Types.ObjectId(),
+          sellerId: new mongoose.Types.ObjectId(sellerId),
+          title: "10% Off",
+          code: "SAVE10",
+          description: "Min. Order ₹299",
+          discountType: "percentage",
+          discountValue: 10,
+          minOrderValue: 299,
+          validFrom: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          validTill: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+          isActive: true,
+          createdAt: new Date(),
+        },
+      ];
+      await collection.insertMany(defaultSamples).catch(() => {});
+      coupons = defaultSamples;
+    }
+
+    let result = coupons;
+    const now = new Date();
+
+    if (status === "active") {
+      result = coupons.filter((c) => {
+        const till = c.validTill ? new Date(c.validTill) : null;
+        const from = c.validFrom ? new Date(c.validFrom) : null;
+        return c.isActive !== false && (!till || till >= now) && (!from || from <= now);
+      });
+    } else if (status === "scheduled") {
+      result = coupons.filter((c) => {
+        const from = c.validFrom ? new Date(c.validFrom) : null;
+        return c.isActive !== false && from && from > now;
+      });
+    } else if (status === "ended") {
+      result = coupons.filter((c) => {
+        const till = c.validTill ? new Date(c.validTill) : null;
+        return c.isActive === false || (till && till < now);
+      });
+    }
+
+    return res.json({ success: true, result });
+  } catch (error) {
+    return sendError(res, 500, error.message || "Failed to load coupons");
+  }
+};
+
+export const createSellerCouponController = async (req, res) => {
+  try {
+    const sellerId = sellerScope(req);
+    const collection = mongoose.connection.db.collection("quick_coupons");
+
+    const code = str(req.body.code).toUpperCase().trim();
+    if (!code) {
+      return sendError(res, 400, "Coupon code is required");
+    }
+
+    const title = str(req.body.title) || `Flat ₹${req.body.discountValue || 0} Off`;
+    const discountType = req.body.discountType === "percentage" ? "percentage" : "flat";
+    const discountValue = num(req.body.discountValue, 0);
+    const minOrderValue = num(req.body.minOrderValue, 0);
+    const maxDiscount = req.body.maxDiscount ? num(req.body.maxDiscount, 0) : null;
+    const validFrom = req.body.validFrom ? new Date(req.body.validFrom) : new Date();
+    const validTill = req.body.validTill ? new Date(req.body.validTill) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    const payload = {
+      sellerId: new mongoose.Types.ObjectId(sellerId),
+      code,
+      title,
+      description: str(req.body.description) || (discountType === "flat" ? `Min. Order ₹${minOrderValue}` : `${discountValue}% Off up to ₹${maxDiscount || 'N/A'}`),
+      discountType,
+      discountValue,
+      minOrderValue,
+      maxDiscount,
+      validFrom,
+      validTill,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const insertRes = await collection.insertOne(payload);
+    return res.json({
+      success: true,
+      message: "Coupon created successfully",
+      result: { ...payload, _id: insertRes.insertedId },
+    });
+  } catch (error) {
+    return sendError(res, 400, error.message || "Failed to create coupon");
+  }
+};
+
+export const toggleSellerCouponController = async (req, res) => {
+  try {
+    const couponId = req.params.couponId;
+    const collection = mongoose.connection.db.collection("quick_coupons");
+
+    if (!mongoose.Types.ObjectId.isValid(couponId)) {
+      return sendError(res, 400, "Invalid coupon ID");
+    }
+
+    const existing = await collection.findOne({
+      _id: new mongoose.Types.ObjectId(couponId),
+    });
+
+    if (!existing) {
+      return sendError(res, 404, "Coupon not found");
+    }
+
+    const newStatus = existing.isActive === false ? true : false;
+    await collection.updateOne(
+      { _id: new mongoose.Types.ObjectId(couponId) },
+      { $set: { isActive: newStatus, updatedAt: new Date() } }
+    );
+
+    return res.json({
+      success: true,
+      message: `Coupon ${newStatus ? "activated" : "deactivated"}`,
+      isActive: newStatus,
+    });
+  } catch (error) {
+    return sendError(res, 400, error.message || "Failed to update coupon status");
+  }
+};
+
+export const deleteSellerCouponController = async (req, res) => {
+  try {
+    const couponId = req.params.couponId;
+    const collection = mongoose.connection.db.collection("quick_coupons");
+
+    if (!mongoose.Types.ObjectId.isValid(couponId)) {
+      return sendError(res, 400, "Invalid coupon ID");
+    }
+
+    await collection.deleteOne({ _id: new mongoose.Types.ObjectId(couponId) });
+    return res.json({ success: true, message: "Coupon deleted successfully" });
+  } catch (error) {
+    return sendError(res, 400, error.message || "Failed to delete coupon");
   }
 };

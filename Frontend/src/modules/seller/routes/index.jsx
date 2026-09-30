@@ -33,12 +33,14 @@ const Withdrawals = React.lazy(() => import("../pages/Withdrawals"));
 const Onboarding = React.lazy(() => import("../pages/Onboarding"));
 const PendingApproval = React.lazy(() => import("../pages/PendingApproval"));
 const Explore = React.lazy(() => import("../pages/Explore"));
+const OffersAndCoupons = React.lazy(() => import("../pages/OffersAndCoupons"));
 
 export const navItems = [
   { label: "Dashboard", path: "/seller", icon: HiOutlineSquares2X2, end: true },
   { label: "Products", path: "/seller/products", icon: HiOutlineCube },
   { label: "Stock", path: "/seller/inventory", icon: HiOutlineArchiveBox },
   { label: "Orders", path: "/seller/orders", icon: HiOutlineTruck },
+  { label: "Offers & Coupons", path: "/seller/coupons", icon: HiOutlineCurrencyDollar },
   { label: "Returns", path: "/seller/returns", icon: HiOutlineArchiveBox },
   { label: "Track Orders", path: "/seller/tracking", icon: HiOutlineMapPin },
   {
@@ -78,6 +80,8 @@ const SellerWorkspace = () => (
       <Route path="products/add" element={<AddProduct />} />
       <Route path="inventory" element={<StockManagement />} />
       <Route path="orders" element={<Orders />} />
+      <Route path="coupons" element={<OffersAndCoupons />} />
+      <Route path="offers" element={<OffersAndCoupons />} />
       <Route path="returns" element={<QuickReturns />} />
       <Route path="quick-commerce/returns" element={<QuickReturns />} />
       <Route path="quick-commerce/returns/:id" element={<QuickReturnDetails />} />
@@ -151,13 +155,21 @@ const SellerAccessRouter = () => {
           ) : onboardingSubmitted ? (
             <PendingApproval />
           ) : (
-            <Navigate to="/seller" replace />
+            <Navigate to="/seller/onboarding" replace />
           )
         }
       />
       <Route
         path="*"
-        element={<SellerWorkspace />}
+        element={
+          requiresOnboarding ? (
+            <Navigate to="/seller/onboarding" replace />
+          ) : !approved && onboardingSubmitted ? (
+            <Navigate to="/seller/pending" replace />
+          ) : (
+            <SellerWorkspace />
+          )
+        }
       />
     </Routes>
   );

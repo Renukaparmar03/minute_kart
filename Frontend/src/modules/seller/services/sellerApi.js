@@ -26,8 +26,8 @@ export const sellerApi = {
     return call(axiosInstance.post(path, { token, platform }));
   },
 
-  requestOtp: (phone) =>
-    call(axiosInstance.post("/seller/auth/request-otp", { phone })),
+  requestOtp: (phone, mode = "login") =>
+    call(axiosInstance.post("/seller/auth/request-otp", { phone, mode })),
 
   verifyOtp: (phone, otp, fcmToken = null, platform = "web") =>
     call(axiosInstance.post("/seller/auth/verify-otp", {
@@ -117,6 +117,18 @@ export const sellerApi = {
     call(
       axiosInstance.put(`/seller/returns/${String(orderId)}/reject`, data),
     ),
+
+  getCoupons: (status = "") =>
+    call(axiosInstance.get("/seller/coupons", { params: { status } })),
+
+  createCoupon: (data) =>
+    call(axiosInstance.post("/seller/coupons", data)),
+
+  toggleCoupon: (couponId) =>
+    call(axiosInstance.put(`/seller/coupons/${String(couponId)}/toggle`)),
+
+  deleteCoupon: (couponId) =>
+    call(axiosInstance.delete(`/seller/coupons/${String(couponId)}`)),
 };
 
 export default sellerApi;

@@ -28,6 +28,10 @@ import {
   updateSellerProfileController,
   verifySellerOtpController,
   testSellerPushController,
+  getSellerCouponsController,
+  createSellerCouponController,
+  toggleSellerCouponController,
+  deleteSellerCouponController,
 } from "../controllers/seller.controller.js";
 
 const router = express.Router();
@@ -92,5 +96,10 @@ router.put("/returns/:orderId/reject", ...sellerOnly, rejectSellerReturnControll
 router.get("/earnings", ...sellerOnly, getSellerEarningsController);
 router.post("/withdrawals", ...sellerOnly, requestSellerWithdrawalController);
 router.get("/stats", ...sellerOnly, getSellerStatsController);
+
+router.get("/coupons", ...sellerOnly, getSellerCouponsController);
+router.post("/coupons", ...sellerOnly, createSellerCouponController);
+router.put("/coupons/:couponId/toggle", ...sellerOnly, toggleSellerCouponController);
+router.delete("/coupons/:couponId", ...sellerOnly, deleteSellerCouponController);
 
 export default router;
