@@ -306,13 +306,18 @@ export default function UnifiedOTPFastLogin() {
     (showNameInput && name.trim().length === 0) ||
     (step === 2 && !showNameInput && otp.length !== 4)
 
+  const isKeyboardOpen = keyboardInset > 50;
+
   return (
     <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-hidden"
-      style={{ paddingBottom: keyboardInset ? `${keyboardInset + 24}px` : undefined }}
+      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans"
+      style={{
+        overflow: 'hidden',
+        height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
+      }}
     >
       {/* Top Red Section */}
-      <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
+      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'hidden' : ''}`}>
         <div className="w-full relative overflow-hidden bg-[#b81724] pb-4">
           {/* Abstract wavy background layers to match the image */}
           <div className="absolute inset-0 z-0">
@@ -398,7 +403,7 @@ export default function UnifiedOTPFastLogin() {
       </div>
 
 
-      <div className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col mt-16 md:mt-20 relative z-20 pb-4 h-full overflow-y-auto">
+      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 overflow-y-auto ${isKeyboardOpen ? 'mt-4 justify-start' : 'mt-16 md:mt-20'}`}>
         {/* Main Card */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4">
           <div className="text-center mb-5">
@@ -525,6 +530,12 @@ export default function UnifiedOTPFastLogin() {
                         }
                       }}
                       className="w-12 h-12 text-center text-xl font-bold bg-white border border-gray-200 focus:border-[#CB202D] focus:ring-1 focus:ring-[#CB202D] rounded-xl outline-none transition-all text-gray-900"
+                      onFocus={(e) => {
+                        // Prevent keyboard from hiding the OTP inputs on mobile
+                        setTimeout(() => {
+                          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                      }}
                     />
                   ))}
                 </div>

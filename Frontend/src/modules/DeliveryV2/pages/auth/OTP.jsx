@@ -522,13 +522,18 @@ export default function DeliveryOTP() {
     return null
   }
 
+  const isKeyboardOpen = keyboardInset > 50;
+
   return (
     <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-hidden"
-      style={{ paddingBottom: keyboardInset ? `${keyboardInset + 24}px` : undefined }}
+      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans"
+      style={{
+        overflow: 'hidden',
+        height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
+      }}
     >
       {/* Top Blue Section */}
-      <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
+      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'hidden' : ''}`}>
         <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
           {/* Back Button */}
           <button
@@ -616,7 +621,7 @@ export default function DeliveryOTP() {
         </div>
       </div>
 
-      <div className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col mt-16 md:mt-20 relative z-20 pb-4 h-full overflow-y-auto">
+      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 overflow-y-auto ${isKeyboardOpen ? 'mt-4 justify-start' : 'mt-16 md:mt-20'}`}>
         {/* Main Card */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
@@ -766,6 +771,11 @@ export default function DeliveryOTP() {
                       disabled={isLoading}
                       autoComplete="off"
                       className={`w-12 h-14 sm:w-14 sm:h-16 bg-slate-50 border-2 rounded-2xl text-center text-2xl font-bold text-slate-900 focus:outline-none transition-all duration-300 border-gray-200`}
+                      onFocus={(e) => {
+                        setTimeout(() => {
+                          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                      }}
                     />
                   ))}
                 </div>

@@ -133,7 +133,7 @@ const CartPage = () => {
     addresses: profileAddresses,
   } = useProfile();
   const { user, isAuthenticated } = useAuth();
-  const { refreshLocation } = useGeoLocation();
+  const { currentLocation, refreshLocation } = useGeoLocation();
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
@@ -141,6 +141,7 @@ const CartPage = () => {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const userPickedAddressRef = React.useRef(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [savedRecipient, setSavedRecipient] = useState(null);
@@ -175,22 +176,25 @@ const CartPage = () => {
     setIsFetchingLocation(true);
     try {
       showToast("Fetching current location...", "info");
-      const loc = await refreshLocation();
-      if (!loc || loc.error) {
-        showToast("Could not get location. Please enable GPS.", "error");
+      const result = await refreshLocation();
+      if (!result || !result.ok) {
+        showToast(result?.error || "Could not get location. Please enable GPS.", "error");
         return;
       }
+      
+      const loc = result.location || {};
       
       const tempAddr = {
         id: "temp-" + Date.now(),
         label: "Current Location",
-        street: loc.name || loc.address || "Unknown Location",
-        city: loc.city || "Unknown City",
-        state: loc.state || "Unknown State",
-        zipCode: loc.pincode || loc.postalCode || "",
+        street: loc.name || "Current Location",
+        city: loc.city || "",
+        state: loc.state || "",
+        zipCode: loc.pincode || "",
         location: { lat: loc.latitude, lng: loc.longitude },
       };
       
+      userPickedAddressRef.current = true;
       setSelectedAddress(tempAddr);
       showToast("Current location selected", "success");
     } catch (e) {
@@ -393,11 +397,25 @@ const CartPage = () => {
   }, []);
 
   useEffect(() => {
+    // Don't override if user manually picked an address (e.g. "Use Current Location")
+    if (userPickedAddressRef.current) return;
+
     if (profileAddresses?.length > 0) {
       const def = profileAddresses.find(a => a.isDefault) || profileAddresses[0];
       setSelectedAddress(def);
+    } else if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
+      // No saved addresses — use the location from LocationContext (already reverse-geocoded via Google Maps)
+      setSelectedAddress({
+        id: "auto-location",
+        label: "Current Location",
+        street: currentLocation.name || "Current Location",
+        city: currentLocation.city || "",
+        state: currentLocation.state || "",
+        zipCode: currentLocation.pincode || "",
+        location: { lat: currentLocation.latitude, lng: currentLocation.longitude },
+      });
     }
-  }, [profileAddresses]);
+  }, [profileAddresses, currentLocation]);
 
   useEffect(() => {
     const fetchCoupons = async () => {
