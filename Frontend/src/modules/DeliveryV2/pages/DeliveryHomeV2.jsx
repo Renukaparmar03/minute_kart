@@ -21,10 +21,12 @@ import PocketV2 from '@/modules/DeliveryV2/pages/PocketV2';
 import HistoryV2 from '@/modules/DeliveryV2/pages/HistoryV2';
 import ProfileV2 from '@/modules/DeliveryV2/pages/ProfileV2';
 
+import DashboardHome from '@/modules/DeliveryV2/components/dashboard/DashboardHome';
+
 // Icons
 import { 
   Bell, HelpCircle, AlertTriangle, 
-  Wallet, History, User as UserIcon, LayoutGrid,
+  Wallet, History, User as UserIcon, LayoutGrid, Home, ClipboardList,
   Plus, Minus, Navigation2, Target, Play, CheckCircle2, Clock, ChevronDown,
   Contact, Package
 } from 'lucide-react';
@@ -677,7 +679,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
   return (
     <div className="relative h-screen w-full bg-white text-gray-900 overflow-hidden flex flex-col">
       {/* ─── 1. TOP HEADER (Premium Dark Gray) ─── */}
-      {['feed', 'history'].includes(currentTab) && (
+      {['feed'].includes(currentTab) && (
       <div className="absolute top-0 inset-x-0 bg-[#86bf24] backdrop-blur-2xl shadow-2xl z-[200] safe-top pb-2 border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-4">
@@ -698,7 +700,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
 
         {/* ─── LIVE STATUS / PROGRESS BADGE (MATCHED PRO) ─── */}
         <AnimatePresence>
-          {['feed', 'history'].includes(currentTab) && (
+          {['feed'].includes(currentTab) && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -784,9 +786,19 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
       {/* ─── 2. MAIN CONTENT ─── */}
       <div 
         ref={scrollContainerRef}
-        className={`flex-1 relative overflow-y-auto ${['feed', 'history'].includes(currentTab) ? 'pt-[120px]' : 'pt-0'} no-scrollbar`}
+        className={`flex-1 relative overflow-y-auto ${['feed'].includes(currentTab) ? 'pt-[120px]' : 'pt-0'} no-scrollbar`}
       >
-         {currentTab === 'feed' ? (
+         {currentTab === 'home' ? (
+           <DashboardHome
+             profileImage={profileImage}
+             onNavigate={(target) => {
+               if (target === 'pocket') navigate('/food/delivery/pocket');
+               else if (target === 'orders') navigate('/food/delivery/requests');
+               else if (target === 'feed') navigate('/food/delivery/feed');
+               else if (target === 'profile') navigate('/food/delivery/profile');
+             }}
+           />
+         ) : currentTab === 'feed' ? (
            <div className="absolute inset-0 top-[-120px]">
                <LiveMap 
                  onMapLoad={(m) => mapRef.current = m}
@@ -1042,10 +1054,13 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
         </motion.div>
       )}
 
-      {/* ─── 3. BOTTOM NAV (Fixed - Compact Pro) ─── */}
+      {/* ─── 3. BOTTOM NAV (Fixed - Original) ─── */}
       <div className="bg-white border-t border-gray-100 px-8 py-3 pb-6 flex justify-between items-center z-[200] shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+         <button onClick={() => navigate('/food/delivery')} className={`flex flex-col items-center gap-1 transition-all ${currentTab === 'home' ? 'text-gray-950 scale-110' : 'text-gray-400 opacity-70'}`}>
+            <Home className="w-6 h-6" /><span className="text-[11px] font-medium font-sans">Home</span>
+         </button>
          <button onClick={() => navigate('/food/delivery/feed')} className={`flex flex-col items-center gap-1 transition-all ${currentTab === 'feed' ? 'text-gray-950 scale-110' : 'text-gray-400 opacity-70'}`}>
-            <LayoutGrid className="w-6 h-6" /><span className="text-[11px] font-medium font-sans">Feed</span>
+            <ClipboardList className="w-6 h-6" /><span className="text-[11px] font-medium font-sans">Orders</span>
          </button>
          <button onClick={() => navigate('/food/delivery/pocket')} className={`flex flex-col items-center gap-1 transition-all ${currentTab === 'pocket' ? 'text-gray-950 scale-110' : 'text-gray-400 opacity-70'}`}>
             <Wallet className="w-6 h-6" /><span className="text-[11px] font-medium font-sans">Pocket</span>
@@ -1057,6 +1072,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
             <UserIcon className="w-6 h-6" /><span className="text-[11px] font-medium font-sans">Profile</span>
          </button>
       </div>
+
     </div>
   );
 }

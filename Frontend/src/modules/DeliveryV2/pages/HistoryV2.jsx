@@ -18,7 +18,7 @@ import useDeliveryBackNavigation from '../hooks/useDeliveryBackNavigation';
 export const HistoryV2 = () => {
   const navigate = useNavigate();
   const goBack = useDeliveryBackNavigation();
-  const [activeTab, setActiveTab] = useState("quick access");
+  const [activeTab, setActiveTab] = useState("daily");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTripType, setSelectedTripType] = useState("ALL TRIPS");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -133,11 +133,18 @@ export const HistoryV2 = () => {
 
   return (
     <div className="min-h-screen bg-white font-poppins pb-32">
+       {/* 1. Simple Header */}
+       <div className="bg-[#087A45] text-white pt-8 pb-5 px-4 flex items-center gap-4 shadow-sm">
+          <button onClick={goBack} className="p-1 hover:bg-white/10 rounded-full transition-colors active:scale-95">
+             <ArrowLeft className="w-6 h-6 text-white stroke-[2.2]" />
+          </button>
+          <h1 className="text-[19px] font-bold text-white tracking-tight">History</h1>
+       </div>
 
 
-       {/* 2. Selection Tabs (Matched to Image) */}
+
        <div className="bg-white px-4 flex items-center gap-8 sticky top-0 z-[90] border-b border-gray-100">
-          {['quick access', 'daily', 'weekly', 'monthly'].map((tab) => (
+          {['daily', 'weekly', 'monthly'].map((tab) => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab)}
@@ -149,45 +156,6 @@ export const HistoryV2 = () => {
           ))}
        </div>
 
-       {activeTab === 'quick access' ? (
-           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-4 space-y-6">
-              {/* Static Banner */}
-              <div className="w-full bg-[#ffeaad] rounded-2xl overflow-hidden relative shadow-sm border border-[#ffdb70]/50 h-32">
-                 <div className="absolute inset-y-0 left-4 flex flex-col justify-center max-w-[60%] z-10">
-                    <h2 className="text-gray-900 font-black text-lg leading-tight">More Orders<br/>More Earnings!</h2>
-                 </div>
-                 {/* Decorative elements for the banner (static, as requested) */}
-                 <div className="absolute bottom-0 right-0 h-full w-[60%] bg-[url('https://i.ibb.co/6WhPcwH/scooter-delivery.png')] bg-contain bg-no-repeat bg-right-bottom mix-blend-multiply" />
-              </div>
-
-              <div>
-                 <h3 className="font-bold text-gray-900 text-lg mb-4 tracking-tight">Quick Access</h3>
-                 <div className="grid grid-cols-3 gap-3">
-                    <button onClick={() => setActiveTab('daily')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
-                       <div className="text-[#136a3e]"><History className="w-7 h-7 stroke-[2.5]" /></div>
-                       <span className="text-[#136a3e] font-bold text-xs">Orders</span>
-                    </button>
-                    <button onClick={() => navigate('/food/delivery/pocket')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
-                       <div className="text-[#136a3e]"><Wallet className="w-7 h-7 stroke-[2.5]" /></div>
-                       <span className="text-[#136a3e] font-bold text-xs">Wallet</span>
-                    </button>
-
-                    <button onClick={() => navigate('/food/delivery/help/tickets')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
-                       <div className="text-[#136a3e]"><HelpCircle className="w-7 h-7 stroke-[2.5]" /></div>
-                       <span className="text-[#136a3e] font-bold text-xs">Support</span>
-                    </button>
-                    <button onClick={() => navigate('/food/delivery/profile')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
-                       <div className="text-[#136a3e]"><UserIcon className="w-7 h-7 stroke-[2.5]" /></div>
-                       <span className="text-[#136a3e] font-bold text-xs">Profile</span>
-                    </button>
-                    <button onClick={() => navigate('/food/delivery/profile')} className="bg-[#f0f8ec] rounded-2xl p-4 flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform shadow-sm border border-[#dcebd4]/50">
-                       <div className="text-[#136a3e]"><LayoutGrid className="w-7 h-7 stroke-[2.5]" /></div>
-                       <span className="text-[#136a3e] font-bold text-xs">More</span>
-                    </button>
-                 </div>
-              </div>
-           </motion.div>
-       ) : (
          <>
            {/* 3. Filter Controls (Matched to Image) */}
            <div className="bg-white px-4 py-4 flex gap-3 sticky top-[57px] z-[80]">
