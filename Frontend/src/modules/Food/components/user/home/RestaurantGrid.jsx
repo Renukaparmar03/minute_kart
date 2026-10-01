@@ -69,8 +69,11 @@ const RestaurantGrid = memo(({
     });
   }, []);
 
+  const internalLoadMoreRef = React.useRef(null);
+  const targetLoadMoreRef = restaurantLoadMoreRef || internalLoadMoreRef;
+
   React.useEffect(() => {
-    if (!restaurantLoadMoreRef || !restaurantLoadMoreRef.current || !hasMoreRestaurants) return;
+    if (!targetLoadMoreRef.current || !hasMoreRestaurants) return;
     
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
@@ -78,12 +81,12 @@ const RestaurantGrid = memo(({
       }
     }, { threshold: 0.1 });
     
-    observer.observe(restaurantLoadMoreRef.current);
+    observer.observe(targetLoadMoreRef.current);
     
     return () => {
       observer.disconnect();
     };
-  }, [hasMoreRestaurants, loadMoreRestaurants, restaurantLoadMoreRef]);
+  }, [hasMoreRestaurants, loadMoreRestaurants, targetLoadMoreRef]);
 
   const activeFilteredRestaurants = React.useMemo(() => {
     return filteredRestaurants.filter((r) => {
@@ -159,7 +162,7 @@ const RestaurantGrid = memo(({
             Loading more restaurants...
           </Button>
         )}
-        <div ref={restaurantLoadMoreRef} className="h-10 w-full" aria-hidden="true" />
+        <div ref={targetLoadMoreRef} className="h-10 w-full" aria-hidden="true" />
       </div>
     </section>
   );

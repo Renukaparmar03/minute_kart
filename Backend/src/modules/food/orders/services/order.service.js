@@ -857,13 +857,16 @@ function buildDeliverySocketPayload(orderDoc, restaurantDoc = null) {
   const restaurant = restaurantDoc || order?.restaurantId || null;
   const restaurantLocation = restaurant?.location || {};
   const pickupPoints = Array.isArray(order?.pickupPoints) ? order.pickupPoints : [];
+  const mongoId = orderDoc?._id?.toString?.() || order?._id?.toString?.() || order?._id;
 
   return {
-    orderMongoId:
-      orderDoc?._id?.toString?.() || order?._id?.toString?.() || order?._id,
+    _id: mongoId,
+    id: mongoId,
+    orderMongoId: mongoId,
     orderId: order?.orderId,
     orderType: order?.orderType || "food",
-    status: orderDoc?.orderStatus || order?.orderStatus,
+    status: orderDoc?.orderStatus || order?.orderStatus || "preparing",
+    orderStatus: orderDoc?.orderStatus || order?.orderStatus || "preparing",
     items: order?.items || [],
     pickupPoints,
     pricing: order?.pricing,
@@ -907,11 +910,11 @@ function buildDeliverySocketPayload(orderDoc, restaurantDoc = null) {
     customerPhone: order?.userId?.phone || order?.deliveryAddress?.phone || "",
     userName: order?.userId?.name || order?.customerName || "",
     userPhone: order?.userId?.phone || order?.deliveryAddress?.phone || "",
-    riderEarning: order?.riderEarning || 0,
+    riderEarning: order?.riderEarning || order?.pricing?.deliveryFee || 0,
     earnings: order?.riderEarning || order?.pricing?.deliveryFee || 0,
     deliveryFee: order?.pricing?.deliveryFee || 0,
     deliveryFleet: order?.deliveryFleet,
-    dispatch: order?.dispatch,
+    dispatch: order?.dispatch || { status: 'unassigned' },
     createdAt: order?.createdAt,
     updatedAt: order?.updatedAt,
   };
@@ -4808,4 +4811,62 @@ export async function updateOrderInstructions(orderId, userId, instructions) {
   }
 
   return sanitizeOrderForExternal(order);
+}
+
+let dispatchBroadcasterInterval = null;
+
+export function startUnassignedOrdersBroadcasterLoop() {
+  if (dispatchBroadcasterInterval) return;
+  logger.info('[DISPATCH-BROADCASTER] Starting continuous unassigned orders broadcast loop...');
+  dispatchBroadcasterInterval = setInterval(async () => {
+    try {
+      const io = getIO();
+      if (!io) return;
+
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+      const unassignedOrders = await FoodOrder.find({
+        orderStatus: { $in: ['confirmed', 'preparing', 'ready_for_pickup', 'ready'] },
+        $or: [
+          { 'dispatch.status': { $in: ['unassigned', null, ''] } },
+          { 'dispatch.deliveryPartnerId': { $exists: false } },
+          { 'dispatch.deliveryPartnerId': null }
+        ],
+        createdAt: { $gte: twoHoursAgo }
+      }).limit(50);
+
+      if (!unassignedOrders || unassignedOrders.length === 0) return;
+
+      for (const order of unassignedOrders) {
+        if (order.dispatch?.deliveryPartnerId) continue;
+
+        const restaurant = await FoodRestaurant.findById(order.restaurantId)
+          .select('restaurantName location addressLine1 area city state')
+          .lean();
+        const payload = buildDeliverySocketPayload(order, restaurant);
+
+        const { partners } = await listNearbyOnlineDeliveryPartners(
+          order.restaurantId,
+          { maxKm: 25, limit: 30 }
+        );
+
+        for (const p of partners) {
+          const targetRoom = rooms.delivery(p.partnerId);
+          io.to(targetRoom).emit('new_order', {
+            ...payload,
+            pickupDistanceKm: p.distanceKm,
+          });
+          io.to(targetRoom).emit('new_order_available', {
+            ...payload,
+            pickupDistanceKm: p.distanceKm,
+          });
+          io.to(targetRoom).emit('play_notification_sound', {
+            orderId: payload.orderId,
+            orderMongoId: payload.orderMongoId,
+          });
+        }
+      }
+    } catch (err) {
+      logger.warn(`[DISPATCH-BROADCASTER] Loop error: ${err?.message || err}`);
+    }
+  }, 10000);
 }

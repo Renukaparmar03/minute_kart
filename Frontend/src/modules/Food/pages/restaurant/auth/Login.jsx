@@ -91,14 +91,16 @@ export default function RestaurantLogin() {
     }
   }
 
+  const cardRef = useRef(null)
+
   const ensurePhoneFieldVisible = () => {
-    // Wait for keyboard to animate in
+    // Wait for keyboard to animate in on mobile and scroll card right to top
     window.setTimeout(() => {
-      phoneInputRef.current?.scrollIntoView({
+      cardRef.current?.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
       })
-    }, 300)
+    }, 200)
   }
 
   const handleSendOTP = async () => {
@@ -136,8 +138,7 @@ export default function RestaurantLogin() {
 
   return (
     <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-hidden"
-      style={{ paddingBottom: keyboardInset ? `${keyboardInset + 24}px` : undefined }}
+      className="min-h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-y-auto overflow-x-hidden w-full pb-8"
     >
       {/* Top Green Section */}
       <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
@@ -220,9 +221,9 @@ export default function RestaurantLogin() {
         </div>
       </div>
 
-      <div id="login-content" className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col mt-16 md:mt-20 relative z-20 pb-4 h-full overflow-y-auto">
+      <div id="login-content" className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col -mt-6 sm:-mt-10 relative z-20 pb-4 shrink-0">
         {/* Main Card */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div ref={cardRef} className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center mb-5">
             <div className="flex items-center justify-center gap-3 mb-1.5">
                <div className="relative w-5 h-5">

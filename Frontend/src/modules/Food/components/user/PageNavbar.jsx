@@ -1054,7 +1054,7 @@ export default function PageNavbar({
             </Button>
           </Link>
 
-          <Link to="/user/cart">
+          <Link to="/cart">
             <Button
               variant="ghost"
               size="icon"

@@ -248,6 +248,13 @@ const buildZoneRestaurantFilter = async (zoneIdRaw) => {
     if (polygon) {
         zoneClauses.push({ location: { $geoWithin: { $geometry: polygon } } });
     }
+    if (zoneDoc?.name || zoneDoc?.city) {
+        const zoneName = String(zoneDoc.name || zoneDoc.city || '').trim();
+        if (zoneName && zoneName.length >= 2) {
+            const rx = { $regex: escapeRegex(zoneName), $options: 'i' };
+            zoneClauses.push({ 'location.city': rx }, { city: rx }, { 'location.area': rx }, { area: rx });
+        }
+    }
 
     return { $or: zoneClauses };
 };
@@ -1486,7 +1493,7 @@ const toRestaurantSummary = (doc) => {
 };
 
 export const listApprovedRestaurants = async (query = {}) => {
-    const limit = Math.min(Math.max(parseInt(query.limit, 10) || 100, 1), 1000);
+    const limit = Math.min(Math.max(parseInt(query.limit, 10) || 10, 1), 1000);
     const page = Math.max(parseInt(query.page, 10) || 1, 1);
     const skip = (page - 1) * limit;
 

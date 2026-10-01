@@ -144,7 +144,7 @@ export const useFoodHomeData = ({
   // --- Restaurants State ---
   const [restaurantsData, setRestaurantsData] = useState(globalHomeCache.restaurants || []);
   const [loadingRestaurants, setLoadingRestaurants] = useState(!globalHomeCache.restaurants);
-  const [visibleRestaurantCount, setVisibleRestaurantCount] = useState(6);
+  const [visibleRestaurantCount, setVisibleRestaurantCount] = useState(10);
   const [isLoadingFilterResults, setIsLoadingFilterResults] = useState(false);
   
   // ... existing filter state ...
@@ -321,6 +321,9 @@ export const useFoodHomeData = ({
       if (filters.sortBy) params.sortBy = filters.sortBy;
       if (filters.selectedCuisine) params.cuisine = filters.selectedCuisine;
       if (zoneId) params.zoneId = zoneId;
+      if (location?.city || location?.addressDetails?.city) {
+        params.city = location.city || location.addressDetails.city;
+      }
 
       // Map local active filters to API params
       if (filters.activeFilters?.has("rating-45-plus")) params.minRating = 4.5;
@@ -564,7 +567,7 @@ export const useFoodHomeData = ({
   }, [fetchRestaurants]);
 
   const loadMoreRestaurants = useCallback(() => {
-    setVisibleRestaurantCount(prev => Math.min(prev + 6, filteredRestaurants.length));
+    setVisibleRestaurantCount(prev => Math.min(prev + 10, filteredRestaurants.length));
   }, [filteredRestaurants.length]);
 
   return {

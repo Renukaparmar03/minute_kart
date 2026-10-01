@@ -59,6 +59,9 @@ export default function Restaurants() {
         if (zoneId) {
           params.zoneId = zoneId
         }
+        if (userLocation?.city || userLocation?.addressDetails?.city) {
+          params.city = userLocation.city || userLocation.addressDetails.city
+        }
         const response = await restaurantAPI.getRestaurants(params, { noCache: true })
         const list =
           response?.data?.data?.restaurants ||
@@ -107,7 +110,23 @@ export default function Restaurants() {
     }
   }, [zoneId])
 
+  const [visibleCount, setVisibleCount] = useState(10)
+  const loadMoreRef = useRef(null)
+
   const hasRestaurants = useMemo(() => restaurants.length > 0, [restaurants.length])
+  const visibleRestaurants = useMemo(() => restaurants.slice(0, visibleCount), [restaurants, visibleCount])
+  const hasMore = visibleCount < restaurants.length
+
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore) return
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + 10, restaurants.length))
+      }
+    }, { threshold: 0.1 })
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [hasMore, restaurants.length])
 
   return (
     <AnimatedPage className="min-h-screen bg-gradient-to-b from-yellow-50/30 dark:from-[#0a0a0a] via-white dark:via-[#0a0a0a] to-orange-50/20 dark:to-[#0a0a0a]">
@@ -132,95 +151,102 @@ export default function Restaurants() {
         ) : !hasRestaurants ? (
           <div className="py-16 text-center text-sm text-gray-500">No restaurants available right now.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-2 sm:pt-3 lg:pt-4">
-            {restaurants.map((restaurant, index) => {
-              const favorite = isFavorite(restaurant.slug)
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-2 sm:pt-3 lg:pt-4">
+              {visibleRestaurants.map((restaurant, index) => {
+                const favorite = isFavorite(restaurant.slug)
 
-              const handleToggleFavorite = (e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (favorite) {
-                  removeFavorite(restaurant.slug)
-                } else {
-                  addFavorite({
-                    slug: restaurant.slug,
-                    name: restaurant.name,
-                    cuisine: restaurant.cuisine,
-                    rating: restaurant.rating,
-                    deliveryTime: restaurant.deliveryTime,
-                    distance: restaurant.distance,
-                    priceRange: restaurant.priceRange,
-                    image: restaurant.image,
-                  })
+                const handleToggleFavorite = (e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (favorite) {
+                    removeFavorite(restaurant.slug)
+                  } else {
+                    addFavorite({
+                      slug: restaurant.slug,
+                      name: restaurant.name,
+                      cuisine: restaurant.cuisine,
+                      rating: restaurant.rating,
+                      deliveryTime: restaurant.deliveryTime,
+                      distance: restaurant.distance,
+                      priceRange: restaurant.priceRange,
+                      image: restaurant.image,
+                    })
+                  }
                 }
-              }
 
-              return (
-                <ScrollReveal key={restaurant.id} delay={index * 0.05}>
-                  <Link to={`/restaurants/${restaurant.slug}`} className="h-full flex">
-                    <Card className="overflow-hidden cursor-pointer border border-gray-200 dark:border-gray-800 group bg-white dark:bg-[#1a1a1a] hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-gray-900/50 pb-1 sm:pb-2 lg:pb-3 flex flex-col h-full w-full transition-all duration-300">
-                      <div className="flex flex-row min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] flex-1">
-                        <CardContent className="flex-1 flex flex-col justify-between p-3 sm:p-4 md:p-5 lg:p-6 min-w-0 overflow-hidden">
-                          <div className="flex-1 flex flex-col justify-between gap-2">
-                            <div className="flex-shrink-0">
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <div className="flex-1 min-w-0 pr-2">
-                                  <CardTitle className="text-base sm:text-lg md:text-xl mb-1 line-clamp-2 text-gray-900 dark:text-white">
-                                    {restaurant.name}
-                                  </CardTitle>
-                                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium mb-2 line-clamp-1">
-                                    {restaurant.cuisine}
-                                  </p>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded-full">
-                                      <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-yellow-400 text-yellow-400" />
-                                      <span className="font-bold text-xs sm:text-sm text-yellow-700 dark:text-yellow-400">{restaurant.rating.toFixed(1)}</span>
+                return (
+                  <ScrollReveal key={restaurant.id} delay={index * 0.05}>
+                    <Link to={`/restaurants/${restaurant.slug}`} className="h-full flex">
+                      <Card className="overflow-hidden cursor-pointer border border-gray-200 dark:border-gray-800 group bg-white dark:bg-[#1a1a1a] hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-gray-900/50 pb-1 sm:pb-2 lg:pb-3 flex flex-col h-full w-full transition-all duration-300">
+                        <div className="flex flex-row min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] flex-1">
+                          <CardContent className="flex-1 flex flex-col justify-between p-3 sm:p-4 md:p-5 lg:p-6 min-w-0 overflow-hidden">
+                            <div className="flex-1 flex flex-col justify-between gap-2">
+                              <div className="flex-shrink-0">
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <div className="flex-1 min-w-0 pr-2">
+                                    <CardTitle className="text-base sm:text-lg md:text-xl mb-1 line-clamp-2 text-gray-900 dark:text-white">
+                                      {restaurant.name}
+                                    </CardTitle>
+                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium mb-2 line-clamp-1">
+                                      {restaurant.cuisine}
+                                    </p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded-full">
+                                        <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-yellow-400 text-yellow-400" />
+                                        <span className="font-bold text-xs sm:text-sm text-yellow-700 dark:text-yellow-400">{restaurant.rating.toFixed(1)}</span>
+                                      </div>
                                     </div>
                                   </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${favorite ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"}`}
+                                    onClick={handleToggleFavorite}
+                                  >
+                                    <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${favorite ? "fill-red-500 dark:fill-red-400" : ""}`} />
+                                  </Button>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${favorite ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"}`}
-                                  onClick={handleToggleFavorite}
-                                >
-                                  <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${favorite ? "fill-red-500 dark:fill-red-400" : ""}`} />
+                              </div>
+                              <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+                                <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-wrap">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+                                    <span className="font-medium whitespace-nowrap">{restaurant.deliveryTime}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+                                    <span className="font-medium whitespace-nowrap">{restaurant.distance}</span>
+                                  </div>
+                                </div>
+                                <Button className="bg-primary-orange hover:opacity-90 dark:hover:opacity-80 text-white text-xs sm:text-sm h-7 sm:h-8 px-3 sm:px-4 flex-shrink-0 transition-opacity">
+                                  Order Now
                                 </Button>
                               </div>
                             </div>
-                            <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
-                              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-wrap">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-                                  <span className="font-medium whitespace-nowrap">{restaurant.deliveryTime}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-                                  <span className="font-medium whitespace-nowrap">{restaurant.distance}</span>
-                                </div>
-                              </div>
-                              <Button className="bg-primary-orange hover:opacity-90 dark:hover:opacity-80 text-white text-xs sm:text-sm h-7 sm:h-8 px-3 sm:px-4 flex-shrink-0 transition-opacity">
-                                Order Now
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
+                          </CardContent>
 
-                        <div className="w-36 sm:w-44 md:w-56 lg:w-64 xl:w-72 flex-shrink-0 relative overflow-hidden group/image">
-                          <img
-                            src={restaurant.image || "https://via.placeholder.com/400x300?text=Restaurant"}
-                            alt={restaurant.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-l from-black/20 dark:from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="w-36 sm:w-44 md:w-56 lg:w-64 xl:w-72 flex-shrink-0 relative overflow-hidden group/image">
+                            <img
+                              src={restaurant.image || "https://via.placeholder.com/400x300?text=Restaurant"}
+                              alt={restaurant.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-l from-black/20 dark:from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  </Link>
-                </ScrollReveal>
-              )
-            })}
-          </div>
+                      </Card>
+                    </Link>
+                  </ScrollReveal>
+                )
+              })}
+            </div>
+            {hasMore && (
+              <div ref={loadMoreRef} className="py-6 text-center text-xs text-gray-400">
+                Loading 10 more restaurants...
+              </div>
+            )}
+          </>
         )}
       </div>
       <Footer />

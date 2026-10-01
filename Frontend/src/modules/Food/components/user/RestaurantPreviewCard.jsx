@@ -146,7 +146,9 @@ export default function RestaurantPreviewCard({
     };
   }, [restaurant, selectedCategory]);
 
-  const dishes = React.useMemo(() => {
+  const [visibleDishCount, setVisibleDishCount] = useState(5);
+
+  const filteredDishesList = React.useMemo(() => {
     let filtered = allDishes;
     if (vegMode) {
       filtered = filtered.filter((dish) => dish.isVeg);
@@ -159,8 +161,24 @@ export default function RestaurantPreviewCard({
         return matchesCategoryText(dishName, keywords) || matchesCategoryText(dishCategory, keywords);
       });
     }
-    return filtered.slice(0, 3);
+    return filtered;
   }, [allDishes, vegMode, selectedCategory]);
+
+  const dishes = React.useMemo(() => {
+    return filteredDishesList.slice(0, visibleDishCount);
+  }, [filteredDishesList, visibleDishCount]);
+
+  const hasMoreDishes = visibleDishCount < filteredDishesList.length;
+
+  const handleDishScroll = useCallback((e) => {
+    const target = e.currentTarget;
+    if (!target) return;
+    if (target.scrollLeft + target.clientWidth >= target.scrollWidth - 80) {
+      if (hasMoreDishes) {
+        setVisibleDishCount(prev => Math.min(prev + 5, filteredDishesList.length));
+      }
+    }
+  }, [hasMoreDishes, filteredDishesList.length]);
 
   const handleAddToCart = (dish, event) => {
     event.preventDefault();
@@ -378,7 +396,7 @@ export default function RestaurantPreviewCard({
             No preview dishes available
           </div>
         ) : (
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide py-1">
+          <div onScroll={handleDishScroll} className="flex gap-3 overflow-x-auto scrollbar-hide py-1">
             {dishes.map((dish) => {
               const quantity = getCartItemQuantity(dish);
               const hasPopular = dish.popular || dish.isPopular || false;
@@ -465,6 +483,20 @@ export default function RestaurantPreviewCard({
                 </div>
               );
             })}
+            {hasMoreDishes && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setVisibleDishCount(prev => Math.min(prev + 5, filteredDishesList.length));
+                }}
+                className="flex-shrink-0 w-[100px] sm:w-[120px] h-[107px] sm:h-[120px] rounded-[16px] border border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center gap-1 text-xs font-bold text-[#DC021B] hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
+              >
+                <span>+5 More</span>
+                <span className="text-[10px] text-gray-400 font-normal">Slide or Click</span>
+              </button>
+            )}
           </div>
         )}
       </div>

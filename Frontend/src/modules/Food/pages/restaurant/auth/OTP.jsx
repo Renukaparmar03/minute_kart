@@ -31,6 +31,7 @@ export default function RestaurantOTP() {
   const inputRefs = useRef([])
   const hasSubmittedRef = useRef(false)
   const otpSectionRef = useRef(null)
+  const cardRef = useRef(null)
   const [logoUrl, setLogoUrl] = useState(() => getCachedSettings()?.logo?.url || null)
 
   useEffect(() => {
@@ -109,20 +110,11 @@ export default function RestaurantOTP() {
   useEffect(() => {
     if (focusedIndex == null) return
 
-    const targetInput = inputRefs.current[focusedIndex]
-    if (!targetInput) return
-
     const id = window.setTimeout(() => {
       try {
-        targetInput.scrollIntoView({
+        cardRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
-          inline: "nearest",
-        })
-        otpSectionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "nearest",
+          block: "start",
         })
       } catch {
         // no-op
@@ -334,8 +326,7 @@ export default function RestaurantOTP() {
 
   return (
     <div
-      className={`h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans ${keyboardOffset > 0 ? "overflow-y-auto overflow-x-hidden" : "overflow-hidden"}`}
-      style={keyboardOffset > 0 ? { paddingBottom: `${Math.min(keyboardOffset, 360)}px` } : undefined}
+      className="min-h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-y-auto overflow-x-hidden w-full pb-8"
     >
       {/* Top Green Section */}
       <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
@@ -426,9 +417,9 @@ export default function RestaurantOTP() {
         </div>
       </div>
 
-      <div className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col mt-16 md:mt-20 relative z-20 pb-4 h-full">
+      <div className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col -mt-6 sm:-mt-10 relative z-20 pb-4 shrink-0">
         {/* Main Card */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div ref={cardRef} className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center mb-5">
             <div className="flex items-center justify-center gap-3 mb-1.5">
                <div className="relative w-5 h-5">

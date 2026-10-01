@@ -172,6 +172,8 @@ const buildDeliveryOrderNotification = (orderData = {}) => {
 }
 
 const isActionableDeliveryOffer = (orderData = {}) => {
+  if (!orderData || typeof orderData !== 'object') return false;
+
   if (orderData?.type === 'RETURN_PICKUP') {
     return Boolean(orderData?.returnId);
   }
@@ -182,8 +184,8 @@ const isActionableDeliveryOffer = (orderData = {}) => {
     orderData?.dispatch?.status || orderData?.dispatchStatus || ''
   ).trim().toLowerCase();
 
-  const actionableStatuses = ['created', 'confirmed', 'preparing', 'ready_for_pickup'];
-  const actionableDispatchStatuses = ['unassigned', 'assigned'];
+  const actionableStatuses = ['created', 'confirmed', 'preparing', 'ready_for_pickup', 'ready', 'placed', ''];
+  const actionableDispatchStatuses = ['unassigned', 'assigned', 'pending', ''];
 
   if (orderStatus && !actionableStatuses.includes(orderStatus)) {
     return false;

@@ -188,10 +188,14 @@ const AppRoutes = () => {
             </Suspense>
           }
         >
-          <Route path="/cart" element={<GlobalCartPage />} />
-          <Route path="/cart/checkout" element={<GlobalCheckoutPage />} />
-          <Route path="/cart/select-address" element={<GlobalSelectAddressPage />} />
-          <Route path="/cart/address-selector" element={<GlobalAddressSelectorPage />} />
+          <Route path="/cart" element={<Navigate to="/food/user/cart" replace />} />
+          <Route path="/user/cart" element={<Navigate to="/food/user/cart" replace />} />
+          <Route path="/cart/checkout" element={<Navigate to="/food/user/cart/checkout" replace />} />
+          <Route path="/cart/select-address" element={<Navigate to="/food/user/cart/select-address" replace />} />
+          <Route path="/cart/address-selector" element={<Navigate to="/food/user/cart/address-selector" replace />} />
+          <Route path="/user/cart/checkout" element={<Navigate to="/food/user/cart/checkout" replace />} />
+          <Route path="/user/cart/select-address" element={<Navigate to="/food/user/cart/select-address" replace />} />
+          <Route path="/user/cart/address-selector" element={<Navigate to="/food/user/cart/address-selector" replace />} />
           <Route
             path="/profile"
             element={

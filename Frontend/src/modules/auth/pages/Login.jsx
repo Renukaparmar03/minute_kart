@@ -28,6 +28,19 @@ export default function UnifiedOTPFastLogin() {
   const referralCode = searchParams.get("ref") || ""
   const [logoUrl, setLogoUrl] = useState(() => getCachedSettings()?.logo?.url || null)
   const [keyboardInset, setKeyboardInset] = useState(0)
+  const cardRef = useRef(null)
+
+  const scrollToCardTop = () => {
+    window.setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 150)
+  }
+
+  useEffect(() => {
+    if (keyboardInset > 0) {
+      scrollToCardTop()
+    }
+  }, [keyboardInset])
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return undefined
@@ -310,14 +323,10 @@ export default function UnifiedOTPFastLogin() {
 
   return (
     <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans"
-      style={{
-        overflow: 'hidden',
-        height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
-      }}
+      className="min-h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-y-auto overflow-x-hidden w-full pb-8"
     >
       {/* Top Red Section */}
-      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'hidden' : ''}`}>
+      <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
         <div className="w-full relative overflow-hidden bg-[#b81724] pb-4">
           {/* Abstract wavy background layers to match the image */}
           <div className="absolute inset-0 z-0">
@@ -403,9 +412,9 @@ export default function UnifiedOTPFastLogin() {
       </div>
 
 
-      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 ${isKeyboardOpen ? 'mt-2 justify-center overflow-hidden' : 'mt-16 md:mt-20 overflow-y-auto'}`}>
+      <div className="flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col -mt-6 sm:-mt-10 relative z-20 pb-4 shrink-0">
         {/* Main Card */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4">
+        <div ref={cardRef} className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4">
           <div className="text-center mb-5">
             <div className="flex items-center justify-center gap-3 mb-1.5">
                <div className="relative w-5 h-5">
@@ -444,6 +453,7 @@ export default function UnifiedOTPFastLogin() {
                       setPhoneNumber(val);
                       sessionStorage.setItem("userLoginPhone", val);
                     }}
+                    onFocus={scrollToCardTop}
                     maxLength={10}
                     className="w-full bg-transparent pl-2 pr-2 py-1.5 text-sm text-gray-900 font-semibold outline-none placeholder:text-gray-400 placeholder:font-normal"
                     placeholder="Enter phone number"
@@ -474,6 +484,7 @@ export default function UnifiedOTPFastLogin() {
                       setName(e.target.value)
                       if (nameError) setNameError("")
                     }}
+                    onFocus={scrollToCardTop}
                     className="w-full bg-transparent pl-2 pr-2 py-1.5 text-sm text-gray-900 font-semibold outline-none placeholder:text-gray-400 placeholder:font-normal"
                     placeholder="Enter your full name"
                   />
@@ -510,6 +521,7 @@ export default function UnifiedOTPFastLogin() {
                           document.getElementById(`otp-${index + 1}`)?.focus();
                         }
                       }}
+                      onFocus={scrollToCardTop}
                       onKeyDown={(e) => {
                         if (e.key === "Backspace") {
                           if (!otp[index] && index > 0) {

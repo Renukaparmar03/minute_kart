@@ -6,6 +6,7 @@ import { connectRedis, closeRedis } from './src/config/redis.js';
 import { initSocket } from './src/config/socket.js';
 import { logger } from './src/utils/logger.js';
 import { initializeFirebaseRealtime } from './src/config/firebase.js';
+import { startUnassignedOrdersBroadcasterLoop } from './src/modules/food/orders/services/order.service.js';
 
 let server = null;
 
@@ -52,6 +53,7 @@ const startSocketServer = async () => {
 
         // Initialize Socket.IO
         await initSocket(httpServer);
+        startUnassignedOrdersBroadcasterLoop();
 
         server = httpServer.listen(config.socketPort, config.host, () => {
             logger.info(`Socket server running in ${config.nodeEnv} mode on ${config.host}:${config.socketPort}`);

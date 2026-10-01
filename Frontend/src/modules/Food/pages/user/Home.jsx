@@ -207,6 +207,7 @@ export default function Home() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [showStickyCategories, setShowStickyCategories] = useState(false);
   const [dishesUnder250, setDishesUnder250] = useState([]);
+  const [visibleUnder250Count, setVisibleUnder250Count] = useState(10);
   const [loadingDishesUnder250, setLoadingDishesUnder250] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -388,7 +389,7 @@ export default function Home() {
               uniqueDishes.push(dish);
             }
           }
-          setDishesUnder250(uniqueDishes.slice(0, 15));
+          setDishesUnder250(uniqueDishes.slice(0, 50));
         }
       } catch (error) {
         console.error("Error fetching dynamic dishes under 250:", error);
@@ -410,7 +411,7 @@ export default function Home() {
     };
   }, [effectiveZoneId, location?.latitude, location?.longitude]);
 
-  const displayedDishesUnder250 = useMemo(() => {
+  const filteredDishesUnder250 = useMemo(() => {
     let list = dishesUnder250;
     if (vegMode) {
       list = list.filter((dish) => dish.isVeg);
@@ -425,6 +426,19 @@ export default function Home() {
     }
     return list;
   }, [dishesUnder250, vegMode, selectedCategory]);
+
+  const displayedDishesUnder250 = useMemo(() => {
+    return filteredDishesUnder250.slice(0, visibleUnder250Count);
+  }, [filteredDishesUnder250, visibleUnder250Count]);
+
+  const handleUnder250Scroll = (e) => {
+    const { scrollLeft, clientWidth, scrollWidth } = e.currentTarget;
+    if (scrollLeft + clientWidth >= scrollWidth - 120) {
+      if (visibleUnder250Count < filteredDishesUnder250.length) {
+        setVisibleUnder250Count((prev) => Math.min(prev + 15, filteredDishesUnder250.length));
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -719,7 +733,11 @@ export default function Home() {
               ) : displayedDishesUnder250.length === 0 ? (
                 <div className="text-xs text-gray-400 text-center py-4 w-full">No meals under ₹250 available currently</div>
               ) : (
-                <div className="flex gap-4 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div
+                  className="flex gap-4 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onScroll={handleUnder250Scroll}
+                >
                   {displayedDishesUnder250.map((dish) => {
                     const variants = getFoodVariants(dish);
                     const hasVariants = variants && variants.length > 0;
@@ -851,6 +869,15 @@ export default function Home() {
                       </div>
                     );
                   })}
+                  {visibleUnder250Count < filteredDishesUnder250.length && (
+                    <div
+                      onClick={() => setVisibleUnder250Count((prev) => Math.min(prev + 15, filteredDishesUnder250.length))}
+                      className="flex-shrink-0 w-[110px] h-[140px] rounded-2xl border-2 border-dashed border-gray-300 dark:border-neutral-700 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all text-center p-2"
+                    >
+                      <span className="text-[13px] font-black text-gray-800 dark:text-gray-200">+15 More</span>
+                      <span className="text-[10px] text-gray-500 font-semibold">Slide or Tap</span>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
