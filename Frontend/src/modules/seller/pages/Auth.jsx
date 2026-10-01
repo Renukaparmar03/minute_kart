@@ -201,7 +201,7 @@ export default function SellerAuth() {
 
   return (
     <div
-      className="h-[100dvh] bg-white flex flex-col relative font-sans overflow-y-auto"
+      className={`h-[100dvh] bg-white flex flex-col relative font-sans ${keyboardInset > 50 ? 'overflow-hidden justify-center' : 'overflow-y-auto'}`}
       style={{ paddingBottom: keyboardInset ? `${keyboardInset + 24}px` : undefined }}
     >
       <div className="flex-1 max-w-[420px] mx-auto w-full px-6 flex flex-col pt-12 relative z-20">

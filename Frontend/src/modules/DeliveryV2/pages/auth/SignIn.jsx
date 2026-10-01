@@ -282,7 +282,7 @@ export default function DeliverySignIn() {
         </div>
       </div>
 
-      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 overflow-y-auto ${isKeyboardOpen ? 'mt-4 justify-start' : 'mt-16 md:mt-20'}`}>
+      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 ${isKeyboardOpen ? 'mt-2 justify-center overflow-hidden' : 'mt-16 md:mt-20 overflow-y-auto'}`}>
         {/* Main Card */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center mb-5">
