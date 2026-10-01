@@ -74,15 +74,9 @@ export const ProfileV2 = () => {
 
   const menuItems = [
     {
-      id: "bank",
-      label: "Bank Details",
+      id: "bank_upi",
+      label: "Bank and UPI Details",
       icon: Landmark,
-      action: () => navigate("/food/delivery/profile/bank")
-    },
-    {
-      id: "upi",
-      label: "UPI Details",
-      icon: CreditCard,
       action: () => navigate("/food/delivery/profile/bank")
     },
     {
@@ -95,15 +89,9 @@ export const ProfileV2 = () => {
       id: "vehicle",
       label: "Vehicle Details",
       icon: Bike,
-      action: () => navigate("/food/delivery/profile/details")
+      action: () => navigate("/food/delivery/profile/vehicle")
     },
-    {
-      id: "languages",
-      label: "Languages",
-      icon: Globe,
-      rightText: "English",
-      action: () => {}
-    },
+
     {
       id: "notifications",
       label: "Notifications",

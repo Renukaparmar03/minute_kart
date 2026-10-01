@@ -7,6 +7,7 @@ import {
   markDeliveryNotificationAsRead,
 } from "@food/utils/deliveryNotifications";
 import useNotificationInbox from "@food/hooks/useNotificationInbox";
+import useDeliveryBackNavigation from "../hooks/useDeliveryBackNavigation";
 
 const toTimeLabel = (value) => {
   const date = value ? new Date(value) : null;
@@ -31,6 +32,7 @@ const normalizeNotifications = (items = []) =>
 
 export default function NotificationsV2() {
   const navigate = useNavigate();
+  const goBack = useDeliveryBackNavigation();
   const [notifications, setNotifications] = useState(() =>
     normalizeNotifications(getDeliveryNotifications())
   );
@@ -97,7 +99,7 @@ export default function NotificationsV2() {
     <div className="min-h-screen bg-white flex flex-col">
       <div className="px-4 pt-4 pb-3 flex items-center gap-3 border-b border-gray-200">
         <button
-          onClick={() => navigate("/food/delivery/profile")}
+          onClick={goBack}
           className="p-2 rounded-full hover:bg-gray-100"
           aria-label="Back"
         >

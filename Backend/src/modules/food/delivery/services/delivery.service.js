@@ -274,8 +274,23 @@ export const updateDeliveryPartnerBankDetails = async (userId, payload, files) =
         if (b.upiId !== undefined) partner.upiId = b.upiId ? String(b.upiId).trim() : '';
     }
 
+    if (payload?.upiId !== undefined) {
+        partner.upiId = payload.upiId ? String(payload.upiId).trim() : '';
+    }
+
     if (panDetails?.number !== undefined) {
         partner.panNumber = panDetails.number ? String(panDetails.number).trim().toUpperCase() : '';
+    }
+
+    if (payload?.vehicle || payload?.vehicleNumber) {
+        const v = payload.vehicle || {};
+        const vNum = v.number || payload.vehicleNumber || partner.vehicle?.number || '';
+        const vBrand = v.brand || payload.vehicleBrand || partner.vehicle?.brand || '';
+        const vType = v.type || payload.vehicleType || partner.vehicle?.type || 'Scooter';
+        partner.vehicle = { number: vNum, brand: vBrand, type: vType };
+        partner.vehicleNumber = vNum;
+        partner.vehicleBrand = vBrand;
+        partner.vehicleType = vType;
     }
 
     if (files?.upiQrCode?.[0]) {
@@ -513,12 +528,22 @@ export const getDeliveryPartnerEarnings = async (deliveryPartnerId, query = {}) 
         range = getWeekRange(date);
     }
 
-    const match = {
-        'dispatch.deliveryPartnerId': partnerId,
+    const partnerMatch = {
+        $or: [
+            { 'dispatch.deliveryPartnerId': partnerId },
+            { 'deliveryPartnerId': partnerId },
+            { 'dispatchPlan.legs.deliveryPartnerId': partnerId }
+        ],
         orderStatus: 'delivered',
     };
+
+    const match = { ...partnerMatch };
     if (range) {
-        match['deliveryState.deliveredAt'] = { $gte: range.start, $lte: range.end };
+        match.$or = [
+            { 'deliveryState.deliveredAt': { $gte: range.start, $lte: range.end } },
+            { 'deliveredAt': { $gte: range.start, $lte: range.end } },
+            { 'updatedAt': { $gte: range.start, $lte: range.end } }
+        ];
     }
 
     const returnMatch = {
@@ -529,14 +554,15 @@ export const getDeliveryPartnerEarnings = async (deliveryPartnerId, query = {}) 
         returnMatch.updatedAt = { $gte: range.start, $lte: range.end };
     }
 
-    const [totalOrders, agg, totalReturnOrders, returnAgg] = await Promise.all([
+    const [totalOrders, agg, totalReturnOrders, returnAgg, partner] = await Promise.all([
         FoodOrder.countDocuments(match),
         FoodOrder.aggregate([
             { $match: match },
             {
                 $group: {
                     _id: null,
-                    totalEarnings: { $sum: { $ifNull: ['$riderEarning', 0] } }
+                    totalEarnings: { $sum: { $ifNull: ['$riderEarning', { $ifNull: ['$deliveryEarning', 0] }] } },
+                    totalDistance: { $sum: { $ifNull: ['$deliveryDistance', { $ifNull: ['$distance', { $ifNull: ['$distanceKm', 2.5] }] }] } }
                 }
             }
         ]),
@@ -549,18 +575,38 @@ export const getDeliveryPartnerEarnings = async (deliveryPartnerId, query = {}) 
                     totalEarnings: { $sum: { $ifNull: ['$returnPickupEarning', 0] } }
                 }
             }
-        ])
+        ]),
+        FoodDeliveryPartner.findById(partnerId).select('availabilityStatus lastLocationAt updatedAt createdAt').lean()
     ]);
 
     const totalEarnings = (Number(agg?.[0]?.totalEarnings) || 0) + (Number(returnAgg?.[0]?.totalEarnings) || 0);
+    const rawDistance = Number(agg?.[0]?.totalDistance) || (totalOrders * 2.5);
     const finalTotalOrders = totalOrders + totalReturnOrders;
 
-    // Frontend only strongly relies on totalEarnings + totalOrders.
+    // Estimate online time
+    let totalMinutes = 0;
+    if (partner) {
+        if (partner.availabilityStatus === 'online') {
+            const startOfDay = toStartOfDay(date);
+            const refTime = partner.lastLocationAt || partner.updatedAt || new Date();
+            const elapsed = Math.max(0, Math.floor((new Date().getTime() - Math.max(startOfDay.getTime(), new Date(refTime).getTime())) / (1000 * 60)));
+            totalMinutes = Math.min(elapsed + (finalTotalOrders * 20), 1440);
+        } else {
+            totalMinutes = Math.min(finalTotalOrders * 20, 1440);
+        }
+    }
+    const hrs = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    const onlineTimeStr = `${hrs}h ${mins}m`;
+
     const summary = {
         totalEarnings,
         totalOrders: finalTotalOrders,
-        totalHours: 0,
-        totalMinutes: 0,
+        totalDistance: Number(rawDistance.toFixed(1)),
+        distance: `${rawDistance.toFixed(1)} km`,
+        onlineTime: onlineTimeStr,
+        totalHours: hrs,
+        totalMinutes: mins,
         orderEarning: totalEarnings,
         incentive: 0,
         otherEarnings: 0
@@ -653,8 +699,10 @@ const toTripDto = (order) => {
     const pricingTotal = Number(order?.pricing?.total) || Number(order?.totalAmount) || 0;
 
     const earningAmount = Number(order?.riderEarning ?? order?.deliveryEarning ?? 0) || 0;
-    const codAmount = paymentMethod === 'cash' ? Number(order?.payment?.amountDue) || 0 : 0;
-    const codCollectedAmount = paymentMethod === 'cash' && order?.payment?.status === 'paid' ? codAmount : 0;
+    const pmLower = String(paymentMethod || '').toLowerCase();
+    const isCOD = pmLower === 'cash' || pmLower === 'cod' || pmLower === 'pay on delivery';
+    const codAmount = isCOD ? (Number(order?.payment?.amountDue) || pricingTotal) : 0;
+    const codCollectedAmount = (isCOD && isDelivered) ? codAmount : 0;
     return {
         id: order?._id,
         _id: order?._id,
@@ -664,7 +712,7 @@ const toTripDto = (order) => {
         restaurant: restaurantName,
         items: order?.items || order?.orderItems || [],
         orderItems: order?.orderItems || order?.items || [],
-        paymentMethod,
+        paymentMethod: isCOD ? 'Cash' : (paymentMethod || 'Online'),
         totalAmount: pricingTotal,
         orderTotal: pricingTotal,
         codAmount: codAmount,
@@ -742,24 +790,49 @@ export const getDeliveryPartnerTripHistory = async (deliveryPartnerId, query = {
     const { start, end } = computeRange(period, date);
 
     const partnerId = new mongoose.Types.ObjectId(deliveryPartnerId);
-    const match = { 'dispatch.deliveryPartnerId': partnerId };
+    const partnerMatch = {
+        $or: [
+            { 'dispatch.deliveryPartnerId': partnerId },
+            { 'deliveryPartnerId': partnerId },
+            { 'dispatchPlan.legs.deliveryPartnerId': partnerId }
+        ]
+    };
 
     const sf = String(statusFilter || '').toLowerCase();
+    let statusMatch = {};
     if (sf === 'completed') {
-        match.orderStatus = 'delivered';
-        match['deliveryState.deliveredAt'] = { $gte: start, $lte: end };
+        statusMatch = {
+            orderStatus: 'delivered',
+            $or: [
+                { 'deliveryState.deliveredAt': { $gte: start, $lte: end } },
+                { 'deliveredAt': { $gte: start, $lte: end } },
+                { 'updatedAt': { $gte: start, $lte: end } }
+            ]
+        };
     } else if (sf === 'cancelled') {
-        match.orderStatus = { $regex: '^cancelled', $options: 'i' };
-        match.createdAt = { $gte: start, $lte: end };
+        statusMatch = {
+            orderStatus: { $regex: '^cancelled', $options: 'i' },
+            createdAt: { $gte: start, $lte: end }
+        };
     } else if (sf === 'pending') {
-        match.createdAt = { $gte: start, $lte: end };
-        match.$and = [
-            { orderStatus: { $ne: 'delivered' } },
-            { orderStatus: { $not: { $regex: '^cancelled', $options: 'i' } } },
-        ];
+        statusMatch = {
+            createdAt: { $gte: start, $lte: end },
+            $and: [
+                { orderStatus: { $ne: 'delivered' } },
+                { orderStatus: { $not: { $regex: '^cancelled', $options: 'i' } } }
+            ]
+        };
     } else {
-        match.createdAt = { $gte: start, $lte: end };
+        statusMatch = {
+            $or: [
+                { createdAt: { $gte: start, $lte: end } },
+                { 'deliveryState.deliveredAt': { $gte: start, $lte: end } },
+                { 'deliveredAt': { $gte: start, $lte: end } }
+            ]
+        };
     }
+
+    const match = { $and: [partnerMatch, statusMatch] };
 
     const returnMatch = { deliveryPartnerId: partnerId };
     if (sf === 'completed') {

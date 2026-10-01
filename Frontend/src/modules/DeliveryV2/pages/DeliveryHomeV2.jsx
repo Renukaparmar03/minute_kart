@@ -678,105 +678,71 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
 
   return (
     <div className="relative h-screen w-full bg-white text-gray-900 overflow-hidden flex flex-col">
-      {/* ─── 1. TOP HEADER (Premium Dark Gray) ─── */}
+      {/* ─── 1. TOP HEADER (Dark Green #087A45 - Matched with Home Header) ─── */}
       {['feed'].includes(currentTab) && (
-      <div className="absolute top-0 inset-x-0 bg-[#86bf24] backdrop-blur-2xl shadow-2xl z-[200] safe-top pb-2 border-b border-white/10">
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-4">
+      <div className="absolute top-0 inset-x-0 bg-[#087A45] shadow-md z-[200] safe-top pb-2">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
              <div 
                 onClick={() => navigate('/food/delivery/profile')}
-                className="w-10 h-10 rounded-full border border-white/20 p-0.5 shadow-xl overflow-hidden bg-white/5 cursor-pointer active:scale-95 transition-all"
+                className="w-10 h-10 rounded-full border border-white/30 p-0.5 overflow-hidden bg-white/10 cursor-pointer active:scale-95 transition-all"
              >
                 <img src={profileImage || "https://i.ibb.co/3m2Yh7r/Appzeto-Brand-Image.png"} alt="Profile" className="w-full h-full object-cover rounded-full" />
              </div>
-             <span className="text-white font-black text-lg tracking-wide uppercase">Minutekart</span>
+             <div className="flex flex-col">
+               <span className="text-white font-bold text-[18px] leading-tight">MinuteKart</span>
+               <span className="text-white/80 text-[11px]">Delivery Partner</span>
+             </div>
           </div>
           <div className="flex items-center gap-3">
-             <button onClick={() => setShowEmergencyPopup(true)} className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 active:scale-95 transition-all shadow-lg"><AlertTriangle className="w-4 h-4" /></button>
-             <button onClick={() => navigate('/food/delivery/help/id-card')} className="w-9 h-9 rounded-full bg-[#86bf24]/10 flex items-center justify-center text-[#86bf24] border border-[#86bf24]/20 active:scale-95 transition-all shadow-lg"><Contact className="w-4 h-4" /></button>
-             <button onClick={() => navigate('/food/delivery/notifications')} className="relative w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all shadow-lg"><Bell className="w-4 h-4" />{notificationUnreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-400 border border-[#1f1f1f]" />}</button>
+             <button onClick={() => setShowEmergencyPopup(true)} className="w-9 h-9 rounded-full bg-red-500/20 flex items-center justify-center text-white border border-red-400/30 active:scale-95 transition-all shadow-md"><AlertTriangle className="w-4 h-4" /></button>
+             <button onClick={() => navigate('/food/delivery/help/id-card')} className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white border border-white/20 active:scale-95 transition-all shadow-md"><Contact className="w-4 h-4" /></button>
+             <button onClick={() => navigate('/food/delivery/notifications')} className="relative w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white border border-white/20 active:scale-95 transition-all shadow-md"><Bell className="w-4 h-4" />{notificationUnreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 border border-[#087A45]" opacity-90 />}</button>
           </div>
         </div>
 
-        {/* ─── LIVE STATUS / PROGRESS BADGE (MATCHED PRO) ─── */}
+        {/* ─── LIVE STATUS / PROGRESS BADGE (Active Order Only) ─── */}
         <AnimatePresence>
-          {['feed'].includes(currentTab) && (
+          {['feed'].includes(currentTab) && activeOrder && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className="px-4 mt-1"
             >
-              {activeOrder ? (
-                <div className="grid grid-cols-2 gap-3 w-full">
-                  {/* LEFT: DISTANCE (Vibrant Orange Card) */}
-                  <div className="bg-[#ff8100] rounded-2xl p-3.5 shadow-xl shadow-orange-500/20 border border-orange-400/50 flex items-center justify-between overflow-hidden relative">
-                    <div className="flex flex-col z-10">
-                      <span className="text-[9px] text-white/70 font-black uppercase tracking-[0.15em] mb-1">Distance</span>
-                      <div className="flex items-end gap-1">
-                        <span className="text-2xl font-black text-white leading-none tracking-tighter">
-                          {distanceToTarget && distanceToTarget !== Infinity ? (distanceToTarget / 1000).toFixed(1) : '--'}
-                        </span>
-                        <span className="text-[11px] text-white/80 font-bold mb-0.5">KM</span>
-                      </div>
-                    </div>
-                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center z-10 shadow-lg">
-                      <Navigation2 className="w-4 h-4 text-[#ff8100] rotate-45" />
+              <div className="grid grid-cols-2 gap-3 w-full">
+                {/* LEFT: DISTANCE */}
+                <div className="bg-[#ff8100] rounded-2xl p-3.5 shadow-xl shadow-orange-500/20 border border-orange-400/50 flex items-center justify-between overflow-hidden relative">
+                  <div className="flex flex-col z-10">
+                    <span className="text-[9px] text-white/70 font-black uppercase tracking-[0.15em] mb-1">Distance</span>
+                    <div className="flex items-end gap-1">
+                      <span className="text-2xl font-black text-white leading-none tracking-tighter">
+                        {distanceToTarget && distanceToTarget !== Infinity ? (distanceToTarget / 1000).toFixed(1) : '--'}
+                      </span>
+                      <span className="text-[11px] text-white/80 font-bold mb-0.5">KM</span>
                     </div>
                   </div>
+                  <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center z-10 shadow-lg">
+                    <Navigation2 className="w-4 h-4 text-[#ff8100] rotate-45" />
+                  </div>
+                </div>
 
-                  {/* RIGHT: TIME (Emerald PRO Content) */}
-                  <div className="bg-[#86bf24] rounded-2xl p-3.5 shadow-xl shadow-[#86bf24]/20 border border-[#9cd33b]/50 flex items-center justify-between relative overflow-hidden group">
-                    <div className="flex flex-col z-10">
-                      <span className="text-[9px] text-white/70 font-black uppercase tracking-[0.15em] mb-1">Arrival</span>
-                      <div className="flex items-end gap-1">
-                        <span className="text-2xl font-black text-white leading-none tracking-tighter">
-                          {eta ? String(eta) : '--'}
-                        </span>
-                        <span className="text-[11px] text-white/80 font-bold mb-0.5">MIN</span>
-                      </div>
-                    </div>
-                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center z-10 shadow-lg">
-                       <Clock className="w-4 h-4 text-[#86bf24]" />
+                {/* RIGHT: TIME */}
+                <div className="bg-[#087A45] rounded-2xl p-3.5 shadow-xl border border-emerald-400/50 flex items-center justify-between relative overflow-hidden group">
+                  <div className="flex flex-col z-10">
+                    <span className="text-[9px] text-white/70 font-black uppercase tracking-[0.15em] mb-1">Arrival</span>
+                    <div className="flex items-end gap-1">
+                      <span className="text-2xl font-black text-white leading-none tracking-tighter">
+                        {eta ? String(eta) : '--'}
+                      </span>
+                      <span className="text-[11px] text-white/80 font-bold mb-0.5">MIN</span>
                     </div>
                   </div>
+                  <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center z-10 shadow-lg">
+                     <Clock className="w-4 h-4 text-[#087A45]" />
+                  </div>
                 </div>
-              ) : (
-                <div className="flex items-center gap-3 w-full">
-                  <button
-                    onClick={() => {
-                      if (!isOnline) {
-                        toggleOnline();
-                        navigator.geolocation.getCurrentPosition((pos) => {
-                            deliveryAPI.updateLocation(pos.coords.latitude, pos.coords.longitude, true).catch(() => {});
-                        }, (err) => console.warn('Online sync position failed:', err), { enableHighAccuracy: true });
-                      }
-                    }}
-                    className={`flex-1 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${
-                      isOnline 
-                        ? 'bg-white text-[#86bf24] shadow-lg shadow-black/10 border border-white' 
-                        : 'bg-white text-gray-400 opacity-80 border border-transparent hover:opacity-100'
-                    }`}
-                  >
-                    Go Online
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (isOnline) {
-                        toggleOnline();
-                        deliveryAPI.updateOnlineStatus(false).catch(() => {});
-                      }
-                    }}
-                    className={`flex-1 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${
-                      !isOnline 
-                        ? 'bg-white text-red-500 shadow-lg shadow-black/10 border border-white' 
-                        : 'bg-white text-gray-400 opacity-80 border border-transparent hover:opacity-100'
-                    }`}
-                  >
-                    Go Offline
-                  </button>
-                </div>
-              )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -786,14 +752,14 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
       {/* ─── 2. MAIN CONTENT ─── */}
       <div 
         ref={scrollContainerRef}
-        className={`flex-1 relative overflow-y-auto ${['feed'].includes(currentTab) ? 'pt-[120px]' : 'pt-0'} no-scrollbar`}
+        className={`flex-1 relative overflow-y-auto ${['feed'].includes(currentTab) ? 'pt-[64px]' : 'pt-0'} no-scrollbar`}
       >
          {currentTab === 'home' ? (
            <DashboardHome
              profileImage={profileImage}
              onNavigate={(target) => {
                if (target === 'pocket') navigate('/food/delivery/pocket');
-               else if (target === 'orders') navigate('/food/delivery/requests');
+               else if (target === 'orders') navigate('/food/delivery/feed');
                else if (target === 'feed') navigate('/food/delivery/feed');
                else if (target === 'profile') navigate('/food/delivery/profile');
              }}

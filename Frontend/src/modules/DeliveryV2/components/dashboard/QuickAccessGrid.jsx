@@ -18,19 +18,13 @@ export default function QuickAccessGrid({ onNavigate }) {
       id: 'orders',
       label: 'Orders',
       icon: ClipboardList,
-      action: () => onNavigate ? onNavigate('orders') : navigate('/food/delivery/requests')
+      action: () => onNavigate ? onNavigate('orders') : navigate('/food/delivery/feed')
     },
     {
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
       action: () => onNavigate ? onNavigate('pocket') : navigate('/food/delivery/pocket')
-    },
-    {
-      id: 'incentives',
-      label: 'Incentives',
-      icon: TicketPercent,
-      action: () => onNavigate ? onNavigate('incentives') : navigate('/food/delivery/pocket')
     },
     {
       id: 'support',
@@ -43,12 +37,6 @@ export default function QuickAccessGrid({ onNavigate }) {
       label: 'Profile',
       icon: UserRound,
       action: () => onNavigate ? onNavigate('profile') : navigate('/food/delivery/profile')
-    },
-    {
-      id: 'more',
-      label: 'More',
-      icon: MoreHorizontal,
-      action: () => onNavigate ? onNavigate('profile') : navigate('/food/delivery/profile')
     }
   ];
 
@@ -57,7 +45,7 @@ export default function QuickAccessGrid({ onNavigate }) {
       <h2 className="text-[#18332A] font-bold text-base mb-3 tracking-tight">
         Quick Access
       </h2>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {items.map((item) => (
           <QuickAccessCard
             key={item.id}

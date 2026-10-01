@@ -34,16 +34,16 @@ const resolveDeliveryBackPath = ({ pathname, state }) => {
     normalizedPath === "/profile/details" ||
     normalizedPath === "/profile/terms" ||
     normalizedPath === "/profile/privacy" ||
+    normalizedPath === "/profile/support" ||
+    normalizedPath === "/profile/bank" ||
+    normalizedPath === "/profile/documents" ||
+    normalizedPath === "/profile/vehicle" ||
+    normalizedPath === "/notifications" ||
+    normalizedPath === "/privacy" ||
+    normalizedPath === "/support" ||
     normalizedPath === "/help/tickets"
   ) {
     return explicitBackPath || "/food/delivery/profile"
-  }
-
-  if (
-    normalizedPath === "/profile/bank" ||
-    normalizedPath === "/profile/documents"
-  ) {
-    return explicitBackPath || "/food/delivery/profile/details"
   }
 
   if (normalizedPath === "/help/id-card") {

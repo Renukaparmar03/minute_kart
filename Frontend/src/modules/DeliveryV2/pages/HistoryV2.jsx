@@ -77,7 +77,24 @@ export const HistoryV2 = () => {
   }, [showBonusModal]);
 
   const formatDateDisplay = (date) => {
+    if (!date) return "";
     const today = new Date();
+    
+    if (activeTab === "monthly") {
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    if (activeTab === "weekly") {
+      const start = new Date(date);
+      start.setDate(start.getDate() - start.getDay());
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      const startStr = start.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      const endStr = end.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      return `${startStr} - ${endStr}`;
+    }
+
+    // daily
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const day = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
@@ -87,20 +104,39 @@ export const HistoryV2 = () => {
     return day;
   };
 
-  const recentDates = useMemo(() => {
+  const dateOptions = useMemo(() => {
+    const today = new Date();
+    if (activeTab === "monthly") {
+      return [...Array(12)].map((_, i) => {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        return d;
+      });
+    }
+
+    if (activeTab === "weekly") {
+      return [...Array(12)].map((_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (i * 7));
+        return d;
+      });
+    }
+
     return [...Array(30)].map((_, i) => {
-      const d = new Date();
+      const d = new Date(today);
       d.setDate(d.getDate() - i);
       return d;
     });
-  }, []);
+  }, [activeTab]);
 
   const metrics = useMemo(() => {
      return trips.reduce((acc, trip) => {
-        if (trip.status === 'Completed') {
+        const statusLower = (trip.status || '').toLowerCase();
+        if (statusLower === 'completed' || statusLower === 'delivered') {
            acc.earnings += Number(trip.deliveryEarning || trip.amount || trip.earningAmount || 0);
            const isCOD = (trip.paymentMethod || '').toLowerCase() === 'cash' || (trip.paymentMethod || '').toLowerCase() === 'cod';
-           if (isCOD) acc.cod += Number(trip.codCollectedAmount || trip.orderTotal || 0);
+           if (isCOD) {
+              acc.cod += Number(trip.codCollectedAmount || trip.codAmount || trip.orderTotal || 0);
+           }
         }
         return acc;
      }, { earnings: 0, cod: 0 });
@@ -155,8 +191,6 @@ export const HistoryV2 = () => {
              </button>
           ))}
        </div>
-
-         <>
            {/* 3. Filter Controls (Matched to Image) */}
            <div className="bg-white px-4 py-4 flex gap-3 sticky top-[57px] z-[80]">
           <button 
@@ -179,7 +213,7 @@ export const HistoryV2 = () => {
        <AnimatePresence>
           {showDatePicker && (
              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="fixed left-4 right-4 top-[185px] z-[200] bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-[300px] overflow-y-auto p-2">
-                {recentDates.map((date, idx) => (
+                {dateOptions.map((date, idx) => (
                    <button 
                       key={idx} 
                       onClick={() => { setSelectedDate(date); setShowDatePicker(false); }}
@@ -232,8 +266,8 @@ export const HistoryV2 = () => {
                    const isCancelled = (trip.status || '').toLowerCase() === 'cancelled';
                    const isPending = !isCompleted && !isCancelled;
                    const payout = Number(trip.deliveryEarning || trip.amount || trip.earningAmount || 0);
-                   const collection = Number(trip.codCollectedAmount || trip.orderTotal || 0);
                    const isCOD = (trip.paymentMethod || '').toLowerCase() === 'cash' || (trip.paymentMethod || '').toLowerCase() === 'cod';
+                   const collection = isCOD ? Number(trip.codCollectedAmount || trip.codAmount || trip.orderTotal || 0) : 0;
 
                    return (
                       <div 
@@ -285,8 +319,6 @@ export const HistoryV2 = () => {
              </div>
           )}
        </div>
-       </>
-       )}
 
        {/* Bonus Drawer (The Gift Modal) */}
        <AnimatePresence>

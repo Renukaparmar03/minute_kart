@@ -2,10 +2,11 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
 export default function EarningsCard({
-  amount = "842",
-  deliveries = 12,
-  distance = "5.8 km",
-  onlineTime = "4h 32m",
+  amount = "0",
+  deliveries = 0,
+  distance = "0 km",
+  onlineTime = "0h 0m",
+  loading = false,
   onViewDetails
 }) {
   return (
