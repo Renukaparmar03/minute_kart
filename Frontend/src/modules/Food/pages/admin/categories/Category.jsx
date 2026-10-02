@@ -52,6 +52,17 @@ const zoneLabel = (zone) => {
   return zone?.name || zone?.zoneName || zone?.serviceLocation || "Zone"
 }
 
+const BACKEND_ORIGIN = API_BASE_URL ? API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "") : "http://localhost:5000"
+
+const formatImageUrl = (url) => {
+  if (!url || typeof url !== "string") return ""
+  if (url.startsWith("data:") || url.startsWith("blob:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url
+  }
+  const cleanPath = url.startsWith("/") ? url : `/${url}`
+  return `${BACKEND_ORIGIN}${cleanPath}`
+}
+
 export default function Category() {
   const [searchQuery, setSearchQuery] = useState("")
   const [categories, setCategories] = useState([])
@@ -484,7 +495,7 @@ export default function Category() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center flex-shrink-0">
             {allCategoryFromDB?.image ? (
-              <img src={allCategoryFromDB.image} alt="All category" className="h-full w-full object-contain p-1" />
+              <img src={formatImageUrl(allCategoryFromDB.image)} alt="All category" className="h-full w-full object-contain p-1" />
             ) : (
               <img src={allIcon} alt="Default All" className="h-full w-full object-contain p-1" />
             )}
@@ -545,7 +556,7 @@ export default function Category() {
                         <div className="flex items-start gap-3">
                           <div className="h-11 w-11 overflow-hidden rounded-2xl bg-slate-100">
                             {category?.image ? (
-                              <img src={category.image} alt={category.name} className="h-full w-full object-cover" />
+                              <img src={formatImageUrl(category.image)} alt={category.name} className="h-full w-full object-cover" />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-sm font-bold text-slate-500">
                                 {String(category?.name || "C").slice(0, 1).toUpperCase()}
@@ -753,7 +764,7 @@ export default function Category() {
                             {(imagePreview || formData.image) && (
                               <div className="relative h-32 w-32 overflow-hidden rounded-2xl border border-slate-300">
                                 <img
-                                  src={imagePreview || formData.image}
+                                  src={formatImageUrl(imagePreview || formData.image)}
                                   alt="Category preview"
                                   className="h-full w-full object-cover"
                                 />

@@ -1,6 +1,14 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import apiClient from "@/services/api/axios"
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000"
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "")
+
+const formatImageUrl = (url) => {
+  if (!url || typeof url !== "string") return ""
+  if (url.startsWith("data:") || url.startsWith("blob:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url
+  }
+  const cleanPath = url.startsWith("/") ? url : `/${url}`
+  return `${BACKEND_ORIGIN}${cleanPath}`
+}
 
 export default function QuickCommerceCategories() {
   const [categories, setCategories] = useState([])
@@ -40,7 +48,7 @@ export default function QuickCommerceCategories() {
           {!loading && categories.map((category) => (
             <div key={category.id || category._id} className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
               <div className="flex items-center gap-3">
-                <img src={category.image} alt={category.name} className="h-10 w-10 rounded-lg object-cover" />
+                <img src={formatImageUrl(category.image)} alt={category.name} className="h-10 w-10 rounded-lg object-cover" />
                 <div>
                   <p className="font-semibold text-slate-900">{category.name}</p>
                   <p className="text-xs text-slate-500">{category.slug || "-"}</p>
