@@ -9,6 +9,7 @@ import {
   Heart,
   Snowflake,
   Dog,
+  Loader2,
 } from "lucide-react";
 
 // MUI Icons (shared with admin & icon selector)
@@ -522,6 +523,25 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
   const [mobileBannerIndex, setMobileBannerIndex] = useState(0);
   const [isInstantBannerJump, setIsInstantBannerJump] = useState(false);
   const [pendingReturn, setPendingReturn] = useState(null);
+  const [bestOffersLimit, setBestOffersLimit] = useState(5);
+
+  useEffect(() => {
+    setBestOffersLimit(5);
+  }, [activeCategory, products]);
+
+  const handleBestOffersScroll = (e) => {
+    const container = e.currentTarget;
+    if (!container) return;
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    if (scrollLeft + clientWidth >= scrollWidth - 120) {
+      setBestOffersLimit((prev) => {
+        if (prev < filteredProducts.length) {
+          return Math.min(prev + 5, filteredProducts.length);
+        }
+        return prev;
+      });
+    }
+  };
 
   useLayoutEffect(() => {
     if (!embedded || typeof window === "undefined") return;
@@ -978,23 +998,37 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                   </motion.div>
                 </div>
 
-                <div className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-3 md:pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth pt-1">
+                <div
+                  onScroll={handleBestOffersScroll}
+                  className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-3 md:pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth pt-1"
+                >
                   {isProductsLoading ? (
                     Array(5).fill(0).map((_, i) => (
                       <div key={i} className="w-[140px] md:w-[155px] lg:w-[175px] h-[220px] shrink-0 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
                     ))
-                  ) : filteredProducts.slice(0, 12).map((product) => (
-                    <div
-                      key={product.id || product._id}
-                      className="w-[140px] md:w-[155px] lg:w-[175px] shrink-0 snap-start">
-                      <ProductCard
-                        product={product}
-                        className="bg-white rounded-xl border border-slate-100 shadow-sm transition-all"
-                        compact={true}
-                        isBestOffer={true}
-                      />
-                    </div>
-                  ))}
+                  ) : (
+                    <>
+                      {filteredProducts.slice(0, bestOffersLimit).map((product) => (
+                        <div
+                          key={product.id || product._id}
+                          className="w-[140px] md:w-[155px] lg:w-[175px] shrink-0 snap-start"
+                        >
+                          <ProductCard
+                            product={product}
+                            className="bg-white rounded-xl border border-slate-100 shadow-sm transition-all"
+                            compact={true}
+                            isBestOffer={true}
+                          />
+                        </div>
+                      ))}
+                      {bestOffersLimit < filteredProducts.length && (
+                        <div className="w-[120px] h-[200px] shrink-0 flex flex-col items-center justify-center text-slate-400 text-xs font-semibold gap-2 snap-start bg-slate-50 dark:bg-neutral-800/50 rounded-xl border border-dashed border-slate-200 dark:border-neutral-700">
+                          <Loader2 className="w-5 h-5 animate-spin text-[#0c831f] dark:text-emerald-400" />
+                          <span>Loading more...</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                   {filteredProducts.length === 0 && !isLoading && (
                     <div className="w-full py-10 md:py-20 text-center text-slate-400 font-black italic md:text-xl">
                       {activeCategory && activeCategory._id !== "all"

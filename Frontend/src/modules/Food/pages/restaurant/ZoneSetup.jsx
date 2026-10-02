@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { MapPin, Search, Save, Loader2, ArrowLeft, AlertTriangle, X } from "lucide-react"
+import { MapPin, Search, Save, Loader2, ArrowLeft, AlertTriangle, X, Navigation } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "react-hot-toast"
 import RestaurantNavbar from "@food/components/restaurant/RestaurantNavbar"
@@ -63,6 +63,7 @@ export default function ZoneSetup() {
   
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState("")
   const [mapLoading, setMapLoading] = useState(true)
+  const [fetchingLocation, setFetchingLocation] = useState(false)
   const [saving, setSaving] = useState(false)
   const [restaurantData, setRestaurantData] = useState(null)
   const [locationSearch, setLocationSearch] = useState("")
@@ -73,6 +74,61 @@ export default function ZoneSetup() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [reVerificationData, setReVerificationData] = useState(null)
+
+  const handleFetchCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.")
+      return
+    }
+
+    setFetchingLocation(true)
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+
+          if (mapInstanceRef.current && window.google?.maps) {
+            const locationObj = new window.google.maps.LatLng(lat, lng)
+            mapInstanceRef.current.setCenter(locationObj)
+            mapInstanceRef.current.setZoom(17)
+          }
+
+          await handleLocationSelect(lat, lng)
+          toast.success("Current location fetched successfully!")
+        } catch (error) {
+          debugError("Error processing current location:", error)
+          toast.error("Failed to process address for current location.")
+        } finally {
+          setFetchingLocation(false)
+        }
+      },
+      (error) => {
+        setFetchingLocation(false)
+        debugError("Geolocation error:", error)
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error("Location permission denied. Please allow location access in browser settings.")
+            break
+          case error.POSITION_UNAVAILABLE:
+            toast.error("Location information is unavailable. Please try again.")
+            break
+          case error.TIMEOUT:
+            toast.error("Location request timed out. Please try again.")
+            break
+          default:
+            toast.error("Unable to fetch current location.")
+            break
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    )
+  }
 
   useEffect(() => {
     fetchRestaurantData()
@@ -612,7 +668,7 @@ export default function ZoneSetup() {
 
         {/* Search Bar */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -625,9 +681,28 @@ export default function ZoneSetup() {
               />
             </div>
             <button
+              type="button"
+              onClick={handleFetchCurrentLocation}
+              disabled={fetchingLocation || mapLoading}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              title="Fetch Current Location"
+            >
+              {fetchingLocation ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <span>Fetching Location...</span>
+                </>
+              ) : (
+                <>
+                  <Navigation className="w-4 h-4 text-blue-600" />
+                  <span>Fetch Current Location</span>
+                </>
+              )}
+            </button>
+            <button
               onClick={handleSaveLocation}
               disabled={!selectedLocation || saving}
-              className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium whitespace-nowrap"
             >
               {saving ? (
                 <>
@@ -658,6 +733,7 @@ export default function ZoneSetup() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="text-sm font-semibold text-blue-900 mb-2">How to set your location:</h3>
           <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+            <li>Click <strong>"Fetch Current Location"</strong> to automatically detect your position, or</li>
             <li>Search for your location using the search bar above, or</li>
             <li>Click anywhere on the map to place a pin at that location</li>
             <li>You can drag the pin to adjust the exact position</li>
@@ -667,6 +743,24 @@ export default function ZoneSetup() {
 
         {/* Map Container */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
+          {/* Floating Current Location Button on Map */}
+          {!mapLoading && (
+            <button
+              type="button"
+              onClick={handleFetchCurrentLocation}
+              disabled={fetchingLocation}
+              className="absolute top-3 left-3 z-10 flex items-center gap-2 px-3 py-2 bg-white text-gray-700 hover:bg-blue-50 border border-gray-300 hover:border-blue-300 rounded-lg shadow-md transition-all text-xs font-semibold disabled:opacity-50"
+              title="Locate me on map"
+            >
+              {fetchingLocation ? (
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+              ) : (
+                <Navigation className="w-4 h-4 text-blue-600" />
+              )}
+              <span>Fetch Current Location</span>
+            </button>
+          )}
+
           {/* Always render the map div, show loading overlay on top */}
           <div ref={mapRef} className="w-full h-[600px]" style={{ minHeight: '600px' }} />
           {mapLoading && (

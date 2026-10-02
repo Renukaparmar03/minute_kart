@@ -1,102 +1,66 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { config } from '../config/env.js';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
-cloudinary.config({
-    cloud_name: config.cloudinaryCloudName,
-    api_key: config.cloudinaryApiKey,
-    api_secret: config.cloudinaryApiSecret
-});
-
-export const getOptimizedCloudinaryImageUrl = (url, { format = 'webp', quality = 'auto' } = {}) => {
-    if (!url || typeof url !== 'string' || !url.includes('/image/upload/')) {
-        return url;
-    }
-
-    if (url.includes(`/upload/f_${format},q_${quality}/`)) {
-        return url;
-    }
-
-    return url.replace('/upload/', `/upload/f_${format},q_${quality}/`);
+const getUploadDir = () => {
+    const base = process.env.UPLOAD_DIR || process.env.UPLOAD_PATH || '/var/www/uploads';
+    return path.resolve(process.platform === 'win32' && base.startsWith('/var/www/') ? 'C:' + base : base);
 };
 
-const getImageUploadOptions = (folder) => ({
-    folder,
-    resource_type: 'image',
-    format: 'webp',
-    quality: 'auto'
-});
+export const getOptimizedCloudinaryImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    return url;
+};
 
-export const uploadImageBuffer = async (buffer, folder = 'uploads') => {
+const saveBufferToLocal = async (buffer, _folder = 'uploads', extension = 'webp') => {
     if (!buffer) {
         throw new Error('File buffer is required');
     }
 
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            getImageUploadOptions(folder),
-            (error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-                return resolve(getOptimizedCloudinaryImageUrl(result.secure_url));
-            }
-        );
+    const uploadBaseDir = getUploadDir();
+    if (!fs.existsSync(uploadBaseDir)) {
+        fs.mkdirSync(uploadBaseDir, { recursive: true });
+    }
 
-        stream.end(buffer);
-    });
+    const uniqueFilename = `${Date.now()}_${crypto.randomBytes(6).toString('hex')}.${extension}`;
+    const filePath = path.join(uploadBaseDir, uniqueFilename);
+
+    await fs.promises.writeFile(filePath, buffer);
+
+    const relativeUrl = `/uploads/${uniqueFilename}`;
+
+    return {
+        filePath,
+        relativeUrl,
+        filename: uniqueFilename,
+        public_id: uniqueFilename
+    };
+};
+
+export const uploadImageBuffer = async (buffer, folder = 'uploads') => {
+    const result = await saveBufferToLocal(buffer, folder, 'webp');
+    return result.relativeUrl;
 };
 
 export const uploadImageBufferDetailed = async (buffer, folder = 'uploads') => {
-    if (!buffer) {
-        throw new Error('File buffer is required');
-    }
-
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            getImageUploadOptions(folder),
-            (error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-                return resolve({
-                    ...result,
-                    secure_url: getOptimizedCloudinaryImageUrl(result.secure_url)
-                });
-            }
-        );
-
-        stream.end(buffer);
-    });
+    const result = await saveBufferToLocal(buffer, folder, 'webp');
+    return {
+        secure_url: result.relativeUrl,
+        url: result.relativeUrl,
+        public_id: result.public_id
+    };
 };
 
 export const uploadBufferDetailed = async (
     buffer,
     { folder = 'uploads', resourceType = 'auto' } = {}
 ) => {
-    if (!buffer) {
-        throw new Error('File buffer is required');
-    }
-
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            resourceType === 'image'
-                ? getImageUploadOptions(folder)
-                : { folder, resource_type: resourceType },
-            (error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-                if (resourceType === 'image') {
-                    return resolve({
-                        ...result,
-                        secure_url: getOptimizedCloudinaryImageUrl(result.secure_url)
-                    });
-                }
-
-                return resolve(result);
-            }
-        );
-
-        stream.end(buffer);
-    });
+    const ext = resourceType === 'video' ? 'mp4' : 'webp';
+    const result = await saveBufferToLocal(buffer, folder, ext);
+    return {
+        secure_url: result.relativeUrl,
+        url: result.relativeUrl,
+        public_id: result.public_id,
+        resourceType
+    };
 };

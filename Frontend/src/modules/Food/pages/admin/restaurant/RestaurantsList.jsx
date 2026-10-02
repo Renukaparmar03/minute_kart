@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Search, Download, ChevronDown, Eye, Settings, ArrowUpDown, Loader2, X, MapPin, Phone, Mail, Clock, Star, Building2, User, FileText, CreditCard, Calendar, Image as ImageIcon, ExternalLink, ShieldX, AlertTriangle, Trash2, Plus } from "lucide-react"
-import { adminAPI, restaurantAPI, uploadAPI } from "@food/api"
+import { adminAPI, restaurantAPI, uploadAPI, zoneAPI } from "@food/api"
 import { clearModuleAuth } from "@food/utils/auth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@food/components/ui/dropdown-menu"
 import { exportRestaurantsToPDF } from "@food/components/admin/restaurants/restaurantsExportUtils"
@@ -132,6 +132,32 @@ export default function RestaurantsList() {
     openingTime: "",
     closingTime: "",
     isActive: true,
+    addressLine1: "",
+    area: "",
+    city: "",
+    state: "",
+    pincode: "",
+    offer: "",
+    cuisines: "",
+    zoneId: "",
+    featuredDish: "",
+    featuredPrice: "",
+    // PAN
+    panNumber: "",
+    nameOnPan: "",
+    // GST
+    gstRegistered: false,
+    gstNumber: "",
+    gstLegalName: "",
+    gstAddress: "",
+    // FSSAI
+    fssaiNumber: "",
+    fssaiExpiry: "",
+    // Bank
+    accountNumber: "",
+    ifscCode: "",
+    accountHolderName: "",
+    accountType: "Savings",
   })
   const [profileImageFile, setProfileImageFile] = useState(null)
   const [profileImagePreview, setProfileImagePreview] = useState("")
@@ -205,6 +231,24 @@ export default function RestaurantsList() {
 
     return `REST${lastDigits}`
   }
+
+  // Fetch zones for zone selector in Edit form
+  useEffect(() => {
+    let active = true
+    const fetchZones = async () => {
+      try {
+        const response = await zoneAPI.getPublicZones()
+        const list = response?.data?.data?.zones || response?.data?.zones || response?.data?.data || []
+        if (active && Array.isArray(list)) {
+          setZones(list)
+        }
+      } catch (err) {
+        debugError("Error fetching zones:", err)
+      }
+    }
+    fetchZones()
+    return () => { active = false }
+  }, [])
 
   // Fetch restaurants from backend API
   useEffect(() => {
@@ -829,32 +873,44 @@ export default function RestaurantsList() {
     setLoadingDetails(true)
     setRestaurantDetails(null)
 
+    const initialSource = restaurant.originalData || restaurant
+    setDetailsForm(buildDetailsFormFromRestaurant(initialSource))
+
     try {
       // Always fetch full details from Admin API so the modal matches the
       // original joining-request data instead of the compact list payload.
       const restaurantId = restaurant._id || restaurant.id || restaurant.restaurantId
       if (!restaurantId || !adminAPI.getRestaurantById) {
-        setRestaurantDetails(restaurant.originalData || restaurant)
+        const fallback = restaurant.originalData || restaurant
+        setRestaurantDetails(fallback)
+        setDetailsForm(buildDetailsFormFromRestaurant(fallback))
         return
       }
 
       const response = await adminAPI.getRestaurantById(restaurantId)
       if (!response?.data?.success) {
-        setRestaurantDetails(restaurant.originalData || restaurant)
+        const fallback = restaurant.originalData || restaurant
+        setRestaurantDetails(fallback)
+        setDetailsForm(buildDetailsFormFromRestaurant(fallback))
         return
       }
 
       const data = response?.data?.data
-      if (data && (data.restaurantName || data._id)) {
+      if (data && (data.restaurantName || data._id || data.name)) {
         setRestaurantDetails(data)
+        setDetailsForm(buildDetailsFormFromRestaurant(data))
         return
       }
 
-      setRestaurantDetails(restaurant.originalData || restaurant)
+      const fallback = restaurant.originalData || restaurant
+      setRestaurantDetails(fallback)
+      setDetailsForm(buildDetailsFormFromRestaurant(fallback))
     } catch (err) {
       debugError("Error fetching restaurant details:", err)
       // Use the restaurant data we already have
-      setRestaurantDetails(restaurant.originalData || restaurant)
+      const fallback = restaurant.originalData || restaurant
+      setRestaurantDetails(fallback)
+      setDetailsForm(buildDetailsFormFromRestaurant(fallback))
     } finally {
       setLoadingDetails(false)
     }
@@ -1064,48 +1120,120 @@ export default function RestaurantsList() {
 
     const openingTimeValue =
       restaurant.openingTime ||
+      restaurant.openTime ||
       restaurant.deliveryTimings?.openingTime ||
+      restaurant.deliveryTimings?.openTime ||
+      restaurant.onboarding?.step2?.openingTime ||
+      restaurant.onboarding?.step2?.openTime ||
       restaurant.onboarding?.step2?.deliveryTimings?.openingTime ||
+      restaurant.onboarding?.step2?.deliveryTimings?.openTime ||
       ""
+
     const closingTimeValue =
       restaurant.closingTime ||
+      restaurant.closeTime ||
       restaurant.deliveryTimings?.closingTime ||
+      restaurant.deliveryTimings?.closeTime ||
+      restaurant.onboarding?.step2?.closingTime ||
+      restaurant.onboarding?.step2?.closeTime ||
       restaurant.onboarding?.step2?.deliveryTimings?.closingTime ||
+      restaurant.onboarding?.step2?.deliveryTimings?.closeTime ||
       ""
+
     const estimatedDeliveryTimeValue =
       restaurant.estimatedDeliveryTime ||
       restaurant.onboarding?.step4?.estimatedDeliveryTime ||
+      restaurant.onboarding?.step2?.estimatedDeliveryTime ||
       ""
 
+    const pureVegValue =
+      typeof restaurant.pureVegRestaurant === "boolean"
+        ? restaurant.pureVegRestaurant
+        : typeof restaurant.isPureVeg === "boolean"
+        ? restaurant.isPureVeg
+        : typeof restaurant.onboarding?.step2?.pureVegRestaurant === "boolean"
+        ? restaurant.onboarding.step2.pureVegRestaurant
+        : false
+
+    const cuisinesVal =
+      (Array.isArray(restaurant.cuisines) && restaurant.cuisines.length ? restaurant.cuisines.join(", ") : null) ||
+      (Array.isArray(restaurant.onboarding?.step2?.cuisines) && restaurant.onboarding.step2.cuisines.length ? restaurant.onboarding.step2.cuisines.join(", ") : null) ||
+      ""
+
+    const rawFssaiExpiry = restaurant.fssaiExpiry || restaurant.onboarding?.step3?.fssai?.expiryDate || ""
+    let fssaiExpiryVal = ""
+    if (rawFssaiExpiry) {
+      try {
+        const d = new Date(rawFssaiExpiry)
+        if (!isNaN(d.getTime())) {
+          fssaiExpiryVal = d.toISOString().split("T")[0]
+        }
+      } catch (_) {}
+    }
+
     return {
-      name: restaurant.restaurantName || restaurant.name || "",
-      pureVegRestaurant:
-        typeof restaurant.pureVegRestaurant === "boolean"
-          ? restaurant.pureVegRestaurant
-          : false,
-      ownerName: restaurant.ownerName || "",
-      ownerEmail: restaurant.ownerEmail || "",
-      ownerPhone: restaurant.ownerPhone || restaurant.phone || "",
-      primaryContactNumber: restaurant.primaryContactNumber || restaurant.ownerPhone || "",
-      email: restaurant.email || restaurant.ownerEmail || "",
+      name: restaurant.restaurantName || restaurant.name || restaurant.onboarding?.step1?.restaurantName || "",
+      pureVegRestaurant: pureVegValue,
+      ownerName: restaurant.ownerName || restaurant.onboarding?.step1?.ownerName || "",
+      ownerEmail: restaurant.ownerEmail || restaurant.onboarding?.step1?.ownerEmail || "",
+      ownerPhone: restaurant.ownerPhone || restaurant.phone || restaurant.onboarding?.step1?.ownerPhone || restaurant.onboarding?.step1?.primaryContactNumber || "",
+      primaryContactNumber: restaurant.primaryContactNumber || restaurant.onboarding?.step1?.primaryContactNumber || restaurant.ownerPhone || restaurant.phone || restaurant.onboarding?.step1?.ownerPhone || "",
+      email: restaurant.email || restaurant.ownerEmail || restaurant.onboarding?.step1?.email || restaurant.onboarding?.step1?.ownerEmail || "",
       estimatedDeliveryTime: estimatedDeliveryTimeValue,
       openingTime: openingTimeValue,
       closingTime: closingTimeValue,
       isActive: restaurant.isActive !== false,
+      addressLine1: restaurant.addressLine1 || restaurant.location?.addressLine1 || restaurant.onboarding?.step1?.location?.addressLine1 || restaurant.address || restaurant.location?.address || "",
+      area: restaurant.area || restaurant.location?.area || restaurant.onboarding?.step1?.location?.area || "",
+      city: restaurant.city || restaurant.location?.city || restaurant.onboarding?.step1?.location?.city || "",
+      state: restaurant.state || restaurant.location?.state || restaurant.onboarding?.step1?.location?.state || "",
+      pincode: restaurant.pincode || restaurant.zipCode || restaurant.location?.pincode || restaurant.location?.zipCode || restaurant.onboarding?.step1?.location?.pincode || "",
+      zoneId: restaurant.zoneId?._id || restaurant.zoneId?.id || restaurant.zoneId || restaurant.onboarding?.step1?.location?.zoneId || "",
+      offer: restaurant.offer || restaurant.onboarding?.step4?.offer || "",
+      cuisines: cuisinesVal,
+      featuredDish: restaurant.featuredDish || restaurant.onboarding?.step4?.featuredDish || "",
+      featuredPrice: restaurant.featuredPrice ?? restaurant.onboarding?.step4?.featuredPrice ?? "",
+      // PAN
+      panNumber: restaurant.panNumber || restaurant.onboarding?.step3?.pan?.panNumber || "",
+      nameOnPan: restaurant.nameOnPan || restaurant.onboarding?.step3?.pan?.nameOnPan || "",
+      // GST
+      gstRegistered: typeof restaurant.gstRegistered === "boolean"
+        ? restaurant.gstRegistered
+        : Boolean(restaurant.gstNumber || restaurant.onboarding?.step3?.gst?.gstNumber),
+      gstNumber: restaurant.gstNumber || restaurant.onboarding?.step3?.gst?.gstNumber || "",
+      gstLegalName: restaurant.gstLegalName || restaurant.onboarding?.step3?.gst?.legalName || "",
+      gstAddress: restaurant.gstAddress || restaurant.onboarding?.step3?.gst?.address || "",
+      // FSSAI
+      fssaiNumber: restaurant.fssaiNumber || restaurant.onboarding?.step3?.fssai?.registrationNumber || "",
+      fssaiExpiry: fssaiExpiryVal,
+      // Bank
+      accountNumber: restaurant.accountNumber || restaurant.onboarding?.step3?.bank?.accountNumber || "",
+      ifscCode: restaurant.ifscCode || restaurant.onboarding?.step3?.bank?.ifscCode || "",
+      accountHolderName: restaurant.accountHolderName || restaurant.onboarding?.step3?.bank?.accountHolderName || "",
+      accountType: restaurant.accountType || restaurant.onboarding?.step3?.bank?.accountType || "Savings",
     }
   }
 
+  useEffect(() => {
+    if (restaurantDetails) {
+      setDetailsForm(buildDetailsFormFromRestaurant(restaurantDetails))
+      setProfileImagePreview(normalizeImageUrl(restaurantDetails?.profileImage) || getPrimaryRestaurantImage(restaurantDetails))
+    }
+  }, [restaurantDetails])
+
   const handleStartEditDetails = () => {
+    if (loadingDetails) return
     const source = getDetailsEditSource()
     setDetailsForm(buildDetailsFormFromRestaurant(source))
     setProfileImageFile(null)
     setProfileImagePreview(normalizeImageUrl(source?.profileImage) || getPrimaryRestaurantImage(source))
-    setIsEditingLocation(true)
+    setIsEditingLocation(false)
     setIsEditingDetails(true)
   }
 
   const handleCancelEditDetails = () => {
     setIsEditingDetails(false)
+    setIsEditingLocation(false)
     setProfileImageFile(null)
     setProfileImagePreview("")
   }
@@ -1155,7 +1283,44 @@ export default function RestaurantsList() {
         openingTime: normalizedOpeningTime,
         closingTime: normalizedClosingTime,
         isActive: detailsForm.isActive,
+        addressLine1: (detailsForm.addressLine1 || "").trim(),
+        area: (detailsForm.area || "").trim(),
+        city: (detailsForm.city || "").trim(),
+        state: (detailsForm.state || "").trim(),
+        pincode: (detailsForm.pincode || "").trim(),
+        offer: (detailsForm.offer || "").trim(),
+        cuisines: typeof detailsForm.cuisines === 'string'
+          ? detailsForm.cuisines.split(',').map(s => s.trim()).filter(Boolean)
+          : (detailsForm.cuisines || [])
       }
+
+      if (detailsForm.zoneId) {
+        payload.zoneId = detailsForm.zoneId
+      }
+      if (detailsForm.featuredDish) {
+        payload.featuredDish = detailsForm.featuredDish.trim()
+      }
+      if (detailsForm.featuredPrice !== "" && detailsForm.featuredPrice !== null && detailsForm.featuredPrice !== undefined) {
+        payload.featuredPrice = Number(detailsForm.featuredPrice)
+      }
+
+      // Legal & Documents
+      payload.panNumber = (detailsForm.panNumber || "").trim()
+      payload.nameOnPan = (detailsForm.nameOnPan || "").trim()
+      payload.gstRegistered = detailsForm.gstRegistered === true
+      payload.gstNumber = (detailsForm.gstNumber || "").trim()
+      payload.gstLegalName = (detailsForm.gstLegalName || "").trim()
+      payload.gstAddress = (detailsForm.gstAddress || "").trim()
+      payload.fssaiNumber = (detailsForm.fssaiNumber || "").trim()
+      if (detailsForm.fssaiExpiry) {
+        payload.fssaiExpiry = detailsForm.fssaiExpiry
+      }
+
+      // Bank Details
+      payload.accountNumber = (detailsForm.accountNumber || "").trim()
+      payload.ifscCode = (detailsForm.ifscCode || "").trim()
+      payload.accountHolderName = (detailsForm.accountHolderName || "").trim()
+      payload.accountType = (detailsForm.accountType || "Savings").trim()
 
       if (profileImage) {
         payload.profileImage = profileImage
@@ -1638,9 +1803,10 @@ export default function RestaurantsList() {
                 {!isEditingDetails ? (
                   <button
                     onClick={handleStartEditDetails}
-                    className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+                    disabled={loadingDetails}
+                    className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Edit Details
+                    {loadingDetails ? "Loading..." : "Edit Details"}
                   </button>
                 ) : (
                   <>
@@ -1775,7 +1941,156 @@ export default function RestaurantsList() {
                       <label className="block text-xs text-slate-500 mb-1">Estimated Delivery Time</label>
                       <input type="text" value={detailsForm.estimatedDeliveryTime} onChange={(e) => setDetailsForm((prev) => ({ ...prev, estimatedDeliveryTime: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
                     </div>
-                    <div className="md:col-span-2 flex items-center gap-3">
+
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Location & Address</p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-slate-500 mb-1">Street Address / Building</label>
+                      <input type="text" value={detailsForm.addressLine1 || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, addressLine1: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. Main Market, Shop 12" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Area / Landmark</label>
+                      <input type="text" value={detailsForm.area || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, area: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">City</label>
+                      <input type="text" value={detailsForm.city || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, city: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">State</label>
+                      <input type="text" value={detailsForm.state || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, state: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Pincode</label>
+                      <input type="text" value={detailsForm.pincode || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, pincode: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    {zones.length > 0 && (
+                      <div>
+                        <label className="block text-xs text-slate-500 mb-1">Service Zone</label>
+                        <select
+                          value={detailsForm.zoneId || ""}
+                          onChange={(e) => setDetailsForm((prev) => ({ ...prev, zoneId: e.target.value }))}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                        >
+                          <option value="">Select Zone</option>
+                          {zones.map((z) => (
+                            <option key={z._id || z.id} value={z._id || z.id}>
+                              {z.name || z.zoneName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Cuisines, Offers & Featured</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Cuisines (comma-separated)</label>
+                      <input type="text" value={detailsForm.cuisines || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, cuisines: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. North Indian, Fast Food, Chinese" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Offer / Promotion</label>
+                      <input type="text" value={detailsForm.offer || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, offer: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. 20% OFF up to ₹50" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Featured Dish Name</label>
+                      <input type="text" value={detailsForm.featuredDish || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, featuredDish: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. Special Paneer Butter Masala" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Featured Dish Price (₹)</label>
+                      <input type="number" value={detailsForm.featuredPrice ?? ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, featuredPrice: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. 250" />
+                    </div>
+
+                    {/* PAN Details */}
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">PAN Details</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">PAN Number</label>
+                      <input type="text" value={detailsForm.panNumber || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, panNumber: e.target.value.toUpperCase() }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm uppercase" placeholder="e.g. ABCDE1234F" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Name on PAN</label>
+                      <input type="text" value={detailsForm.nameOnPan || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, nameOnPan: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+
+                    {/* FSSAI Details */}
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">FSSAI Registration</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">FSSAI License / Reg Number</label>
+                      <input type="text" value={detailsForm.fssaiNumber || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, fssaiNumber: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" placeholder="e.g. 100123456789" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">FSSAI Expiry Date</label>
+                      <input type="date" value={detailsForm.fssaiExpiry || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, fssaiExpiry: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white" />
+                    </div>
+
+                    {/* GST Details */}
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-slate-800 uppercase tracking-wider">GST Details</p>
+                        <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={detailsForm.gstRegistered}
+                            onChange={(e) => setDetailsForm((prev) => ({ ...prev, gstRegistered: e.target.checked }))}
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600"
+                          />
+                          GST Registered
+                        </label>
+                      </div>
+                    </div>
+                    {detailsForm.gstRegistered && (
+                      <>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">GSTIN Number</label>
+                          <input type="text" value={detailsForm.gstNumber || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, gstNumber: e.target.value.toUpperCase() }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm uppercase" placeholder="e.g. 22AAAAA0000A1Z5" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">GST Legal Name</label>
+                          <input type="text" value={detailsForm.gstLegalName || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, gstLegalName: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs text-slate-500 mb-1">GST Address</label>
+                          <input type="text" value={detailsForm.gstAddress || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, gstAddress: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Bank Details */}
+                    <div className="md:col-span-2 pt-3 border-t border-slate-200/60 mt-2">
+                      <p className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Bank Account Details</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Account Number</label>
+                      <input type="text" value={detailsForm.accountNumber || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, accountNumber: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">IFSC Code</label>
+                      <input type="text" value={detailsForm.ifscCode || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, ifscCode: e.target.value.toUpperCase() }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm uppercase" placeholder="e.g. SBIN0002010" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Account Holder Name</label>
+                      <input type="text" value={detailsForm.accountHolderName || ""} onChange={(e) => setDetailsForm((prev) => ({ ...prev, accountHolderName: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Account Type</label>
+                      <select
+                        value={detailsForm.accountType || "Savings"}
+                        onChange={(e) => setDetailsForm((prev) => ({ ...prev, accountType: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+                      >
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2 flex items-center gap-3 pt-2">
                       <input
                         id="restaurant-status-active"
                         type="checkbox"

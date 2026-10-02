@@ -12,7 +12,17 @@ import { requestIdMiddleware } from './middleware/requestId.js';
 import { healthCheck } from './config/health.js';
 import { config } from './config/env.js';
 
+import path from 'path';
+import fs from 'fs';
+
 const app = express();
+
+// Serve uploads static folder
+const baseUploadDir = process.env.UPLOAD_DIR || process.env.UPLOAD_PATH || '/var/www/uploads';
+const uploadPath = path.resolve(process.platform === 'win32' && baseUploadDir.startsWith('/var/www/') ? 'C:' + baseUploadDir : baseUploadDir);
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+}
 
 // Trust first proxy (essential for express-rate-limit if behind a proxy)
 app.set('trust proxy', 1);
@@ -33,9 +43,13 @@ app.get('/ready', (_req, res) => {
     res.status(200).json({ status: 'ready' });
 });
 
+// Serve static upload images
+app.use('/uploads', express.static(uploadPath));
+
 // Security & parsing middlewares
 app.use(helmet({
-    contentSecurityPolicy: { directives: { defaultSrc: ["'self'"] } },
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
     hsts: config.nodeEnv === 'production' ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
     xssFilter: true,
     noSniff: true,
