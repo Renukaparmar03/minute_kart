@@ -178,7 +178,7 @@ const matchesCategoryText = (text, keywords) => {
 
 export default function Home() {
   const HERO_BANNER_AUTO_SLIDE_MS = 3500;
-  const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+  const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api(?:\/v\d+)?\/?$/i, "");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [heroSearch, setHeroSearch] = useState("");

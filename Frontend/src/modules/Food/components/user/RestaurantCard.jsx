@@ -14,10 +14,12 @@ const RestaurantImageCarousel = React.memo(({ restaurant, priority = false, back
     if (typeof url !== "string" || !url) return "";
     if (/^data:/i.test(url) || /^blob:/i.test(url)) return url;
 
-    const isRelative = !/^(https?:|\/\/|data:|blob:)/i.test(url.trim());
-    const resolvedUrl = (backendOrigin && isRelative)
-      ? `${backendOrigin.replace(/\/$/, "")}${url.startsWith("/") ? url : `/${url}`}`
-      : url;
+    const cleanUrl = url.trim().replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
+    const isRelative = !/^(https?:|\/\/|data:|blob:)/i.test(cleanUrl);
+    const cleanOrigin = backendOrigin ? backendOrigin.replace(/\/api(?:\/v\d+)?\/?$/i, "").replace(/\/$/, "") : "";
+    const resolvedUrl = (cleanOrigin && isRelative)
+      ? `${cleanOrigin}${cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`}`
+      : cleanUrl;
 
     const hasSignedParams =
       /[?&](X-Amz-|Signature=|Expires=|AWSAccessKeyId=|GoogleAccessId=|token=|sig=|se=|sp=|sv=)/i.test(resolvedUrl);

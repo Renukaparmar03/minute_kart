@@ -75,12 +75,14 @@ const PopularRestaurantSection = memo(({ popularRestaurants, backendOrigin = "" 
                          restaurant.profileImage || 
                          (restaurant.coverImages && restaurant.coverImages.length > 0 ? restaurant.coverImages[0]?.url || restaurant.coverImages[0] : "") || 
                          "";
-          const restaurantImage = typeof rawImg === "string" && rawImg.trim()
-            ? (/^(https?:|\/\/|data:|blob:)/i.test(rawImg.trim())
-                ? rawImg.trim()
-                : backendOrigin
-                  ? `${backendOrigin.replace(/\/$/, "")}${rawImg.trim().startsWith("/") ? rawImg.trim() : `/${rawImg.trim()}`}`
-                  : rawImg.trim())
+          const cleanRaw = typeof rawImg === "string" ? rawImg.trim().replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/") : "";
+          const cleanOrigin = backendOrigin ? backendOrigin.replace(/\/api(?:\/v\d+)?\/?$/i, "").replace(/\/$/, "") : "";
+          const restaurantImage = cleanRaw
+            ? (/^(https?:|\/\/|data:|blob:)/i.test(cleanRaw)
+                ? cleanRaw
+                : cleanOrigin
+                  ? `${cleanOrigin}${cleanRaw.startsWith("/") ? cleanRaw : `/${cleanRaw}`}`
+                  : cleanRaw)
             : "";
  
           return (

@@ -44,10 +44,12 @@ const CategoryRail = memo(({
 
   const resolveCatImage = (raw) => {
     if (!raw) return "";
-    if (/^(https?:|\/\/|data:|blob:)/i.test(raw.trim())) return raw;
-    return backendOrigin
-      ? `${backendOrigin.replace(/\/$/, "")}${raw.startsWith("/") ? raw : `/${raw}`}`
-      : raw;
+    const cleanRaw = raw.trim().replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
+    if (/^(https?:|\/\/|data:|blob:)/i.test(cleanRaw)) return cleanRaw;
+    const cleanOrigin = backendOrigin ? backendOrigin.replace(/\/api(?:\/v\d+)?\/?$/i, "").replace(/\/$/, "") : "";
+    return cleanOrigin
+      ? `${cleanOrigin}${cleanRaw.startsWith("/") ? cleanRaw : `/${cleanRaw}`}`
+      : cleanRaw;
   };
 
   const allIconToUse = dbAllCategory?.image ? resolveCatImage(dbAllCategory.image) : allIcon;

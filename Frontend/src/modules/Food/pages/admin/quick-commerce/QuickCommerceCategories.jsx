@@ -1,12 +1,13 @@
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000"
-const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api(\/v1)?\/?$/, "")
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api(?:\/v\d+)?\/?$/i, "")
 
 const formatImageUrl = (url) => {
   if (!url || typeof url !== "string") return ""
-  if (url.startsWith("data:") || url.startsWith("blob:") || url.startsWith("http://") || url.startsWith("https://")) {
-    return url
+  const cleanUrl = url.trim().replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/")
+  if (cleanUrl.startsWith("data:") || cleanUrl.startsWith("blob:") || cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+    return cleanUrl
   }
-  const cleanPath = url.startsWith("/") ? url : `/${url}`
+  const cleanPath = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`
   return `${BACKEND_ORIGIN}${cleanPath}`
 }
 

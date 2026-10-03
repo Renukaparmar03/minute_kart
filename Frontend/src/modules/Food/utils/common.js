@@ -10,21 +10,29 @@ export const normalizeImageUrl = (imageUrl, backendOrigin = "") => {
   const trimmed = imageUrl.trim();
   if (!trimmed || /^data:/i.test(trimmed) || /^blob:/i.test(trimmed)) return trimmed;
 
+  const cleanOrigin = (backendOrigin || "")
+    .replace(/\/api(?:\/v\d+)?\/?$/i, "")
+    .replace(/\/$/, "");
+
   const appProtocol = typeof window !== "undefined" ? window.location?.protocol : "";
   const appHost = typeof window !== "undefined" ? window.location?.hostname : "";
 
   let normalized = trimmed
     .replace(/\\/g, "/")
     .replace(/^(https?):\/(?!\/)/i, "$1://")
-    .replace(/^(https?:\/\/)(https?:\/\/)/i, "$1");
+    .replace(/^(https?:\/\/)(https?:\/\/)/i, "$1")
+    .replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
 
   if (/^\/\//.test(normalized)) normalized = `${appProtocol || "https:"}${normalized}`;
 
   if (/^(https?:)?\/\//i.test(normalized)) {
     try {
       const parsed = new URL(normalized, window.location.origin);
+      if (parsed.pathname.includes("/api/")) {
+        parsed.pathname = parsed.pathname.replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
+      }
       if (appHost && !/^(localhost|127\.0\.0\.1)$/i.test(appHost) && /^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname)) {
-        const backendUrl = new URL(backendOrigin || window.location.origin);
+        const backendUrl = new URL(cleanOrigin || window.location.origin);
         parsed.protocol = backendUrl.protocol;
         parsed.hostname = backendUrl.hostname;
         parsed.port = backendUrl.port;
@@ -39,8 +47,8 @@ export const normalizeImageUrl = (imageUrl, backendOrigin = "") => {
   }
 
   const absolutePath = normalized.startsWith("/")
-    ? `${backendOrigin}${normalized}`
-    : `${backendOrigin}/${normalized.replace(/^\.?\/*/, "")}`;
+    ? `${cleanOrigin}${normalized}`
+    : `${cleanOrigin}/${normalized.replace(/^\.?\/*/, "")}`;
   return absolutePath;
 };
 

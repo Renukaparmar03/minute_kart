@@ -8,13 +8,18 @@ export const normalizeImageUrl = (imageUrl, BACKEND_ORIGIN) => {
     return trimmed;
   }
   
+  const cleanOrigin = (BACKEND_ORIGIN || "")
+    .replace(/\/api(?:\/v\d+)?\/?$/i, "")
+    .replace(/\/$/, "");
+
   const appProtocol = typeof window !== "undefined" ? window.location?.protocol : "";
   const appHost = typeof window !== "undefined" ? window.location?.hostname : "";
   
   let normalizedInput = trimmed
     .replace(/\\/g, "/")
     .replace(/^(https?):\/(?!\/)/i, "$1://")
-    .replace(/^(https?:\/\/)(https?:\/\/)/i, "$1");
+    .replace(/^(https?:\/\/)(https?:\/\/)/i, "$1")
+    .replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
 
   if (/^\/\//.test(normalizedInput)) {
     normalizedInput = `${appProtocol || "https:"}${normalizedInput}`;
@@ -23,6 +28,9 @@ export const normalizeImageUrl = (imageUrl, BACKEND_ORIGIN) => {
   if (/^(https?:)?\/\//i.test(normalizedInput)) {
     try {
       const parsed = new URL(normalizedInput, window.location.origin);
+      if (parsed.pathname.includes("/api/")) {
+        parsed.pathname = parsed.pathname.replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
+      }
       if (
         appHost &&
         appHost !== "localhost" &&
@@ -30,7 +38,7 @@ export const normalizeImageUrl = (imageUrl, BACKEND_ORIGIN) => {
         /^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname)
       ) {
         try {
-          const backendUrl = new URL(BACKEND_ORIGIN);
+          const backendUrl = new URL(cleanOrigin || window.location.origin);
           parsed.protocol = backendUrl.protocol;
           parsed.hostname = backendUrl.hostname;
           parsed.port = backendUrl.port;
@@ -54,8 +62,8 @@ export const normalizeImageUrl = (imageUrl, BACKEND_ORIGIN) => {
   }
 
   const absolutePath = normalizedInput.startsWith("/")
-    ? `${BACKEND_ORIGIN}${normalizedInput}`
-    : `${BACKEND_ORIGIN}/${normalizedInput.replace(/^\.?\/*/, "")}`;
+    ? `${cleanOrigin}${normalizedInput}`
+    : `${cleanOrigin}/${normalizedInput.replace(/^\.?\/*/, "")}`;
 
   try {
     const parsed = new URL(absolutePath, window.location.origin);

@@ -47,11 +47,11 @@ export const config = {
     requestBodyLimit: process.env.REQUEST_BODY_LIMIT || '50mb',
 
     // Redis
-    redisEnabled: process.env.REDIS_ENABLED === 'true',
+    redisEnabled: /^true/i.test(String(process.env.REDIS_ENABLED || '').trim()),
     redisUrl: process.env.REDIS_URL,
 
     // BullMQ
-    bullmqEnabled: process.env.BULLMQ_ENABLED === 'true',
+    bullmqEnabled: /^true/i.test(String(process.env.BULLMQ_ENABLED || '').trim()),
 
     // Cloudinary
     cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
