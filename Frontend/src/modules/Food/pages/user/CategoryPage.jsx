@@ -595,11 +595,11 @@ export default function CategoryPage() {
 
           // Transform API categories to match expected format
           const transformedCategories = [
-            { id: 'all', name: dbAllCategory?.name || "All", image: dbAllCategory?.image ? normalizeImageUrl(dbAllCategory.image) : null, slug: 'all' },
+            { id: 'all', name: dbAllCategory?.name || "All", image: dbAllCategory?.image || null, slug: 'all' },
             ...filteredCategoriesArray.map((cat) => ({
               id: cat.slug || cat.id,
               name: cat.name,
-              image: normalizeImageUrl(cat.image) || (typeof cat.image === 'string' ? cat.image : foodImages[0]),
+              image: cat.image || foodImages[0],
               slug: cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-'),
               type: cat.type,
             }))
