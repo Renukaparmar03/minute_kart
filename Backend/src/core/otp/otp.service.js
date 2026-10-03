@@ -40,9 +40,13 @@ const sendSmsViaIndiaHub = async (phone, otp) => {
         const digits = String(phone || '').replace(/\D/g, '');
         const msisdn = digits.startsWith('91') ? digits : `91${digits}`;
 
-        // EXACT DLT TEMPLATE provided by user:
-        // "Welcome to the ##var## powered by SMSINDIAHUB. Your OTP for registration is ##var##"
-        const message = `Welcome to the Minutekart powered by SMSINDIAHUB. Your OTP for registration is ${otp}`;
+        // EXACT TRAI DLT TEMPLATE registered with SMS India Hub:
+        // "Welcome to ##var##, powered by ##var##. Your OTP for registration ##var##. This OTP is valid for 10 minutes. Please do not share it with anyone.BGADPL"
+        const appName = process.env.APP_NAME || 'Minutekart';
+        const providerName = process.env.SMS_PROVIDER_NAME || 'SMSINDIAHUB';
+        const message = process.env.SMS_MESSAGE_TEMPLATE
+            ? process.env.SMS_MESSAGE_TEMPLATE.replace(/##otp##|\$\{otp\}/g, otp)
+            : `Welcome to ${appName}, powered by ${providerName}. Your OTP for registration is ${otp}. This OTP is valid for 10 minutes. Please do not share it with anyone.BGADPL`;
 
         // SMS India Hub HTTP GET API — query param names are case-sensitive per SOP
         const url = new URL('http://cloud.smsindiahub.in/vendorsms/pushsms.aspx');
