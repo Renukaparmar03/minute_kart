@@ -21,7 +21,7 @@ export const validateConfig = () => {
         missing.push('REDIS_URL (required when REDIS_ENABLED=true)');
     }
     if (config.bullmqEnabled && !config.redisEnabled) {
-        missing.push('REDIS_ENABLED=true (required when BULLMQ_ENABLED=true)');
+        logger.warn('REDIS_ENABLED is false while BULLMQ_ENABLED is true. BullMQ queues will be disabled.');
     }
 
     if (missing.length > 0) {
