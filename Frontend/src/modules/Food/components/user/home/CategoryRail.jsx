@@ -4,7 +4,6 @@ import { ArrowDownUp, Utensils } from "lucide-react";
 import { CategoryChipRowSkeleton } from "@food/components/ui/loading-skeletons";
 import OptimizedImage from "@food/components/OptimizedImage";
 import { FOOD_VEG_COLOR } from "@food/constants/theme";
-import { foodImages } from "@food/constants/images";
 import allIcon from "@/assets/c0a633fa42582f2a3752d4341dcfa5a2-removebg-preview.png";
 
 const CategoryRail = memo(({ 
@@ -43,7 +42,15 @@ const CategoryRail = memo(({
     (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
   ) || [];
 
-  const allIconToUse = dbAllCategory?.image || allIcon;
+  const resolveCatImage = (raw) => {
+    if (!raw) return "";
+    if (/^(https?:|\/\/|data:|blob:)/i.test(raw.trim())) return raw;
+    return backendOrigin
+      ? `${backendOrigin.replace(/\/$/, "")}${raw.startsWith("/") ? raw : `/${raw}`}`
+      : raw;
+  };
+
+  const allIconToUse = dbAllCategory?.image ? resolveCatImage(dbAllCategory.image) : allIcon;
   const allNameToUse = dbAllCategory?.name || "All";
 
   return (
@@ -195,8 +202,7 @@ const CategoryRail = memo(({
         {!showCategorySkeleton && filteredCategories.map((category, index) => {
           const categorySlug = category.slug || category.name.toLowerCase().replace(/\s+/g, "-");
           const isSelected = selectedCategory === categorySlug;
-          const fallbackImg = foodImages[index % foodImages.length];
-          const imgSrc = category.image || fallbackImg;
+          const categoryImg = resolveCatImage(category.image);
           return (
             <button
               key={category.id || index}
@@ -208,16 +214,22 @@ const CategoryRail = memo(({
               }`}
             >
               <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover:scale-110 flex items-center justify-center">
-                <img
-                  src={imgSrc}
-                  alt={category.name}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    if (e.target.src !== fallbackImg) {
-                      e.target.src = fallbackImg;
-                    }
-                  }}
-                />
+                {categoryImg ? (
+                  <img
+                    src={categoryImg}
+                    alt={category.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                      {String(category.name || "?").trim().slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <span className={`text-xs font-semibold truncate w-full text-center transition-colors ${
                 isSelected ? "text-[#DC021B] dark:text-[#DC021B]" : "text-gray-600 dark:text-gray-300"

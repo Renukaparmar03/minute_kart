@@ -199,7 +199,7 @@ export const useFoodHomeData = ({
             id: String(cat?.id || cat?._id || cat?.slug || idx),
             name: cat?.name || "",
             slug: cat?.slug || String(cat?.name || "").toLowerCase().replace(/\s+/g, "-"),
-            image: normalizeImageUrl(cat?.image || cat?.imageUrl) || foodImages[idx % foodImages.length],
+            image: normalizeImageUrl(cat?.image || cat?.imageUrl),
           }));
         })(),
         publicGetOnce("/food/explore-icons/public"),
@@ -484,14 +484,14 @@ export const useFoodHomeData = ({
   const displayCategories = useMemo(() => {
     if (realCategories.length > 0) return realCategories;
     if (menuCategories.length > 0) {
-      return menuCategories.map((cat, idx) => ({
+      return menuCategories.map((cat) => ({
         ...cat,
-        image: cat.image ? normalizeImageUrl(cat.image) : foodImages[idx % foodImages.length],
+        image: cat.image ? normalizeImageUrl(cat.image) : "",
       }));
     }
-    return (landingCategories || []).map((cat, idx) => ({
+    return (landingCategories || []).map((cat) => ({
       ...cat,
-      image: cat.image ? normalizeImageUrl(cat.image) : foodImages[idx % foodImages.length],
+      image: cat.image ? normalizeImageUrl(cat.image) : "",
     }));
   }, [realCategories, menuCategories, landingCategories, normalizeImageUrl]);
 
