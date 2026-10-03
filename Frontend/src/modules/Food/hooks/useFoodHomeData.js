@@ -195,12 +195,17 @@ export const useFoodHomeData = ({
         (async () => {
           const res = await adminAPI.getPublicCategories(zoneId ? { zoneId } : {});
           const list = res?.data?.data?.categories || res?.data?.categories || [];
-          return list.map((cat, idx) => ({
-            id: String(cat?.id || cat?._id || cat?.slug || idx),
-            name: cat?.name || "",
-            slug: cat?.slug || String(cat?.name || "").toLowerCase().replace(/\s+/g, "-"),
-            image: normalizeImageUrl(cat?.image || cat?.imageUrl) || foodImages[idx % foodImages.length],
-          }));
+          return list.map((cat, idx) => {
+            const extractedImage = imgUtils.extractImageFromValue(cat?.image || cat?.imageUrl || cat, backendOrigin) 
+              || (typeof cat?.image === 'string' && cat.image.trim() ? cat.image.trim() : null);
+            return {
+              id: String(cat?.slug || cat?.id || cat?._id || idx),
+              name: cat?.name || "",
+              slug: cat?.slug || String(cat?.name || "").toLowerCase().replace(/\s+/g, "-"),
+              image: extractedImage || foodImages[idx % foodImages.length],
+              type: cat?.type,
+            };
+          });
         })(),
         publicGetOnce("/food/explore-icons/public"),
         publicGetOnce("/food/landing/settings/public"),
