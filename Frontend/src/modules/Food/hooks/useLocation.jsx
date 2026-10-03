@@ -365,7 +365,7 @@ export function useLocation() {
       debugLog("📍 Trying Primary API for:", latitude, longitude);
       // Timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Primary API timeout")), 10000)
+        setTimeout(() => reject(new Error("Primary API timeout")), 2500)
       );
       const apiPromise = locationAPI.reverseGeocode(latitude, longitude);
       const res = await Promise.race([apiPromise, timeoutPromise]);
@@ -664,7 +664,7 @@ export function useLocation() {
               setError(null)
 
               if (updateDB) {
-                await updateLocationInDB(finalLoc).catch(err => {
+                updateLocationInDB(finalLoc).catch(err => {
                   debugWarn("Failed to update location in DB:", err)
                 })
               }
@@ -696,7 +696,7 @@ export function useLocation() {
                   setPermissionGranted(true)
                   if (showLoading) setLoading(false)
                   setError(null)
-                  if (updateDB) await updateLocationInDB(lastResortLoc).catch(() => { })
+                  if (updateDB) updateLocationInDB(lastResortLoc).catch(() => { })
                   resolve(lastResortLoc)
                   return
                 } else {
@@ -808,9 +808,9 @@ export function useLocation() {
     // If forceFresh is true, don't use cached location (maximumAge: 0)
     // Otherwise, allow cached location for faster response
     return getPositionWithRetry({
-      enableHighAccuracy: true,  // Use GPS for exact location (highest accuracy)
-      timeout: 15000,            // 15 seconds timeout (gives GPS more time to get accurate fix)
-      maximumAge: forceFresh ? 0 : 60000  // If forceFresh, get fresh location. Otherwise allow 1 minute cache
+      enableHighAccuracy: true,  // Use GPS for exact location
+      timeout: 6000,             // 6 seconds timeout (fast GPS response)
+      maximumAge: forceFresh ? 5000 : 60000  // Allow 5s recent cache to prevent hardware lock delay
     })
   }
 

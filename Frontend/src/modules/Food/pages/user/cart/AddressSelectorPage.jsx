@@ -370,10 +370,9 @@ export default function AddressSelectorPage() {
           toast.success("Location updated", { id: "geo" })
           // Don't redirect if they are explicitly in the "Add Address" form
         } else {
+          toast.success("Location updated", { id: "geo" })
           const from = routerLocation.state?.from || "/food/user"
-          setTimeout(() => {
-            navigate(from, { replace: true })
-          }, 500)
+          navigate(from, { replace: true })
         }
       } else {
         toast.error("Could not determine location", { id: "geo" })
