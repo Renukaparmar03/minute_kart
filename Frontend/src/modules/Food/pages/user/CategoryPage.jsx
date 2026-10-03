@@ -577,7 +577,7 @@ export default function CategoryPage() {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true)
-        const response = await adminAPI.getPublicCategories(zoneId ? { zoneId } : {})
+        const response = await adminAPI.getPublicCategories({ limit: 10, ...(zoneId ? { zoneId } : {}) })
 
         if (isCancelled) return;
 
