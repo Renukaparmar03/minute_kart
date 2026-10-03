@@ -15,7 +15,10 @@ export const createRedisClient = () => {
     }
 
     const client = createClient({
-        url: config.redisUrl
+        url: config.redisUrl,
+        socket: {
+            reconnectStrategy: (retries) => Math.min(retries * 200, 5000)
+        }
     });
 
     client.on('error', (err) => logger.error(`Redis Client Error: ${err.message}`));

@@ -5,7 +5,7 @@ import { Trophy } from "lucide-react";
 import { getRestaurantAvailabilityStatus } from "@food/utils/restaurantAvailability";
 import OptimizedImage from "@food/components/OptimizedImage";
 
-const PopularRestaurantSection = memo(({ popularRestaurants }) => {
+const PopularRestaurantSection = memo(({ popularRestaurants, backendOrigin = "" }) => {
   if (!popularRestaurants || popularRestaurants.length === 0) return null;
 
   return (
@@ -70,10 +70,18 @@ const PopularRestaurantSection = memo(({ popularRestaurants }) => {
           const deliveryTime = restaurant.deliveryTime || restaurant.estimatedDeliveryTime || "15-20 mins";
  
           // Restaurant image
-          const restaurantImage = restaurant.image ||
-                                  restaurant.profileImage || 
-                                  (restaurant.coverImages && restaurant.coverImages.length > 0 ? restaurant.coverImages[0]?.url || restaurant.coverImages[0] : "") || 
-                                  "";
+          const rawImg = restaurant.image ||
+                         restaurant.profileImage?.url || 
+                         restaurant.profileImage || 
+                         (restaurant.coverImages && restaurant.coverImages.length > 0 ? restaurant.coverImages[0]?.url || restaurant.coverImages[0] : "") || 
+                         "";
+          const restaurantImage = typeof rawImg === "string" && rawImg.trim()
+            ? (/^(https?:|\/\/|data:|blob:)/i.test(rawImg.trim())
+                ? rawImg.trim()
+                : backendOrigin
+                  ? `${backendOrigin.replace(/\/$/, "")}${rawImg.trim().startsWith("/") ? rawImg.trim() : `/${rawImg.trim()}`}`
+                  : rawImg.trim())
+            : "";
  
           return (
             <motion.div
@@ -92,10 +100,13 @@ const PopularRestaurantSection = memo(({ popularRestaurants }) => {
                 <div className={`w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full p-[2.5px] bg-gradient-to-b from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-700 shadow-sm transition-transform duration-300 group-hover:scale-105 group-active:scale-95 overflow-hidden ${isOffline ? "grayscale opacity-75" : ""}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-neutral-900 border border-gray-200/50 dark:border-neutral-800 flex items-center justify-center">
                     {restaurantImage ? (
-                      <OptimizedImage
+                      <img
                         src={restaurantImage}
                         alt={restaurant.restaurantName || restaurant.name}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full rounded-full bg-gradient-to-br from-red-400 to-rose-600 flex items-center justify-center text-white font-bold text-lg">

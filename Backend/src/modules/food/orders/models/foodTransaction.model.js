@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const foodTransactionSchema = new mongoose.Schema({
     // Identifiers
-    orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'FoodOrder', required: true, unique: true, index: true },
+    orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'FoodOrder', required: true, unique: true },
     orderType: {
         type: String,
         enum: ['food', 'quick', 'mixed'],

@@ -883,7 +883,7 @@ export default function Home() {
             </section>
 
             <Suspense fallback={null}>
-              <PopularRestaurantSection popularRestaurants={meta.popular} />
+              <PopularRestaurantSection popularRestaurants={meta.popular} backendOrigin={BACKEND_ORIGIN} />
             </Suspense>
 
             <Suspense fallback={null}>

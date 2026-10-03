@@ -501,57 +501,64 @@ export const useFoodHomeData = ({
       .map(r => fetchedByMongoId.get(String(r._id || r.restaurantId)))
       .filter(Boolean);
 
+    if (list.length === 0) {
+      list = [...restaurantsData];
+    }
+
     if (vegMode === "pure") {
       list = list.filter(r => r.pureVegRestaurant);
     }
     
-    // Compute offline status but DO NOT filter out offline restaurants
     list = list.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
+      const rawImg = r.image || r.profileImage?.url || r.profileImage || (Array.isArray(r.images) ? r.images[0] : "") || "";
       return { 
         ...r, 
+        image: rawImg ? normalizeImageUrl(rawImg) : "",
         isOffline: !status.isOpen,
         openingTime: status.openingTime,
         closingTime: status.closingTime
       };
     });
     
-    // Sort to push offline restaurants to the bottom
     list.sort((a, b) => {
       if (a.isOffline && !b.isOffline) return 1;
       if (!a.isOffline && b.isOffline) return -1;
-      return 0;
+      return (b.rating || 0) - (a.rating || 0);
     });
     
     return list.slice(0, 12);
-  }, [restaurantsData, recommendedRestaurantsFromSettings, vegMode, availabilityTick]);
+  }, [restaurantsData, recommendedRestaurantsFromSettings, vegMode, availabilityTick, normalizeImageUrl]);
 
   const popularForYouRestaurants = useMemo(() => {
-    let list = popularRestaurantsFromSettings;
+    let list = popularRestaurantsFromSettings.length > 0
+      ? popularRestaurantsFromSettings
+      : restaurantsData;
+
     if (vegMode === "pure") {
       list = list.filter(r => r.pureVegRestaurant);
     }
     
-    // Compute offline status but DO NOT filter out offline restaurants
     list = list.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
+      const rawImg = r.image || r.profileImage?.url || r.profileImage || (Array.isArray(r.images) ? r.images[0] : "") || "";
       return { 
         ...r, 
+        image: rawImg ? normalizeImageUrl(rawImg) : "",
         isOffline: !status.isOpen,
         openingTime: status.openingTime,
         closingTime: status.closingTime
       };
     });
     
-    // Sort to push offline restaurants to the bottom
     list.sort((a, b) => {
       if (a.isOffline && !b.isOffline) return 1;
       if (!a.isOffline && b.isOffline) return -1;
-      return 0;
+      return (b.rating || 0) - (a.rating || 0);
     });
     
-    return list.slice(0, 12);
-  }, [popularRestaurantsFromSettings, vegMode, availabilityTick]);
+    return list.slice(0, 10);
+  }, [popularRestaurantsFromSettings, restaurantsData, vegMode, availabilityTick, normalizeImageUrl]);
 
   // --- Actions ---
   const toggleFilter = useCallback((filterId) => {

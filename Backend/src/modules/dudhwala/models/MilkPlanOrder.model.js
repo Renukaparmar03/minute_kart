@@ -32,7 +32,7 @@ const milkPlanOrderSchema = new mongoose.Schema({
   payment: {
     amount: { type: Number, required: true },
     razorpayOrderId: { type: String },
-    razorpayPaymentId: { type: String, unique: true, sparse: true },
+    razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
     status: { 
       type: String, 
