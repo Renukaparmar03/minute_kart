@@ -42,7 +42,7 @@ export const config = {
     bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS || 10),
 
     // Uploads
-    uploadPath: process.env.UPLOAD_PATH || 'uploads/',
+    uploadPath: process.env.UPLOAD_DIR || process.env.UPLOAD_PATH || '/var/www/uploads',
     requestBodyLimit: process.env.REQUEST_BODY_LIMIT || '50mb',
 
     // Redis
