@@ -7,7 +7,7 @@ import BottomNav from './BottomNav';
 import { sellerApi } from '@/modules/seller/services/sellerApi';
 import { useAuth } from '@/core/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BellRing, Check, X, Clock, Volume2, VolumeX } from 'lucide-react';
+import { BellRing, Check, X, Clock, Volume2, VolumeX, Package, ShoppingBag, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import SellerOrdersContext from '@/modules/seller/context/SellerOrdersContext';
@@ -37,6 +37,17 @@ const resolveSellerReceivable = (order) => {
 
     const fallback = Number(order?.total ?? order?.pricing?.total);
     return Number.isFinite(fallback) ? fallback : 0;
+};
+
+const resolveItemImage = (item) => {
+    const raw = item?.image || item?.imageUrl || item?.mainImage || item?.product?.mainImage || item?.productImage || item?.pic || item?.thumbnail || "";
+    if (!raw) return "";
+    const str = String(raw).trim();
+    if (!str) return "";
+    if (/^(https?:|\/\/|data:|blob:)/i.test(str)) return str;
+    const cleanRaw = str.replace(/\/api(?:\/v\d+)?\/uploads\//i, "/uploads/");
+    const base = (import.meta.env?.VITE_API_BASE_URL || "").replace(/\/api(?:\/v\d+)?\/?$/i, "").replace(/\/$/, "");
+    return base ? `${base}${cleanRaw.startsWith('/') ? cleanRaw : `/${cleanRaw}`}` : cleanRaw;
 };
 
 /** Match server `sellerPendingExpiresAt` — never reset to a full 60s when the modal opens late. */
@@ -450,33 +461,33 @@ const DashboardLayout = ({ children, navItems, title }) => {
             {/* Global Order Alert Modal */}
             <AnimatePresence>
                 {newOrderAlert && (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 relative"
+                            className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-slate-100 relative max-h-[90vh] flex flex-col"
                         >
                             <button
                                 onClick={toggleMute}
-                                className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                                className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600 z-10"
                                 aria-label={isMuted ? "Unmute sound" : "Mute sound"}
                             >
-                                {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+                                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                             </button>
 
-                            <div className="flex flex-col items-center text-center">
-                                <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                                    <BellRing className="h-10 w-10 text-primary" />
+                            <div className="flex flex-col items-center text-center overflow-y-auto custom-scrollbar">
+                                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-3 animate-bounce shrink-0">
+                                    <BellRing className="h-8 w-8 text-primary" />
                                 </div>
 
-                                <h2 className="text-2xl font-black text-slate-900 mb-2">New Order Received!</h2>
-                                <p className="text-slate-600 font-medium mb-6">
-                                    You have a new order <span className="text-primary font-bold">#{newOrderAlert.orderId}</span> for <span className="text-slate-900 font-bold">Rs {resolveSellerReceivable(newOrderAlert).toFixed(2)}</span>
+                                <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-1">New Order Received!</h2>
+                                <p className="text-slate-600 text-sm font-medium mb-3">
+                                    Order <span className="text-primary font-bold">#{newOrderAlert.orderId}</span> • <span className="text-slate-900 font-bold">Rs {resolveSellerReceivable(newOrderAlert).toFixed(2)}</span>
                                 </p>
 
                                 {/* Timer Bar — width from real server deadline */}
-                                <div className="w-full bg-slate-100 h-2 rounded-full mb-8 overflow-hidden">
+                                <div className="w-full bg-slate-100 h-2 rounded-full mb-3 overflow-hidden shrink-0">
                                     <div
                                         className={cn(
                                             "h-full transition-[width] duration-1000 ease-linear",
@@ -488,26 +499,106 @@ const DashboardLayout = ({ children, navItems, title }) => {
                                     />
                                 </div>
 
-                                <div className="flex items-center gap-4 text-sm font-bold mb-8">
+                                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold mb-4 shrink-0">
                                     <Clock className={cn("h-4 w-4", timeLeft < 15 ? "text-rose-500 animate-pulse" : "text-slate-600")} />
                                     <span className={timeLeft < 15 ? "text-rose-500" : "text-slate-600"}>
                                         Accept within {timeLeft} {timeLeft === 1 ? "second" : "seconds"}
                                     </span>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 w-full">
+                                {/* Items Breakdown */}
+                                {(() => {
+                                    const items = Array.isArray(newOrderAlert?.items)
+                                        ? newOrderAlert.items
+                                        : (Array.isArray(newOrderAlert?.products) ? newOrderAlert.products : []);
+                                    return (
+                                        <div className="w-full text-left bg-slate-50/80 rounded-2xl p-3 border border-slate-100 mb-4">
+                                            <div className="flex items-center justify-between mb-2 px-1">
+                                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <ShoppingBag className="w-3.5 h-3.5 text-primary" />
+                                                    Ordered Items ({items.length})
+                                                </span>
+                                            </div>
+
+                                            <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                                {items.length > 0 ? (
+                                                    items.map((item, idx) => {
+                                                        const name = item?.name || item?.title || item?.productName || item?.item?.name || item?.product?.name || "Item";
+                                                        const qty = Number(item?.quantity || item?.qty || item?.count || 1);
+                                                        const price = Number(item?.price || item?.finalPrice || item?.unitPrice || item?.product?.price || 0);
+                                                        const variant = item?.variant || item?.variantName || item?.unit || item?.product?.unit || item?.selectedVariant?.name || "";
+                                                        const imgSrc = resolveItemImage(item);
+
+                                                        return (
+                                                            <div key={idx} className="flex items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                                    {imgSrc ? (
+                                                                        <img
+                                                                            src={imgSrc}
+                                                                            alt={name}
+                                                                            className="w-10 h-10 rounded-lg object-contain bg-slate-50 border border-slate-100 shrink-0"
+                                                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center text-slate-400">
+                                                                            <Package className="w-5 h-5" />
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 leading-snug">
+                                                                            {name}
+                                                                        </p>
+                                                                        {variant && (
+                                                                            <p className="text-[11px] font-medium text-slate-500 leading-tight">
+                                                                                {variant}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2 shrink-0 text-right">
+                                                                    <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-md">
+                                                                        {qty}x
+                                                                    </span>
+                                                                    {price > 0 && (
+                                                                        <span className="text-xs font-bold text-slate-900">
+                                                                            ₹{(price * qty).toFixed(2)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <p className="text-xs text-slate-400 text-center py-2">No items listed</p>
+                                                )}
+                                            </div>
+
+                                            {(newOrderAlert?.note || newOrderAlert?.customerNote || newOrderAlert?.instructions) && (
+                                                <div className="mt-2.5 pt-2 border-t border-slate-200/60 text-xs text-amber-700 bg-amber-50/80 p-2 rounded-lg flex items-start gap-1.5">
+                                                    <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                                    <span className="font-medium">
+                                                        Note: {newOrderAlert.note || newOrderAlert.customerNote || newOrderAlert.instructions}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
+                                <div className="grid grid-cols-2 gap-3 w-full shrink-0">
                                     <button
                                         onClick={() => handleDeclineOrder(newOrderAlert.orderId)}
-                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+                                        className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors text-sm"
                                     >
-                                        <X className="h-5 w-5" />
+                                        <X className="h-4 w-4" />
                                         Decline
                                     </button>
                                     <button
                                         onClick={() => handleAcceptOrder(newOrderAlert.orderId)}
-                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95"
+                                        className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 text-sm"
                                     >
-                                        <Check className="h-5 w-5" />
+                                        <Check className="h-4 w-4" />
                                         Accept
                                     </button>
                                 </div>
