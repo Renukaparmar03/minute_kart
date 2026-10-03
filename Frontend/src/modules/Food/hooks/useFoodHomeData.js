@@ -483,10 +483,15 @@ export const useFoodHomeData = ({
 
   const displayCategories = useMemo(() => {
     if (realCategories.length > 0) return realCategories;
-    if (menuCategories.length > 0) return menuCategories;
+    if (menuCategories.length > 0) {
+      return menuCategories.map((cat, idx) => ({
+        ...cat,
+        image: cat.image ? normalizeImageUrl(cat.image) : foodImages[idx % foodImages.length],
+      }));
+    }
     return (landingCategories || []).map((cat, idx) => ({
       ...cat,
-      image: normalizeImageUrl(cat.image) || foodImages[idx % foodImages.length],
+      image: cat.image ? normalizeImageUrl(cat.image) : foodImages[idx % foodImages.length],
     }));
   }, [realCategories, menuCategories, landingCategories, normalizeImageUrl]);
 

@@ -4,6 +4,7 @@ import { ArrowDownUp, Utensils } from "lucide-react";
 import { CategoryChipRowSkeleton } from "@food/components/ui/loading-skeletons";
 import OptimizedImage from "@food/components/OptimizedImage";
 import { FOOD_VEG_COLOR } from "@food/constants/theme";
+import { foodImages } from "@food/constants/images";
 import allIcon from "@/assets/c0a633fa42582f2a3752d4341dcfa5a2-removebg-preview.png";
 
 const CategoryRail = memo(({ 
@@ -194,6 +195,8 @@ const CategoryRail = memo(({
         {!showCategorySkeleton && filteredCategories.map((category, index) => {
           const categorySlug = category.slug || category.name.toLowerCase().replace(/\s+/g, "-");
           const isSelected = selectedCategory === categorySlug;
+          const fallbackImg = foodImages[index % foodImages.length];
+          const imgSrc = category.image || fallbackImg;
           return (
             <button
               key={category.id || index}
@@ -205,11 +208,15 @@ const CategoryRail = memo(({
               }`}
             >
               <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover:scale-110 flex items-center justify-center">
-                <OptimizedImage
-                  src={category.image}
+                <img
+                  src={imgSrc}
                   alt={category.name}
                   className="w-full h-full object-contain"
-                  backendOrigin={backendOrigin}
+                  onError={(e) => {
+                    if (e.target.src !== fallbackImg) {
+                      e.target.src = fallbackImg;
+                    }
+                  }}
                 />
               </div>
               <span className={`text-xs font-semibold truncate w-full text-center transition-colors ${
