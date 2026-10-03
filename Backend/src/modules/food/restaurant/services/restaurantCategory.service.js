@@ -206,7 +206,7 @@ export async function listPublicCategories(query = {}) {
     }
     applyZoneVisibilityFilter(filter.$and, zoneIdRaw);
 
-    const [list, total] = await Promise.all([
+    let [list, total] = await Promise.all([
         FoodCategory.find(filter)
             .sort({ sortOrder: 1, createdAt: -1 })
             .skip(skip)
@@ -215,6 +215,30 @@ export async function listPublicCategories(query = {}) {
             .lean(),
         FoodCategory.countDocuments(filter)
     ]);
+
+    if (!list || list.length === 0) {
+        try {
+            const QuickCategory = mongoose.model('quick_category');
+            const qFilter = { isActive: { $ne: false } };
+            if (search) {
+                const term = escapeRegex(search.slice(0, 80));
+                qFilter.name = { $regex: term, $options: 'i' };
+            }
+            const [qList, qTotal] = await Promise.all([
+                QuickCategory.find(qFilter)
+                    .sort({ sortOrder: 1, createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .select('name slug image type sortOrder createdAt updatedAt')
+                    .lean(),
+                QuickCategory.countDocuments(qFilter)
+            ]);
+            list = qList;
+            total = qTotal;
+        } catch (e) {
+            // Ignore if quick_category model is not registered yet
+        }
+    }
 
     await backfillLegacyCategoryWorkflow(list);
     const categories = list.map((category) => serializeCategoryForResponse(category));
