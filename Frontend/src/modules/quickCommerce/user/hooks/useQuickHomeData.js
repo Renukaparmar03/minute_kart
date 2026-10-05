@@ -177,6 +177,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
   }, []);
 
   const fetchData = useCallback(async () => {
+    const seq = ++fetchDataSeqRef.current;
     const currentLocationKey = `${currentLocation?.latitude}_${currentLocation?.longitude}_${currentLocation?.zoneId || currentLocation?.zone?._id}`;
     
     // Use cache if strictly valid and location key matches
