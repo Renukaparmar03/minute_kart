@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, Store, Phone, KeyRound, ArrowLeft, Loader2, ConciergeBell, Soup, Utensils, Home } from "lucide-react";
 import { toast } from "sonner";
@@ -315,6 +315,30 @@ export default function SellerAuth() {
                 )}
               </div>
             </div>
+
+            <div className="text-center mt-auto pt-8 pb-6 space-y-3">
+              <div className="text-center">
+                <p className="text-[12px] text-gray-500 font-medium mb-1">
+                  By continuing, you agree to our
+                </p>
+                <div className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] font-bold text-[#cc2532] dark:text-red-500">
+                  <Link to="/seller/terms" className="hover:underline">
+                    Terms & Conditions
+                  </Link>
+                  <span className="text-gray-400 font-normal">•</span>
+                  <Link to="/seller/privacy" className="hover:underline">
+                    Privacy Policy
+                  </Link>
+                  <span className="text-gray-400 font-normal">•</span>
+                  <Link to="/seller/support" className="hover:underline">
+                    Support
+                  </Link>
+                </div>
+              </div>
+              <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
+                &copy; {new Date().getFullYear()} {companyName.toUpperCase()} SELLER PORTAL
+              </p>
+            </div>
           </>
         ) : (
           <>
@@ -392,7 +416,25 @@ export default function SellerAuth() {
               </Button>
             </div>
             
-            <div className="text-center mt-auto pt-10 pb-6">
+            <div className="text-center mt-auto pt-8 pb-6 space-y-3">
+              <div className="text-center">
+                <p className="text-[12px] text-gray-500 font-medium mb-1">
+                  By continuing, you agree to our
+                </p>
+                <div className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] font-bold text-[#cc2532] dark:text-red-500">
+                  <Link to="/seller/terms" className="hover:underline">
+                    Terms & Conditions
+                  </Link>
+                  <span className="text-gray-400 font-normal">•</span>
+                  <Link to="/seller/privacy" className="hover:underline">
+                    Privacy Policy
+                  </Link>
+                  <span className="text-gray-400 font-normal">•</span>
+                  <Link to="/seller/support" className="hover:underline">
+                    Support
+                  </Link>
+                </div>
+              </div>
               <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
                 &copy; {new Date().getFullYear()} {companyName.toUpperCase()} SELLER PORTAL
               </p>
