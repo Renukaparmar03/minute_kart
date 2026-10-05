@@ -3,6 +3,8 @@ import { QuickProduct } from '../models/product.model.js';
 import { QuickReview } from '../models/review.model.js';
 import { FoodUser } from '../../../core/users/user.model.js';
 import { Seller } from '../seller/models/seller.model.js';
+import { QuickZone } from '../models/quick_zone.model.js';
+import { isPointInPolygon } from '../../../utils/geo.js';
 import { ensureQuickCommerceSeedData } from '../services/seed.service.js';
 import mongoose from 'mongoose';
 import {
@@ -357,10 +359,59 @@ export const getProducts = async (req, res) => {
     setPublicCache(res, 60);
     await ensureQuickCommerceSeedData();
 
-    const { categoryId, search, limit } = req.query;
+    const { categoryId, search, limit, lat, lng, zoneId } = req.query;
     const query = { ...publicProductFilter };
 
     const andConditions = [];
+
+    // --- Zone-based Seller/Product Filtering ---
+    let targetZoneId = zoneId ? String(zoneId) : null;
+    let activeZoneCoords = null;
+
+    if (!targetZoneId && lat && lng) {
+      const latNum = Number(lat);
+      const lngNum = Number(lng);
+      if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+        const allActiveZones = await QuickZone.find({ isActive: true }).lean();
+        const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
+        if (matchedZone) {
+          targetZoneId = String(matchedZone._id);
+          activeZoneCoords = matchedZone.coordinates;
+        }
+      }
+    }
+
+    if (targetZoneId || activeZoneCoords) {
+      const sellerQuery = { isActive: true };
+      if (targetZoneId) {
+        sellerQuery.$or = [
+          { 'shopInfo.zoneId': targetZoneId },
+          { zoneId: targetZoneId }
+        ];
+      }
+      const zoneSellers = await Seller.find(sellerQuery).select('_id location shopInfo').lean();
+      
+      let matchingSellerIds = zoneSellers.map(s => s._id);
+
+      if (activeZoneCoords) {
+        const polygonSellers = await Seller.find({ isActive: true }).select('_id location shopInfo').lean();
+        const inPolygonIds = polygonSellers
+          .filter(s => s.location?.latitude && s.location?.longitude && isPointInPolygon(s.location.latitude, s.location.longitude, activeZoneCoords))
+          .map(s => s._id);
+        
+        matchingSellerIds = [...new Set([...matchingSellerIds.map(String), ...inPolygonIds.map(String)])];
+      }
+
+      if (matchingSellerIds.length > 0) {
+        andConditions.push({
+          $or: [
+            { sellerId: { $in: matchingSellerIds } },
+            { sellerId: { $exists: false } },
+            { sellerId: null }
+          ]
+        });
+      }
+    }
 
     if (categoryId) {
       let resolvedCategoryId = categoryId;

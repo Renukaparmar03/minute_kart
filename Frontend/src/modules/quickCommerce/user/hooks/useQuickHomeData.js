@@ -187,10 +187,14 @@ export const useQuickHomeData = ({ currentLocation }) => {
     setIsLoading(true);
     try {
       const hasValidLocation = Number.isFinite(currentLocation?.latitude) && Number.isFinite(currentLocation?.longitude);
-      const productParams = { limit: 20 };
+      const productParams = { limit: 50 };
       if (hasValidLocation) {
         productParams.lat = currentLocation.latitude;
         productParams.lng = currentLocation.longitude;
+      }
+      const zoneId = currentLocation?.zoneId || currentLocation?.zone?._id || currentLocation?.zoneIdStr;
+      if (zoneId) {
+        productParams.zoneId = zoneId;
       }
 
       // Initialize cache object
@@ -277,9 +281,8 @@ export const useQuickHomeData = ({ currentLocation }) => {
         setIsBootstrapped(true); // Unblock the UI skeleton!
       }).catch(console.error).finally(checkDone);
 
-      // 2. Products (Usually slowest)
-      const fetchProducts = hasValidLocation ? customerApi.getProducts(productParams) : Promise.resolve({ data: { success: true, result: { items: [] } } });
-      fetchProducts.then(prodRes => {
+      // 2. Products (Filtered by user zone/location)
+      customerApi.getProducts(productParams).then(prodRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (prodRes?.data?.success) {
           const rawResult = prodRes.data.result;
@@ -296,7 +299,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
       }).catch(console.error).finally(checkDone);
 
       // 3. Experience Sections
-      customerApi.getExperienceSections({ pageType: "home" }).then(expRes => {
+      customerApi.getExperienceSections({ pageType: "home", ...productParams }).then(expRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (expRes?.data?.success) {
           const raw = expRes.data.result || expRes.data.results || expRes.data;
@@ -307,8 +310,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
       }).catch(console.error).finally(checkDone);
 
       // 4. Offer Sections
-      const fetchOffers = hasValidLocation ? customerApi.getOfferSections({ lat: currentLocation.latitude, lng: currentLocation.longitude }) : Promise.resolve({ data: { results: [] } });
-      fetchOffers.then(sectionsRes => {
+      customerApi.getOfferSections(productParams).then(sectionsRes => {
         if (seq !== fetchDataSeqRef.current) return;
         const sectionsList = sectionsRes?.data?.results || sectionsRes?.data?.result || sectionsRes?.data;
         const offerSecs = Array.isArray(sectionsList) ? sectionsList : [];
@@ -330,7 +332,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
       }).catch(console.error).finally(checkDone);
 
       // 6. Best Seller Sections
-      customerApi.getBestSellerSections().then(bestRes => {
+      customerApi.getBestSellerSections(productParams).then(bestRes => {
         if (seq !== fetchDataSeqRef.current) return;
         const sectionsList = bestRes?.data?.results || bestRes?.data?.result || bestRes?.data;
         const bestSecs = Array.isArray(sectionsList) ? sectionsList : [];
