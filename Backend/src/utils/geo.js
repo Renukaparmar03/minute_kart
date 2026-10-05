@@ -45,3 +45,87 @@ export const isPointInPolygon = (lat, lng, polygon) => {
   }
   return inside;
 };
+
+/**
+ * Resolves active seller IDs matching a given user location or zone ID.
+ * @param {Object} param0 { lat, lng, zoneId }
+ * @param {Object} models { QuickZone, Seller }
+ * @returns {Promise<Array<string>|null>} Array of seller ID strings if location/zone specified, null if no filter criteria provided.
+ */
+export const getMatchingSellerIdsForLocation = async ({ lat, lng, zoneId }, { QuickZone, Seller, mongoose }) => {
+  let targetZoneId = zoneId ? String(zoneId) : null;
+  let activeZoneCoords = null;
+
+  if (!targetZoneId && lat !== undefined && lng !== undefined && lat !== null && lng !== null) {
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+      const allActiveZones = await QuickZone.find({ isActive: true }).lean();
+      const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
+      if (matchedZone) {
+        targetZoneId = String(matchedZone._id);
+        activeZoneCoords = matchedZone.coordinates;
+      }
+    }
+  }
+
+  if (!targetZoneId && !activeZoneCoords) {
+    return null;
+  }
+
+  const sellerQuery = { isActive: true };
+  if (targetZoneId) {
+    const targetObjId = mongoose && mongoose.Types.ObjectId.isValid(targetZoneId)
+      ? new mongoose.Types.ObjectId(targetZoneId)
+      : null;
+    
+    const zoneOrConditions = [
+      { 'shopInfo.zoneId': targetZoneId },
+      { zoneId: targetZoneId }
+    ];
+    if (targetObjId) {
+      zoneOrConditions.push({ 'shopInfo.zoneId': targetObjId });
+      zoneOrConditions.push({ zoneId: targetObjId });
+    }
+    sellerQuery.$or = zoneOrConditions;
+  }
+
+  const zoneSellers = await Seller.find(sellerQuery).select('_id location shopInfo').lean();
+  let matchingSellerIds = zoneSellers.map(s => String(s._id));
+
+  if (activeZoneCoords) {
+    const polygonSellers = await Seller.find({ isActive: true }).select('_id location shopInfo').lean();
+    const inPolygonIds = polygonSellers
+      .filter(s => s.location?.latitude && s.location?.longitude && isPointInPolygon(Number(s.location.latitude), Number(s.location.longitude), activeZoneCoords))
+      .map(s => String(s._id));
+    matchingSellerIds = [...new Set([...matchingSellerIds, ...inPolygonIds])];
+  }
+
+  return matchingSellerIds;
+};
+
+/**
+ * Builds a MongoDB query filter clause for products based on zone seller IDs.
+ * @param {Array<string>|null} matchingSellerIds
+ * @param {Object} mongoose
+ * @returns {Object|null}
+ */
+export const buildZoneProductFilter = (matchingSellerIds, mongoose) => {
+  if (!Array.isArray(matchingSellerIds)) {
+    return null;
+  }
+  const sellerObjectIds = mongoose
+    ? matchingSellerIds.filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id))
+    : [];
+
+  const allMatchingIds = [...new Set([...matchingSellerIds, ...sellerObjectIds])];
+
+  return {
+    $or: [
+      { sellerId: { $in: allMatchingIds } },
+      { sellerId: { $exists: false } },
+      { sellerId: null }
+    ]
+  };
+};
+

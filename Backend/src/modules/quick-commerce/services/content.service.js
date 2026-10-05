@@ -3,6 +3,7 @@ import { QuickCategory } from '../models/category.model.js';
 import { QuickProduct } from '../models/product.model.js';
 import { QuickExperienceSection } from '../models/experience.model.js';
 import { QuickHeroConfig } from '../models/heroConfig.model.js';
+import { buildZoneProductFilter } from '../../../utils/geo.js';
 
 const getCollection = (name) => mongoose.connection?.db?.collection(name) || null;
 
@@ -12,8 +13,8 @@ const cache = {
   settings: { data: null, expiry: 0 },
   hero: { data: new Map(), expiry: 0 },
   experience: { data: new Map(), expiry: 0 },
-  offerSections: { data: null, expiry: 0 },
-  bestSellerSections: { data: null, expiry: 0 },
+  offerSections: { data: new Map(), expiry: 0 },
+  bestSellerSections: { data: new Map(), expiry: 0 },
   categories: { data: null, expiry: 0 }
 };
 
@@ -23,8 +24,8 @@ export const clearContentCache = () => {
   cache.settings.expiry = 0;
   cache.hero.data.clear();
   cache.experience.data.clear();
-  cache.offerSections.expiry = 0;
-  cache.bestSellerSections.expiry = 0;
+  cache.offerSections.data.clear();
+  cache.bestSellerSections.data.clear();
   cache.categories.expiry = 0;
 };
 
@@ -120,7 +121,7 @@ export const setQuickHeroConfig = async (data) => {
   return result;
 };
 
-export const hydrateSectionsList = async (sections = []) => {
+export const hydrateSectionsList = async (sections = [], { matchingSellerIds = null } = {}) => {
   if (!sections.length) return [];
 
   // --- Category Tree Logic (Optimized) ---
@@ -217,22 +218,27 @@ export const hydrateSectionsList = async (sections = []) => {
     ...Array.from(dynamicProductSubcategoryIds)
   ]);
 
+  const productFilterConditions = [
+    { 
+      $or: [
+        { _id: { $in: Array.from(productIds) } },
+        { categoryId: { $in: Array.from(allDynamicIds) } },
+        { subcategoryId: { $in: Array.from(allDynamicIds) } },
+        { headerId: { $in: Array.from(allDynamicIds) } }
+      ]
+    },
+    approvedOrLegacyFilter,
+    { isActive: { $ne: false } }
+  ];
+
+  const zoneFilter = buildZoneProductFilter(matchingSellerIds, mongoose);
+  if (zoneFilter) {
+    productFilterConditions.push(zoneFilter);
+  }
+
   const [products, categories] = await Promise.all([
     (productIds.size || allDynamicIds.size)
-      ? QuickProduct.find({ 
-          $and: [
-            { 
-              $or: [
-                { _id: { $in: Array.from(productIds) } },
-                { categoryId: { $in: Array.from(allDynamicIds) } },
-                { subcategoryId: { $in: Array.from(allDynamicIds) } },
-                { headerId: { $in: Array.from(allDynamicIds) } }
-              ]
-            },
-            approvedOrLegacyFilter,
-            { isActive: { $ne: false } }
-          ]
-        }).sort({ createdAt: -1 }).limit(500).lean()
+      ? QuickProduct.find({ $and: productFilterConditions }).sort({ createdAt: -1 }).limit(500).lean()
       : Promise.resolve([]),
     (categoryIds.size || subcategoryIds.size)
       ? QuickCategory.find({
@@ -309,8 +315,9 @@ export const hydrateSectionsList = async (sections = []) => {
   return finalSections;
 };
 
-export const getQuickExperienceSections = async ({ pageType = 'home', headerId = null } = {}) => {
-  const cacheKey = `${pageType}:${headerId}`;
+export const getQuickExperienceSections = async ({ pageType = 'home', headerId = null, matchingSellerIds = null } = {}) => {
+  const sellerKey = Array.isArray(matchingSellerIds) ? matchingSellerIds.slice().sort().join(',') : 'all';
+  const cacheKey = `${pageType}:${headerId}:${sellerKey}`;
   if (cache.experience.data.has(cacheKey) && !isExpired(cache.experience.expiry)) {
     return cache.experience.data.get(cacheKey);
   }
@@ -328,7 +335,7 @@ export const getQuickExperienceSections = async ({ pageType = 'home', headerId =
   }
 
   const sections = await QuickExperienceSection.find(query).sort({ order: 1, createdAt: 1 }).lean();
-  const finalSections = await hydrateSectionsList(sections);
+  const finalSections = await hydrateSectionsList(sections, { matchingSellerIds });
 
   cache.experience.data.set(cacheKey, finalSections);
   cache.experience.expiry = Date.now() + CACHE_TTL;
@@ -390,9 +397,11 @@ export const getQuickOffers = async () => {
   return collection.find(normalizeStatusQuery()).sort({ updatedAt: -1, createdAt: -1 }).toArray();
 };
 
-export const getQuickOfferSections = async (query = {}) => {
-  if (cache.offerSections.data && !isExpired(cache.offerSections.expiry)) {
-    return cache.offerSections.data;
+export const getQuickOfferSections = async (query = {}, { matchingSellerIds = null } = {}) => {
+  const sellerKey = Array.isArray(matchingSellerIds) ? matchingSellerIds.slice().sort().join(',') : 'all';
+  const cacheKey = `offer:${query.status || 'all'}:${sellerKey}`;
+  if (cache.offerSections.data.has(cacheKey) && !isExpired(cache.offerSections.expiry)) {
+    return cache.offerSections.data.get(cacheKey);
   }
 
   const collection = getCollection('quick_offer_sections');
@@ -434,9 +443,21 @@ export const getQuickOfferSections = async (query = {}) => {
     });
   });
 
+  const offerProductFilter = {
+    $and: [
+      { _id: { $in: Array.from(productIds) } },
+      approvedOrLegacyFilter,
+      { isActive: { $ne: false } }
+    ]
+  };
+  const zoneFilter = buildZoneProductFilter(matchingSellerIds, mongoose);
+  if (zoneFilter) {
+    offerProductFilter.$and.push(zoneFilter);
+  }
+
   const [products, categories] = await Promise.all([
     productIds.size
-      ? QuickProduct.find({ _id: { $in: Array.from(productIds) } }).lean()
+      ? QuickProduct.find(offerProductFilter).lean()
       : Promise.resolve([]),
     categoryIds.size
       ? QuickCategory.find({ _id: { $in: Array.from(categoryIds) } }).lean()
@@ -454,7 +475,8 @@ export const getQuickOfferSections = async (query = {}) => {
       categoriesById.get(toIdString(section.categoryId)) || section.categoryId || null;
 
     const hydratedProducts = (Array.isArray(section.productIds) ? section.productIds : [])
-      .map((id) => productsById.get(toIdString(id)) || id);
+      .map((id) => productsById.get(toIdString(id)))
+      .filter(Boolean);
 
     return {
       ...section,
@@ -464,7 +486,7 @@ export const getQuickOfferSections = async (query = {}) => {
     };
   });
 
-  cache.offerSections.data = finalOfferSections;
+  cache.offerSections.data.set(cacheKey, finalOfferSections);
   cache.offerSections.expiry = Date.now() + CACHE_TTL;
   return finalOfferSections;
 };
@@ -567,9 +589,11 @@ const toObjectId = (id) => {
   }
 };
 
-export const getQuickBestSellerSections = async (query = {}) => {
-  if (cache.bestSellerSections.data && !isExpired(cache.bestSellerSections.expiry) && !query.skipCache && !query.flat) {
-    return cache.bestSellerSections.data;
+export const getQuickBestSellerSections = async (query = {}, { matchingSellerIds = null } = {}) => {
+  const sellerKey = Array.isArray(matchingSellerIds) ? matchingSellerIds.slice().sort().join(',') : 'all';
+  const cacheKey = `bestseller:${query.status || 'all'}:${query.flat ? 'flat' : 'nested'}:${sellerKey}`;
+  if (cache.bestSellerSections.data.has(cacheKey) && !isExpired(cache.bestSellerSections.expiry) && !query.skipCache) {
+    return cache.bestSellerSections.data.get(cacheKey);
   }
 
   const collection = getCollection('quick_best_seller_sections');
@@ -641,6 +665,11 @@ export const getQuickBestSellerSections = async (query = {}) => {
     ],
   };
 
+  const zoneFilter = buildZoneProductFilter(matchingSellerIds, mongoose);
+  if (zoneFilter) {
+    productFilter.$and.push(zoneFilter);
+  }
+
   const products = subcategoryIdArr.length > 0
     ? await QuickProduct.find(productFilter)
         .select('_id name mainImage image categoryId subcategoryId sellerId')
@@ -709,7 +738,7 @@ export const getQuickBestSellerSections = async (query = {}) => {
     });
   }
 
-  cache.bestSellerSections.data = hydratedSections;
+  cache.bestSellerSections.data.set(cacheKey, hydratedSections);
   cache.bestSellerSections.expiry = Date.now() + CACHE_TTL;
   return hydratedSections;
 };
@@ -781,3 +810,4 @@ export const reorderQuickBestSellerSections = async (items = []) => {
   cache.bestSellerSections.expiry = 0;
   return true;
 };
+

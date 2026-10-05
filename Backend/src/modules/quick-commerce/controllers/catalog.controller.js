@@ -4,7 +4,7 @@ import { QuickReview } from '../models/review.model.js';
 import { FoodUser } from '../../../core/users/user.model.js';
 import { Seller } from '../seller/models/seller.model.js';
 import { QuickZone } from '../models/quick_zone.model.js';
-import { isPointInPolygon } from '../../../utils/geo.js';
+import { isPointInPolygon, getMatchingSellerIdsForLocation, buildZoneProductFilter } from '../../../utils/geo.js';
 import { ensureQuickCommerceSeedData } from '../services/seed.service.js';
 import mongoose from 'mongoose';
 import {
@@ -155,61 +155,22 @@ export const mapProduct = (product, sellerMap = {}) => {
 };
 
 export const getHomeData = async (req, res) => {
-  setPublicCache(res, 60); // 1 minute cache
+  setNoCache(res);
   await ensureQuickCommerceSeedData();
 
   const pageType = req.query?.pageType || 'home';
   const headerId = req.query?.headerId || null;
   const { lat, lng, zoneId: qZoneId } = req.query;
 
-  // --- Zone-based filtering for bestSellers ---
+  // --- Zone-based filtering for products & sections ---
   let productQuery = { ...publicProductFilter };
+  let matchingSellerIds = null;
 
   try {
-    let targetZoneId = qZoneId ? String(qZoneId) : null;
-    let activeZoneCoords = null;
-
-    if (!targetZoneId && lat && lng) {
-      const latNum = Number(lat);
-      const lngNum = Number(lng);
-      if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
-        const allActiveZones = await QuickZone.find({ isActive: true }).lean();
-        const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
-        if (matchedZone) {
-          targetZoneId = String(matchedZone._id);
-          activeZoneCoords = matchedZone.coordinates;
-        }
-      }
-    }
-
-    if (targetZoneId || activeZoneCoords) {
-      const sellerQuery = { isActive: true };
-      if (targetZoneId) {
-        sellerQuery.$or = [
-          { 'shopInfo.zoneId': targetZoneId },
-          { zoneId: targetZoneId },
-        ];
-      }
-      const zoneSellers = await Seller.find(sellerQuery).select('_id location shopInfo').lean();
-      let matchingSellerIds = zoneSellers.map(s => s._id);
-
-      if (activeZoneCoords) {
-        const polygonSellers = await Seller.find({ isActive: true }).select('_id location shopInfo').lean();
-        const inPolygonIds = polygonSellers
-          .filter(s => s.location?.latitude && s.location?.longitude && isPointInPolygon(s.location.latitude, s.location.longitude, activeZoneCoords))
-          .map(s => s._id);
-        matchingSellerIds = [...new Set([...matchingSellerIds.map(String), ...inPolygonIds.map(String)])];
-      }
-
-      if (matchingSellerIds.length > 0) {
-        productQuery.$and = (productQuery.$and || []).concat([{
-          $or: [
-            { sellerId: { $in: matchingSellerIds } },
-            { sellerId: { $exists: false } },
-            { sellerId: null },
-          ],
-        }]);
-      }
+    matchingSellerIds = await getMatchingSellerIdsForLocation({ lat, lng, zoneId: qZoneId }, { QuickZone, Seller, mongoose });
+    const zoneFilter = buildZoneProductFilter(matchingSellerIds, mongoose);
+    if (zoneFilter) {
+      productQuery.$and = (productQuery.$and || []).concat([zoneFilter]);
     }
   } catch (zoneErr) {
     console.error('Zone filtering error in getHomeData:', zoneErr);
@@ -221,10 +182,11 @@ export const getHomeData = async (req, res) => {
     QuickProduct.find(productQuery).sort({ createdAt: -1 }).limit(18).lean(),
     getQuickSettings(),
     getQuickHeroConfig({ pageType, headerId }),
-    getQuickExperienceSections({ pageType, headerId }),
-    getQuickOfferSections(),
-    getQuickBestSellerSections(),
+    getQuickExperienceSections({ pageType, headerId, matchingSellerIds }),
+    getQuickOfferSections(req.query, { matchingSellerIds }),
+    getQuickBestSellerSections(req.query, { matchingSellerIds }),
   ]);
+
   const sellerMap = await buildSellerMap(products);
 
   const fallbackHero = {
@@ -421,52 +383,10 @@ export const getProducts = async (req, res) => {
     const andConditions = [];
 
     // --- Zone-based Seller/Product Filtering ---
-    let targetZoneId = zoneId ? String(zoneId) : null;
-    let activeZoneCoords = null;
-
-    if (!targetZoneId && lat && lng) {
-      const latNum = Number(lat);
-      const lngNum = Number(lng);
-      if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
-        const allActiveZones = await QuickZone.find({ isActive: true }).lean();
-        const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
-        if (matchedZone) {
-          targetZoneId = String(matchedZone._id);
-          activeZoneCoords = matchedZone.coordinates;
-        }
-      }
-    }
-
-    if (targetZoneId || activeZoneCoords) {
-      const sellerQuery = { isActive: true };
-      if (targetZoneId) {
-        sellerQuery.$or = [
-          { 'shopInfo.zoneId': targetZoneId },
-          { zoneId: targetZoneId }
-        ];
-      }
-      const zoneSellers = await Seller.find(sellerQuery).select('_id location shopInfo').lean();
-      
-      let matchingSellerIds = zoneSellers.map(s => s._id);
-
-      if (activeZoneCoords) {
-        const polygonSellers = await Seller.find({ isActive: true }).select('_id location shopInfo').lean();
-        const inPolygonIds = polygonSellers
-          .filter(s => s.location?.latitude && s.location?.longitude && isPointInPolygon(s.location.latitude, s.location.longitude, activeZoneCoords))
-          .map(s => s._id);
-        
-        matchingSellerIds = [...new Set([...matchingSellerIds.map(String), ...inPolygonIds.map(String)])];
-      }
-
-      if (matchingSellerIds.length > 0) {
-        andConditions.push({
-          $or: [
-            { sellerId: { $in: matchingSellerIds } },
-            { sellerId: { $exists: false } },
-            { sellerId: null }
-          ]
-        });
-      }
+    const matchingSellerIds = await getMatchingSellerIdsForLocation({ lat, lng, zoneId }, { QuickZone, Seller, mongoose });
+    const zoneFilter = buildZoneProductFilter(matchingSellerIds, mongoose);
+    if (zoneFilter) {
+      andConditions.push(zoneFilter);
     }
 
     if (categoryId) {
