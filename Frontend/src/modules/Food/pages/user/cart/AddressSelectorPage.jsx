@@ -144,7 +144,14 @@ export default function AddressSelectorPage() {
   const getAddressId = (address) => address?.id || address?._id || null
 
   const handleBack = () => {
-    goBack()
+    const explicitFrom = routerLocation.state?.from || routerLocation.state?.backTo
+    if (explicitFrom) {
+      goBack()
+    } else if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate("/food/user/cart")
+    }
   }
 
   const addressAutocompleteSuggestions = useMemo(() => {
@@ -369,9 +376,8 @@ export default function AddressSelectorPage() {
           }))
           toast.success("Location updated", { id: "geo" })
           // Don't redirect if they are explicitly in the "Add Address" form
-        } else {
           toast.success("Location updated", { id: "geo" })
-          const from = routerLocation.state?.from || "/food/user"
+          const from = routerLocation.state?.from || routerLocation.state?.backTo || "/food/user/cart"
           navigate(from, { replace: true })
         }
       } else {
@@ -392,8 +398,8 @@ export default function AddressSelectorPage() {
         window.dispatchEvent(new Event("deliveryAddressModeChanged"));
       } catch {}
       
-      // Use "from" state if available, otherwise default to home page
-      const from = routerLocation.state?.from || "/food/user"
+      // Use "from" state if available, otherwise default to cart page
+      const from = routerLocation.state?.from || routerLocation.state?.backTo || "/food/user/cart"
       setTimeout(() => {
         navigate(from, { replace: true })
       }, 500)
@@ -573,8 +579,8 @@ export default function AddressSelectorPage() {
         setAddressAutocompleteValue("")
         setKeywordAddressSuggestions([])
         
-        // Use "from" state if available, otherwise default to home page
-        const from = routerLocation.state?.from || "/food/user"
+        // Use "from" state if available, otherwise default to cart page
+        const from = routerLocation.state?.from || routerLocation.state?.backTo || "/food/user/cart"
         setTimeout(() => {
           navigate(from, { replace: true })
         }, 500)

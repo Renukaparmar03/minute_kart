@@ -5,14 +5,10 @@ import { isModuleAuthenticated } from "@food/utils/auth"
 const toFoodPath = (value) => {
   if (typeof value !== "string") return null
   const trimmed = value.trim()
-  if (!trimmed) return null
-  if (trimmed.startsWith("/food/")) return trimmed
-  if (trimmed === "/food") return trimmed
+  if (!trimmed || !trimmed.startsWith("/")) return null
   if (trimmed.startsWith("/user/")) return `/food${trimmed}`
   if (trimmed === "/user") return "/food/user"
-  if (trimmed.startsWith("/quick/")) return trimmed
-  if (trimmed === "/quick") return trimmed
-  return null
+  return trimmed
 }
 
 const getNormalizedUserPath = (pathname) => {
@@ -29,6 +25,10 @@ const resolveBackPath = ({ pathname, search, state }) => {
   const normalizedPath = getNormalizedUserPath(pathname)
   const explicitBackPath = toFoodPath(state?.backTo) || toFoodPath(state?.from)
   const searchParams = new URLSearchParams(search || "")
+
+  if (explicitBackPath && explicitBackPath !== pathname) {
+    return explicitBackPath
+  }
 
   if (
     normalizedPath === "/user/profile/payments/new" ||
@@ -111,7 +111,7 @@ const resolveBackPath = ({ pathname, search, state }) => {
     normalizedPath === "/user/cart/select-address" ||
     normalizedPath === "/user/cart/address-selector"
   ) {
-    return "/cart"
+    return explicitBackPath || "/food/user/cart"
   }
 
   if (normalizedPath === "/user/address-selector") {

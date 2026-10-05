@@ -91,6 +91,11 @@ const SharedFoodHomeRoute = () => {
   )
 }
 
+const RedirectWithState = ({ to }) => {
+  const location = useLocation();
+  return <Navigate to={`${to}${location.search}`} state={location.state} replace />;
+};
+
 const RedirectToFood = () => {
   const location = useLocation();
   // We safely replace the exact current pathname with a /food prefixed pathname
@@ -188,14 +193,14 @@ const AppRoutes = () => {
             </Suspense>
           }
         >
-          <Route path="/cart" element={<Navigate to="/food/user/cart" replace />} />
-          <Route path="/user/cart" element={<Navigate to="/food/user/cart" replace />} />
-          <Route path="/cart/checkout" element={<Navigate to="/food/user/cart/checkout" replace />} />
-          <Route path="/cart/select-address" element={<Navigate to="/food/user/cart/select-address" replace />} />
-          <Route path="/cart/address-selector" element={<Navigate to="/food/user/cart/address-selector" replace />} />
-          <Route path="/user/cart/checkout" element={<Navigate to="/food/user/cart/checkout" replace />} />
-          <Route path="/user/cart/select-address" element={<Navigate to="/food/user/cart/select-address" replace />} />
-          <Route path="/user/cart/address-selector" element={<Navigate to="/food/user/cart/address-selector" replace />} />
+          <Route path="/cart" element={<RedirectWithState to="/food/user/cart" />} />
+          <Route path="/user/cart" element={<RedirectWithState to="/food/user/cart" />} />
+          <Route path="/cart/checkout" element={<RedirectWithState to="/food/user/cart/checkout" />} />
+          <Route path="/cart/select-address" element={<RedirectWithState to="/food/user/cart/select-address" />} />
+          <Route path="/cart/address-selector" element={<RedirectWithState to="/food/user/cart/address-selector" />} />
+          <Route path="/user/cart/checkout" element={<RedirectWithState to="/food/user/cart/checkout" />} />
+          <Route path="/user/cart/select-address" element={<RedirectWithState to="/food/user/cart/select-address" />} />
+          <Route path="/user/cart/address-selector" element={<RedirectWithState to="/food/user/cart/address-selector" />} />
           <Route
             path="/profile"
             element={
