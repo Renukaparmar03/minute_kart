@@ -356,7 +356,7 @@ export const getCategories = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    setPublicCache(res, 60);
+    setNoCache(res);
     await ensureQuickCommerceSeedData();
 
     const { categoryId, search, limit, lat, lng, zoneId } = req.query;

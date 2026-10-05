@@ -177,10 +177,10 @@ export const useQuickHomeData = ({ currentLocation }) => {
   }, []);
 
   const fetchData = useCallback(async () => {
-    const seq = ++fetchDataSeqRef.current;
+    const currentLocationKey = `${currentLocation?.latitude}_${currentLocation?.longitude}_${currentLocation?.zoneId || currentLocation?.zone?._id}`;
     
-    // Use cache if strictly valid
-    if (globalQuickHomeCache.data && (Date.now() - globalQuickHomeCache.lastFetched < CACHE_EXPIRY_MS)) {
+    // Use cache if strictly valid and location key matches
+    if (globalQuickHomeCache.data && globalQuickHomeCache.locationKey === currentLocationKey && (Date.now() - globalQuickHomeCache.lastFetched < CACHE_EXPIRY_MS)) {
        return;
     }
 
@@ -216,6 +216,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
         pendingTasks--;
         if (pendingTasks <= 0) {
           globalQuickHomeCache.data = newDataCache;
+          globalQuickHomeCache.locationKey = currentLocationKey;
           globalQuickHomeCache.lastFetched = Date.now();
           if (seq === fetchDataSeqRef.current) setIsLoading(false);
         }

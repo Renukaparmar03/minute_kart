@@ -757,6 +757,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                         fullWidth={false}
                         slideGap={12}
                         edgeToEdge={false}
+                        showDots={false}
                       />
                     </div>
                   ) : shouldShowHeroFallback ? (

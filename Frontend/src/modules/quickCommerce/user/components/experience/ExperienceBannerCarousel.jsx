@@ -16,7 +16,7 @@ const isVideoUrl = (url) => {
   );
 };
 
-const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap = 0, edgeToEdge = false }) => {
+const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap = 0, edgeToEdge = false, showDots = false }) => {
   const navigate = useNavigate();
 
   if (!items.length) return null;
@@ -291,7 +291,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
       </div>
 
       {/* Pagination Dots */}
-      {items.length > 1 && (
+      {showDots && items.length > 1 && (
         <div className="flex items-center justify-center gap-1.5 pt-2 pb-1">
           {items.map((_, idx) => {
             // Map looped activeIndex back to real index
