@@ -528,23 +528,30 @@ export const getDeliveryPartnerEarnings = async (deliveryPartnerId, query = {}) 
         range = getWeekRange(date);
     }
 
-    const partnerMatch = {
+    const partnerCondition = {
         $or: [
             { 'dispatch.deliveryPartnerId': partnerId },
             { 'deliveryPartnerId': partnerId },
             { 'dispatchPlan.legs.deliveryPartnerId': partnerId }
-        ],
-        orderStatus: 'delivered',
+        ]
     };
 
-    const match = { ...partnerMatch };
-    if (range) {
-        match.$or = [
+    const dateCondition = range ? {
+        $or: [
             { 'deliveryState.deliveredAt': { $gte: range.start, $lte: range.end } },
             { 'deliveredAt': { $gte: range.start, $lte: range.end } },
             { 'updatedAt': { $gte: range.start, $lte: range.end } }
-        ];
-    }
+        ]
+    } : null;
+
+    const match = {
+        orderStatus: 'delivered',
+        $and: [
+            partnerCondition,
+            ...(dateCondition ? [dateCondition] : [])
+        ]
+    };
+
 
     const returnMatch = {
         deliveryPartnerId: partnerId,
