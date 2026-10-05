@@ -3,13 +3,30 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Loader from "@food/components/Loader";
 
-// Auth Pages (Lazy loaded)
-const Welcome = lazy(() => import("./pages/auth/Welcome"))
-const SignIn = lazy(() => import("./pages/auth/SignIn"))
-const OTP = lazy(() => import("./pages/auth/OTP"))
-const SignupStep1 = lazy(() => import("./pages/auth/SignupStep1"))
-const SignupStep2 = lazy(() => import("./pages/auth/SignupStep2"))
-const PendingVerification = lazy(() => import("./pages/auth/PendingVerification"))
+const safeLazy = (importFn) =>
+  lazy(async () => {
+    const pageHasBeenRefreshed = sessionStorage.getItem("chunk_retry_refreshed") === "true";
+    try {
+      const component = await importFn();
+      sessionStorage.removeItem("chunk_retry_refreshed");
+      return component;
+    } catch (error) {
+      if (!pageHasBeenRefreshed) {
+        sessionStorage.setItem("chunk_retry_refreshed", "true");
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      throw error;
+    }
+  });
+
+// Auth Pages (Lazy loaded with auto-retry)
+const Welcome = safeLazy(() => import("./pages/auth/Welcome"))
+const SignIn = safeLazy(() => import("./pages/auth/SignIn"))
+const OTP = safeLazy(() => import("./pages/auth/OTP"))
+const SignupStep1 = safeLazy(() => import("./pages/auth/SignupStep1"))
+const SignupStep2 = safeLazy(() => import("./pages/auth/SignupStep2"))
+const PendingVerification = safeLazy(() => import("./pages/auth/PendingVerification"))
 
 // V2 Pages
 import DeliveryHomeV2 from './pages/DeliveryHomeV2';
