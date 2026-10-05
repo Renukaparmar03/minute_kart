@@ -25,6 +25,8 @@ export default function DeliverySignIn() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const referralCode = searchParams.get("ref") || ""
+  const inputRef = useRef(null)
+
   const [formData, setFormData] = useState(() => {
     return {
       phone: sessionStorage.getItem("deliverySignInPhone") || "",
@@ -39,7 +41,6 @@ export default function DeliverySignIn() {
       try {
         const data = JSON.parse(stored)
         if (data.phone) {
-          // Extract digits after +91
           const phoneDigits = data.phone.replace("+91", "").trim()
           setFormData(prev => ({
             ...prev,
@@ -51,10 +52,10 @@ export default function DeliverySignIn() {
       }
     }
   }, [])
+
   const [error, setError] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [logoUrl, setLogoUrl] = useState(() => getCachedSettings()?.logo?.url || null)
-  const [keyboardInset, setKeyboardInset] = useState(0)
 
   useEffect(() => {
     if (isModuleAuthenticated("delivery")) {
@@ -72,54 +73,22 @@ export default function DeliverySignIn() {
     fetchSettings()
   }, [])
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.visualViewport) return undefined
-
-    const updateKeyboardInset = () => {
-      const viewport = window.visualViewport
-      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
-      setKeyboardInset(inset > 0 ? inset : 0)
-    }
-
-    updateKeyboardInset()
-    window.visualViewport.addEventListener("resize", updateKeyboardInset)
-    window.visualViewport.addEventListener("scroll", updateKeyboardInset)
-
-    return () => {
-      window.visualViewport.removeEventListener("resize", updateKeyboardInset)
-      window.visualViewport.removeEventListener("scroll", updateKeyboardInset)
-    }
-  }, [])
-
-
-
-  // Get selected country details dynamically
-  const selectedCountry = countryCodes.find(c => c.code === formData.countryCode) || countryCodes[2] // Default to India (+91)
-
-  const validatePhone = (phone, countryCode) => {
+  const validatePhone = (phone) => {
     if (!phone || phone.trim() === "") {
       return "Phone number is required"
     }
-
     const digitsOnly = phone.replace(/\D/g, "")
-
-    if (digitsOnly.length < 7) {
-      return "Phone number must be at least 7 digits"
-    }
-
-    // India-specific validation
-    // India-specific validation (Fixed to +91 only)
     if (digitsOnly.length !== 10) {
       return "Phone number must be exactly 10 digits"
     }
-
     return ""
   }
 
-  const handleSendOTP = async () => {
+  const handleSendOTP = async (e) => {
+    if (e) e.preventDefault()
     setError("")
 
-    const phoneError = validatePhone(formData.phone, formData.countryCode)
+    const phoneError = validatePhone(formData.phone)
     if (phoneError) {
       setError(phoneError)
       return
@@ -129,13 +98,10 @@ export default function DeliverySignIn() {
 
     try {
       setIsSending(true)
-      // Start a fresh login flow and prevent stale-token auto redirects.
       clearModuleAuth("delivery")
 
-      // Call backend to send OTP for delivery login
       await deliveryAPI.sendOTP(fullPhone, "login")
 
-      // Store auth data in sessionStorage for OTP page
       const authData = {
         method: "phone",
         phone: fullPhone,
@@ -155,7 +121,6 @@ export default function DeliverySignIn() {
         } catch (e) {}
       }
 
-      // Navigate to OTP page
       navigate("/food/delivery/otp", { replace: true })
     } catch (err) {
       debugError("Send OTP Error:", err)
@@ -172,7 +137,6 @@ export default function DeliverySignIn() {
   }
 
   const handlePhoneChange = (e) => {
-    // Only allow digits and limit to 10 digits
     const value = e.target.value.replace(/\D/g, "").slice(0, 10)
     setFormData({
       ...formData,
@@ -181,173 +145,164 @@ export default function DeliverySignIn() {
     sessionStorage.setItem("deliverySignInPhone", value)
   }
 
-  const handleCountryCodeChange = (value) => {
-    setFormData({
-      ...formData,
-      countryCode: value,
-    })
+  const isValidPhone = !validatePhone(formData.phone)
+  const isSubmitDisabled = isSending || !isValidPhone
+
+  const handleInputFocus = (e) => {
+    // Scroll input smoothly into center view on mobile keyboard pop-up
+    setTimeout(() => {
+      e.target?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 300)
   }
 
-  const isValidPhone = !validatePhone(formData.phone, formData.countryCode)
-  const isSubmitDisabled = isSending || !isValidPhone;
-
-  const isKeyboardOpen = keyboardInset > 50;
-
   return (
-    <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-hidden"
-      style={{
-        height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
-      }}
-    >
-      {/* Top Green Section */}
-      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'bg-[#86bf24] py-2 px-4 flex-row items-center justify-between' : ''}`}>
-        {!isKeyboardOpen ? (
-          <>
-            <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
-              {/* Abstract wavy background layers */}
-              <div className="absolute inset-0 z-0">
-                 {/* Darker blue gradient in the corners */}
-                 <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#73a61d] via-transparent to-transparent opacity-80" />
-                 <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#73a61d] via-transparent to-transparent opacity-80" />
-                 
-                 {/* Dotted pattern top left */}
-                 <div className="absolute -top-10 -left-10 w-40 h-40 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '12px 12px' }} />
-
-                 {/* Curved shape top right */}
-                 <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#97ce32] rounded-full blur-2xl opacity-40" />
-                 {/* Curved shape bottom left */}
-                 <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#97ce32] rounded-full blur-3xl opacity-40" />
-              </div>
-
-              {/* Background Icons */}
-              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
-                <motion.div
-                  animate={{ y: [0, -10, 0], rotate: [-12, -8, -12] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute top-6 left-8"
-                >
-                  <ConciergeBell className="w-16 h-16" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, 8, 0], rotate: [12, 16, 12] }}
-                  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute top-6 right-8"
-                >
-                  <Soup className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, -8, 0], rotate: [-12, -16, -12] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute bottom-10 left-8"
-                >
-                  <Utensils className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, 6, 0], rotate: [0, 4, 0] }}
-                  transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                  className="absolute bottom-10 right-8"
-                >
-                  <Home className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-              </div>
-
-              <div className="relative z-10 flex flex-col items-center pt-8 pb-10 px-6 text-center text-white">
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#86bf24] ring-[4px] ring-white"
-                >
-                  <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
-                </motion.div>
-                
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 uppercase">
-                  {companyName}
-                </h1>
-                <div className="flex items-center gap-2 justify-center">
-                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
-                   <p className="text-[12px] md:text-[14px] font-bold tracking-[0.1em] uppercase whitespace-nowrap">
-                     Delivery Partner Portal
-                   </p>
-                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
-                </div>
-                <div className="h-1 w-8 bg-white rounded-full mt-2" />
-              </div>
-            </div>
-
-            {/* Wave SVG directly below the blue section */}
-            <div className="w-full overflow-hidden leading-[0] -mt-0.5">
-              <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block">
-                <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#86bf24" />
-              </svg>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center gap-3 py-1 text-white">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden border border-white shrink-0">
-              <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
-            </div>
-            <div className="text-left leading-tight">
-              <h1 className="text-sm font-black uppercase tracking-tight">{companyName}</h1>
-              <p className="text-[10px] font-bold tracking-wider uppercase opacity-90">Delivery Partner</p>
-            </div>
-          </div>
-        )}
+    <div className="min-h-screen min-h-[100dvh] w-full relative flex items-center justify-center font-sans overflow-y-auto bg-[#f5f8f2] py-8 px-4">
+      {/* Background Ambient Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div
+          animate={{
+            x: [0, 40, 0],
+            y: [0, 25, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-[#86bf24] blur-[110px] opacity-25"
+        />
+        <motion.div
+          animate={{
+            x: [0, -35, 0],
+            y: [0, -45, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -bottom-24 -right-24 w-[450px] h-[450px] rounded-full bg-[#73a61d] blur-[120px] opacity-20"
+        />
       </div>
 
-      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 ${isKeyboardOpen ? 'pt-3 pb-2 overflow-y-auto justify-start' : 'mt-16 md:mt-20 pb-4 overflow-y-auto'}`}>
-        {/* Main Card */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="text-center mb-5">
-            <div className="flex items-center justify-center gap-3 mb-1.5">
-               <div className="relative w-5 h-5">
-                 <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-                 <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#86bf24]" />
-                 <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-               </div>
-               <h2 className="text-2xl font-black text-[#1c1c1c]">Welcome Back!</h2>
-               <div className="relative w-5 h-5">
-                 <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-                 <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#86bf24]" />
-                 <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-               </div>
+      {/* Main Centered Card Container */}
+      <div className="w-full max-w-[400px] bg-white relative z-10 overflow-hidden rounded-[36px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)] border border-white/60 flex flex-col my-auto transition-all">
+        
+        {/* Card Header Section */}
+        <div className="relative bg-gradient-to-br from-[#86bf24] to-[#73a61d] pt-8 pb-14 px-6 text-white text-center overflow-hidden">
+          {/* Subtle Background Decorative Pattern */}
+          <div className="absolute inset-0 opacity-15 pointer-events-none">
+            <motion.div
+              animate={{ y: [0, -8, 0], rotate: [-10, -6, -10] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-4 left-6"
+            >
+              <ConciergeBell className="w-14 h-14" strokeWidth={1} />
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, 6, 0], rotate: [10, 14, 10] }}
+              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute top-4 right-6"
+            >
+              <Soup className="w-12 h-12" strokeWidth={1} />
+            </motion.div>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-2xl font-black tracking-tight uppercase mb-1 drop-shadow-sm">
+              {companyName}
+            </h1>
+            <div className="flex items-center gap-2 justify-center opacity-90">
+              <div className="h-[1px] w-6 bg-white/70" />
+              <p className="text-[11px] font-extrabold tracking-[0.15em] uppercase whitespace-nowrap">
+                Delivery Partner Portal
+              </p>
+              <div className="h-[1px] w-6 bg-white/70" />
             </div>
-            <p className="text-sm text-gray-500 font-medium">Login to your delivery partner account</p>
+            <div className="h-1 w-8 bg-white/80 rounded-full mt-2" />
+          </div>
+
+          {/* S-Curve / Wave Divider at Header Bottom */}
+          <div className="absolute -bottom-1 left-0 w-full leading-[0] pointer-events-none">
+            <svg viewBox="0 0 1440 280" preserveAspectRatio="none" className="w-full h-14 block">
+              <path
+                fill="#ffffff"
+                d="M0,192L48,181.3C96,171,192,149,288,154.7C384,160,480,192,576,208C672,224,768,224,864,202.7C960,181,1056,139,1152,133.3C1248,128,1344,160,1392,176L1440,192L1440,280L1392,280C1344,280,1248,280,1152,280C1056,280,960,280,864,280C768,280,672,280,576,280C480,280,384,280,288,280C192,280,96,280,48,280L0,280Z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Circular Logo Badge overlapping Header & Form */}
+        <div className="relative -mt-14 flex justify-center z-20">
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-24 h-24 rounded-full bg-white border-4 border-white shadow-[0_12px_30px_rgba(134,191,36,0.25)] flex items-center justify-center overflow-hidden p-1"
+          >
+            <img
+              src={logoUrl || zozomenLogo}
+              alt="Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </motion.div>
+        </div>
+
+        {/* Form Body Block */}
+        <div className="px-6 pt-5 pb-8 flex flex-col">
+          {/* Header Title with Green Arrow Accents (Image 2 style) */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="text-[#86bf24] font-black text-xl leading-none">&gt;</span>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                Welcome Back!
+              </h2>
+              <span className="text-[#86bf24] font-black text-xl leading-none">&lt;</span>
+            </div>
+            <p className="text-xs text-gray-500 font-medium">
+              Login to your delivery partner account
+            </p>
             <div className="h-1 w-8 bg-[#86bf24] mx-auto mt-2 rounded-full" />
           </div>
 
-          <div className="space-y-5">
-            <div className="space-y-4">
-              <div className="flex items-center border border-gray-200 rounded-xl p-1.5 bg-white focus-within:border-[#86bf24] focus-within:ring-1 focus-within:ring-[#86bf24] transition-all">
-                <div className="bg-[#f1f9e6] p-2 rounded-lg flex items-center justify-center shrink-0">
-                  <Phone className="w-4 h-4 text-[#86bf24]" />
+          <form onSubmit={handleSendOTP} className="space-y-5">
+            <div>
+              {/* Phone Input Box matching Image 2 */}
+              <div className="flex items-center border border-gray-200 rounded-2xl p-2 bg-gray-50/60 focus-within:bg-white focus-within:border-[#86bf24] focus-within:ring-2 focus-within:ring-[#86bf24]/20 transition-all shadow-sm">
+                <div className="bg-[#f1f9e6] p-2.5 rounded-xl flex items-center justify-center shrink-0 text-[#86bf24]">
+                  <Phone className="w-5 h-5" />
                 </div>
-                <div className="flex items-center pl-2 pr-3 border-r border-gray-200">
-                  <span className="text-sm text-gray-700 font-semibold">+91</span>
+                <div className="flex items-center pl-3 pr-3 border-r border-gray-200">
+                  <span className="text-sm font-bold text-gray-700">+91</span>
                 </div>
                 <input
+                  ref={inputRef}
                   type="tel"
                   maxLength={10}
                   inputMode="numeric"
                   placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={handlePhoneChange}
-                  className="w-full bg-transparent pl-2 pr-2 py-1.5 text-sm text-gray-900 font-semibold outline-none placeholder:text-gray-400 placeholder:font-normal"
+                  onFocus={handleInputFocus}
+                  className="w-full bg-transparent pl-3 pr-2 py-2 text-base font-bold text-gray-900 outline-none placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
 
               {error && (
-                <p className="text-[10px] font-semibold text-red-500 px-1">{error}</p>
+                <p className="text-xs font-semibold text-red-500 mt-2 px-1">{error}</p>
               )}
             </div>
 
+            {/* Action Button matching Image 2 */}
             <Button
-              onClick={handleSendOTP}
+              type="submit"
               disabled={isSubmitDisabled}
-              className={`w-full py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 uppercase ${
                 !isSubmitDisabled
-                ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
-                : "bg-gray-100 cursor-not-allowed opacity-50 text-gray-400 shadow-none"
+                  ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
+                  : "bg-gray-100 cursor-not-allowed text-gray-400 shadow-none opacity-60"
               }`}
             >
               {isSending ? (
@@ -359,34 +314,36 @@ export default function DeliverySignIn() {
                 </>
               )}
             </Button>
+          </form>
+
+          {/* Footer Terms Link */}
+          <div className="text-center pt-6">
+            <p className="text-slate-400 text-xs font-medium leading-relaxed">
+              By continuing, you agree to our <br />
+              <Link to="/food/delivery/terms" className="text-[#86bf24] font-bold hover:underline">
+                Terms & Conditions
+              </Link>
+              ,{" "}
+              <Link to="/food/delivery/privacy" className="text-[#86bf24] font-bold hover:underline">
+                Privacy Policy
+              </Link>
+              {" "}and{" "}
+              <Link to="/food/delivery/support" className="text-[#86bf24] font-bold hover:underline">
+                Support
+              </Link>
+            </p>
+          </div>
+
+          <div className="pt-4 text-center">
+            <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
+              &copy; {new Date().getFullYear()} {companyName.toUpperCase()} DELIVERY PARTNER
+            </p>
           </div>
         </div>
-
-        <div className="text-center pt-2 pb-2">
-          <p className="text-slate-400 text-xs font-medium">
-            By continuing, you agree to our <br />
-            <Link to="/food/delivery/terms" className="text-[#86bf24] font-bold hover:underline">
-              Terms & Conditions
-            </Link>
-            ,{" "}
-            <Link to="/food/delivery/privacy" className="text-[#86bf24] font-bold hover:underline">
-              Privacy Policy
-            </Link>
-            {" "}and{" "}
-            <Link to="/food/delivery/support" className="text-[#86bf24] font-bold hover:underline">
-              Support
-            </Link>
-          </p>
-        </div>
-      </div>
-
-      <div className={`pb-6 text-center mt-auto ${isKeyboardOpen ? 'hidden' : 'block'}`}>
-          <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
-            &copy; {new Date().getFullYear()} {companyName.toUpperCase()} DELIVERY PARTNER
-          </p>
       </div>
     </div>
   )
 }
+
 
 

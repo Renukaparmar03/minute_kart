@@ -522,134 +522,120 @@ export default function DeliveryOTP() {
     return null
   }
 
-  const isKeyboardOpen = keyboardInset > 50;
+  const handleInputFocus = (e) => {
+    setTimeout(() => {
+      e.target?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 300)
+  }
 
   return (
-    <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans"
-      style={{
-        overflow: 'hidden',
-        height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
-      }}
-    >
-      {/* Top Green Section */}
-      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'bg-[#86bf24] py-2 px-4 flex-row items-center justify-between' : ''}`}>
-        {!isKeyboardOpen ? (
-          <>
-            <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
-              {/* Back Button */}
-              <button
-                onClick={() => navigate("/food/delivery/login", { replace: true })}
-                className="absolute top-6 left-6 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-200 z-20 backdrop-blur-md"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-
-              {/* Abstract wavy background layers */}
-              <div className="absolute inset-0 z-0">
-                 {/* Darker blue gradient in the corners */}
-                 <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#73a61d] via-transparent to-transparent opacity-80" />
-                 <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#73a61d] via-transparent to-transparent opacity-80" />
-                 
-                 {/* Dotted pattern top left */}
-                 <div className="absolute -top-10 -left-10 w-40 h-40 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '12px 12px' }} />
-
-                 {/* Curved shape top right */}
-                 <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#97ce32] rounded-full blur-2xl opacity-40" />
-                 {/* Curved shape bottom left */}
-                 <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#97ce32] rounded-full blur-3xl opacity-40" />
-              </div>
-
-              {/* Background Icons */}
-              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
-                <motion.div
-                  animate={{ y: [0, -10, 0], rotate: [-12, -8, -12] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute top-6 left-8"
-                >
-                  <ConciergeBell className="w-16 h-16" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, 8, 0], rotate: [12, 16, 12] }}
-                  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute top-6 right-8"
-                >
-                  <Soup className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, -8, 0], rotate: [-12, -16, -12] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute bottom-10 left-8"
-                >
-                  <Utensils className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, 6, 0], rotate: [0, 4, 0] }}
-                  transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                  className="absolute bottom-10 right-8"
-                >
-                  <Home className="w-12 h-12" strokeWidth={1} />
-                </motion.div>
-              </div>
-
-              <div className="relative z-10 flex flex-col items-center pt-8 pb-10 px-6 text-center text-white">
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#86bf24] ring-[4px] ring-white"
-                >
-                  <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
-                </motion.div>
-                
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 uppercase">
-                  {companyName}
-                </h1>
-                <div className="flex items-center gap-2 justify-center">
-                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
-                   <p className="text-[12px] md:text-[14px] font-bold tracking-[0.1em] uppercase whitespace-nowrap">
-                     Delivery Partner Portal
-                   </p>
-                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
-                </div>
-                <div className="h-1 w-8 bg-white rounded-full mt-2" />
-              </div>
-            </div>
-
-            {/* Wave SVG directly below the blue section */}
-            <div className="w-full overflow-hidden leading-[0] -mt-0.5">
-              <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block">
-                <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#86bf24" />
-              </svg>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-between w-full py-1 text-white">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate("/food/delivery/login", { replace: true })}
-                className="p-1.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all shrink-0"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-              <div className="text-left leading-tight">
-                <h1 className="text-sm font-black uppercase tracking-tight">{companyName}</h1>
-                <p className="text-[10px] font-bold tracking-wider uppercase opacity-90">Delivery Partner</p>
-              </div>
-            </div>
-            <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center overflow-hidden border border-white shrink-0">
-              <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
-            </div>
-          </div>
-        )}
+    <div className="min-h-screen min-h-[100dvh] w-full relative flex items-center justify-center font-sans overflow-y-auto bg-[#f5f8f2] py-8 px-4">
+      {/* Background Ambient Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div
+          animate={{
+            x: [0, 40, 0],
+            y: [0, 25, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-[#86bf24] blur-[110px] opacity-25"
+        />
+        <motion.div
+          animate={{
+            x: [0, -35, 0],
+            y: [0, -45, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -bottom-24 -right-24 w-[450px] h-[450px] rounded-full bg-[#73a61d] blur-[120px] opacity-20"
+        />
       </div>
 
-      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 ${isKeyboardOpen ? 'pt-3 pb-2 overflow-y-auto justify-start' : 'mt-16 md:mt-20 pb-4 overflow-y-auto'}`}>
-        {/* Main Card */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          
+      {/* Main Centered Card Container */}
+      <div className="w-full max-w-[400px] bg-white relative z-10 overflow-hidden rounded-[36px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)] border border-white/60 flex flex-col my-auto transition-all">
+        
+        {/* Card Header Section */}
+        <div className="relative bg-gradient-to-br from-[#86bf24] to-[#73a61d] pt-8 pb-14 px-6 text-white text-center overflow-hidden">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/food/delivery/login", { replace: true })}
+            className="absolute top-5 left-5 p-2.5 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all z-20 backdrop-blur-md"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+
+          {/* Subtle Background Decorative Pattern */}
+          <div className="absolute inset-0 opacity-15 pointer-events-none">
+            <motion.div
+              animate={{ y: [0, -8, 0], rotate: [-10, -6, -10] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-4 left-6"
+            >
+              <ConciergeBell className="w-14 h-14" strokeWidth={1} />
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, 6, 0], rotate: [10, 14, 10] }}
+              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute top-4 right-6"
+            >
+              <Soup className="w-12 h-12" strokeWidth={1} />
+            </motion.div>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-2xl font-black tracking-tight uppercase mb-1 drop-shadow-sm">
+              {companyName}
+            </h1>
+            <div className="flex items-center gap-2 justify-center opacity-90">
+              <div className="h-[1px] w-6 bg-white/70" />
+              <p className="text-[11px] font-extrabold tracking-[0.15em] uppercase whitespace-nowrap">
+                Delivery Partner Portal
+              </p>
+              <div className="h-[1px] w-6 bg-white/70" />
+            </div>
+            <div className="h-1 w-8 bg-white/80 rounded-full mt-2" />
+          </div>
+
+          {/* S-Curve / Wave Divider at Header Bottom */}
+          <div className="absolute -bottom-1 left-0 w-full leading-[0] pointer-events-none">
+            <svg viewBox="0 0 1440 280" preserveAspectRatio="none" className="w-full h-14 block">
+              <path
+                fill="#ffffff"
+                d="M0,192L48,181.3C96,171,192,149,288,154.7C384,160,480,192,576,208C672,224,768,224,864,202.7C960,181,1056,139,1152,133.3C1248,128,1344,160,1392,176L1440,192L1440,280L1392,280C1344,280,1248,280,1152,280C1056,280,960,280,864,280C768,280,672,280,576,280C480,280,384,280,288,280C192,280,96,280,48,280L0,280Z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Circular Logo Badge overlapping Header & Form */}
+        <div className="relative -mt-14 flex justify-center z-20">
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-24 h-24 rounded-full bg-white border-4 border-white shadow-[0_12px_30px_rgba(134,191,36,0.25)] flex items-center justify-center overflow-hidden p-1"
+          >
+            <img
+              src={logoUrl || zozomenLogo}
+              alt="Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </motion.div>
+        </div>
+
+        {/* Form Body Block */}
+        <div className="px-6 pt-5 pb-8 flex flex-col">
           {/* Pending approval message */}
           {pendingMessage ? (
-            <div className={`rounded-xl border p-5 text-center space-y-4 shadow-sm ${isRejected ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
+            <div className={`rounded-2xl border p-5 text-center space-y-4 shadow-sm ${isRejected ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"}`}>
               <div className="space-y-2">
                 <p className={`text-sm font-semibold ${isRejected ? "text-red-800" : "text-amber-800"}`}>
                   {isRejected ? "Application Rejected" : "Pending Verification"}
@@ -681,7 +667,7 @@ export default function DeliveryOTP() {
                       sessionStorage.setItem("deliverySignupDetails", JSON.stringify(details))
                       navigate("/food/delivery/signup/details", { replace: true })
                     }}
-                    className="w-full py-3 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 shadow-md transition-all active:scale-95"
+                    className="w-full py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 shadow-md transition-all active:scale-95"
                   >
                     Re-apply Now
                   </button>
@@ -700,20 +686,12 @@ export default function DeliveryOTP() {
             /* Name Input Step */
             <>
               <div className="text-center mb-5">
-                <div className="flex items-center justify-center gap-3 mb-1.5">
-                   <div className="relative w-5 h-5">
-                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#86bf24]" />
-                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-                   </div>
-                   <h2 className="text-2xl font-black text-[#1c1c1c]">Full Name</h2>
-                   <div className="relative w-5 h-5">
-                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#86bf24]" />
-                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-                   </div>
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-[#86bf24] font-black text-xl leading-none">&gt;</span>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Full Name</h2>
+                  <span className="text-[#86bf24] font-black text-xl leading-none">&lt;</span>
                 </div>
-                <p className="text-sm text-gray-500 font-medium">Please enter your name to complete registration</p>
+                <p className="text-xs text-gray-500 font-medium">Please enter your name to complete registration</p>
                 <div className="h-1 w-8 bg-[#86bf24] mx-auto mt-2 rounded-full" />
               </div>
 
@@ -726,9 +704,10 @@ export default function DeliveryOTP() {
                       setName(e.target.value)
                       if (nameError) setNameError("")
                     }}
+                    onFocus={handleInputFocus}
                     disabled={isLoading}
                     placeholder="Enter your name"
-                    className={`h-11 border ${nameError ? "border-red-500" : "border-gray-300"}`}
+                    className={`h-12 rounded-2xl border ${nameError ? "border-red-500" : "border-gray-300"}`}
                   />
                   {nameError && (
                     <p className="text-xs text-red-500 text-left px-1 font-semibold mt-1">
@@ -744,7 +723,7 @@ export default function DeliveryOTP() {
                 <Button
                   onClick={handleSubmitName}
                   disabled={isLoading || !name.trim()}
-                  className={`w-full py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 uppercase ${
                     !isLoading && name.trim()
                     ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
                     : "bg-gray-100 cursor-not-allowed opacity-50 text-gray-400 shadow-none"
@@ -757,21 +736,13 @@ export default function DeliveryOTP() {
           ) : (
             /* OTP Input Step */
             <>
-              <div className="text-center mb-5">
-                <div className="flex items-center justify-center gap-3 mb-1.5">
-                   <div className="relative w-5 h-5">
-                     <div className="absolute top-1 right-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-                     <div className="absolute top-2.5 right-0 w-3 h-0.5 bg-[#86bf24]" />
-                     <div className="absolute top-4 right-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-                   </div>
-                   <h2 className="text-2xl font-black text-[#1c1c1c]">Verify OTP</h2>
-                   <div className="relative w-5 h-5">
-                     <div className="absolute top-1 left-0 w-2.5 h-0.5 bg-[#86bf24] transform -rotate-45" />
-                     <div className="absolute top-2.5 left-0 w-3 h-0.5 bg-[#86bf24]" />
-                     <div className="absolute top-4 left-0 w-2.5 h-0.5 bg-[#86bf24] transform rotate-45" />
-                   </div>
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-[#86bf24] font-black text-xl leading-none">&gt;</span>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Verify OTP</h2>
+                  <span className="text-[#86bf24] font-black text-xl leading-none">&lt;</span>
                 </div>
-                <p className="text-sm text-gray-500 font-medium">
+                <p className="text-xs text-gray-500 font-medium">
                   Sent to <span className="text-[#86bf24] font-bold">{getPhoneNumber()}</span>
                 </p>
                 <div className="h-1 w-8 bg-[#86bf24] mx-auto mt-2 rounded-full" />
@@ -789,29 +760,29 @@ export default function DeliveryOTP() {
                       value={digit}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
+                      onFocus={handleInputFocus}
                       onPaste={index === 0 ? handlePaste : undefined}
                       disabled={isLoading}
                       autoComplete="off"
-                      className={`w-12 h-14 sm:w-14 sm:h-16 bg-slate-50 border-2 rounded-2xl text-center text-2xl font-bold text-slate-900 focus:outline-none transition-all duration-300 border-gray-200`}
+                      className={`w-12 h-14 sm:w-14 sm:h-16 bg-slate-50 border-2 rounded-2xl text-center text-2xl font-black text-slate-900 focus:bg-white focus:border-[#86bf24] focus:outline-none transition-all duration-200 border-gray-200 shadow-sm`}
                     />
                   ))}
                 </div>
 
                 {error && (
-                  <p className="text-[10px] font-semibold text-red-500 text-center px-1 animate-pulse">
+                  <p className="text-xs font-semibold text-red-500 text-center px-1 animate-pulse">
                     {error}
                   </p>
                 )}
 
                 <div className="space-y-4">
-                  {/* Auto-verify loader / fallback button */}
                   <Button
                     onClick={() => handleVerify()}
                     disabled={isLoading || otp.some(d => !d)}
-                    className={`w-full py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
+                    className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 uppercase ${
                       !isLoading && otp.every(d => d)
                         ? "bg-[#86bf24] hover:bg-[#73a61d] text-white shadow-lg shadow-[#86bf24]/30 active:scale-[0.98]"
-                        : "bg-gray-100 cursor-not-allowed opacity-50 text-gray-400 shadow-none"
+                        : "bg-gray-100 cursor-not-allowed opacity-60 text-gray-400 shadow-none"
                     }`}
                   >
                     {isLoading ? (
@@ -847,13 +818,13 @@ export default function DeliveryOTP() {
               </div>
             </>
           )}
-        </div>
-      </div>
 
-      <div className={`pb-6 text-center mt-auto ${isKeyboardOpen ? 'hidden' : 'block'}`}>
-          <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
-            &copy; {new Date().getFullYear()} {companyName.toUpperCase()} DELIVERY PARTNER
-          </p>
+          <div className="pt-6 text-center">
+            <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
+              &copy; {new Date().getFullYear()} {companyName.toUpperCase()} DELIVERY PARTNER
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
