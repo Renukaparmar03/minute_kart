@@ -160,10 +160,65 @@ export const getHomeData = async (req, res) => {
 
   const pageType = req.query?.pageType || 'home';
   const headerId = req.query?.headerId || null;
+  const { lat, lng, zoneId: qZoneId } = req.query;
+
+  // --- Zone-based filtering for bestSellers ---
+  let productQuery = { ...publicProductFilter };
+
+  try {
+    let targetZoneId = qZoneId ? String(qZoneId) : null;
+    let activeZoneCoords = null;
+
+    if (!targetZoneId && lat && lng) {
+      const latNum = Number(lat);
+      const lngNum = Number(lng);
+      if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+        const allActiveZones = await QuickZone.find({ isActive: true }).lean();
+        const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
+        if (matchedZone) {
+          targetZoneId = String(matchedZone._id);
+          activeZoneCoords = matchedZone.coordinates;
+        }
+      }
+    }
+
+    if (targetZoneId || activeZoneCoords) {
+      const sellerQuery = { isActive: true };
+      if (targetZoneId) {
+        sellerQuery.$or = [
+          { 'shopInfo.zoneId': targetZoneId },
+          { zoneId: targetZoneId },
+        ];
+      }
+      const zoneSellers = await Seller.find(sellerQuery).select('_id location shopInfo').lean();
+      let matchingSellerIds = zoneSellers.map(s => s._id);
+
+      if (activeZoneCoords) {
+        const polygonSellers = await Seller.find({ isActive: true }).select('_id location shopInfo').lean();
+        const inPolygonIds = polygonSellers
+          .filter(s => s.location?.latitude && s.location?.longitude && isPointInPolygon(s.location.latitude, s.location.longitude, activeZoneCoords))
+          .map(s => s._id);
+        matchingSellerIds = [...new Set([...matchingSellerIds.map(String), ...inPolygonIds.map(String)])];
+      }
+
+      if (matchingSellerIds.length > 0) {
+        productQuery.$and = (productQuery.$and || []).concat([{
+          $or: [
+            { sellerId: { $in: matchingSellerIds } },
+            { sellerId: { $exists: false } },
+            { sellerId: null },
+          ],
+        }]);
+      }
+    }
+  } catch (zoneErr) {
+    console.error('Zone filtering error in getHomeData:', zoneErr);
+    // Fall through without zone filter rather than crashing
+  }
 
   const [categories, products, settings, heroConfig, experienceSections, offerSections, bestSellerSections] = await Promise.all([
     getQuickCategories(),
-    QuickProduct.find(publicProductFilter).sort({ createdAt: -1 }).limit(18).lean(),
+    QuickProduct.find(productQuery).sort({ createdAt: -1 }).limit(18).lean(),
     getQuickSettings(),
     getQuickHeroConfig({ pageType, headerId }),
     getQuickExperienceSections({ pageType, headerId }),
@@ -248,6 +303,7 @@ export const getHomeData = async (req, res) => {
     result: homeData,
   });
 };
+
 
 export const getCoupons = async (_req, res) => {
   setNoCache(res);

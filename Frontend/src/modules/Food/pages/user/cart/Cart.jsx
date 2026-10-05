@@ -2111,15 +2111,41 @@ export default function Cart() {
     )
   }
 
-  // Empty cart state - redirect directly to home
+  const hadItemsRef = useRef(cart.length > 0)
+
   useEffect(() => {
-    if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
+    if (cart.length > 0) {
+      hadItemsRef.current = true
+    }
+  }, [cart.length])
+
+  // Empty cart state - redirect to home ONLY if user manually decremented items on this page session
+  useEffect(() => {
+    if (hadItemsRef.current && cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
       navigate("/food/user", { replace: true })
     }
   }, [cart.length, showOrderSuccess, showPlacingOrder, navigate])
 
   if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
-    return null
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 py-12 text-center">
+        <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-4xl md:text-5xl shadow-inner">
+          🛒
+        </div>
+        <h2 className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-white mb-2">
+          Your cart is empty
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-6 font-medium leading-relaxed">
+          Good food is always waiting for you! Explore top restaurants and add delicious items to your cart.
+        </p>
+        <Button
+          onClick={() => navigate("/food/user")}
+          className="bg-[#DC021B] hover:bg-[#b50216] text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-red-500/20 transition-all active:scale-95"
+        >
+          Explore Menu
+        </Button>
+      </div>
+    )
   }
 
   return (

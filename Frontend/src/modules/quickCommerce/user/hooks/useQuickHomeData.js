@@ -384,12 +384,33 @@ export const useQuickHomeData = ({ currentLocation }) => {
     };
 
     const fetchCategoryProducts = async () => {
-      if (globalQuickHomeCache.categoryProducts.has(headerId)) {
-        setCategoryProducts(globalQuickHomeCache.categoryProducts.get(headerId));
+      // Build a location-aware cache key so switching zones busts the cache
+      const hasValidLocation =
+        Number.isFinite(currentLocation?.latitude) &&
+        Number.isFinite(currentLocation?.longitude);
+      const locationKey = hasValidLocation
+        ? `${currentLocation.latitude}_${currentLocation.longitude}_${currentLocation?.zoneId || ""}`
+        : "no_loc";
+      const cacheKey = `${headerId}__${locationKey}`;
+
+      if (globalQuickHomeCache.categoryProducts.has(cacheKey)) {
+        setCategoryProducts(globalQuickHomeCache.categoryProducts.get(cacheKey));
         return;
       }
+
+      // Build params with zone/location for proper seller filtering
+      const params = { categoryId: headerId, limit: 50 };
+      if (hasValidLocation) {
+        params.lat = currentLocation.latitude;
+        params.lng = currentLocation.longitude;
+      }
+      const zoneId = currentLocation?.zoneId || currentLocation?.zone?._id || currentLocation?.zoneIdStr;
+      if (zoneId) {
+        params.zoneId = zoneId;
+      }
+
       try {
-        const res = await customerApi.getProducts({ categoryId: headerId, limit: 50 });
+        const res = await customerApi.getProducts(params);
         if (res?.data?.success) {
           const rawResult = res.data.result;
           const dbProds = Array.isArray(res.data.results)
@@ -408,7 +429,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
             weight: p.weight || "1 unit",
             deliveryTime: "8-15 mins",
           }));
-          globalQuickHomeCache.categoryProducts.set(headerId, formatted);
+          globalQuickHomeCache.categoryProducts.set(cacheKey, formatted);
           setCategoryProducts(formatted);
         }
       } catch (e) {
@@ -418,7 +439,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
     fetchHeader();
     fetchCategoryProducts();
-  }, [activeCategory]);
+  }, [activeCategory, currentLocation]);
 
   return {
     categories,
