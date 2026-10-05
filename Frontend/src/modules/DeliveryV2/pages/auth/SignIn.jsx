@@ -195,94 +195,107 @@ export default function DeliverySignIn() {
 
   return (
     <div
-      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans"
+      className="h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-hidden"
       style={{
-        overflow: 'hidden',
         height: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh',
       }}
     >
-      {/* Top Blue Section */}
-      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'hidden' : ''}`}>
-        <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
-          {/* Abstract wavy background layers */}
-          <div className="absolute inset-0 z-0">
-             {/* Darker blue gradient in the corners */}
-             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#73a61d] via-transparent to-transparent opacity-80" />
-             <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#73a61d] via-transparent to-transparent opacity-80" />
-             
-             {/* Dotted pattern top left */}
-             <div className="absolute -top-10 -left-10 w-40 h-40 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '12px 12px' }} />
+      {/* Top Green Section */}
+      <div className={`w-full flex flex-col shrink-0 z-10 drop-shadow-md transition-all duration-200 ${isKeyboardOpen ? 'bg-[#86bf24] py-2 px-4 flex-row items-center justify-between' : ''}`}>
+        {!isKeyboardOpen ? (
+          <>
+            <div className="w-full relative overflow-hidden bg-[#86bf24] pb-4">
+              {/* Abstract wavy background layers */}
+              <div className="absolute inset-0 z-0">
+                 {/* Darker blue gradient in the corners */}
+                 <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#73a61d] via-transparent to-transparent opacity-80" />
+                 <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-tr from-[#73a61d] via-transparent to-transparent opacity-80" />
+                 
+                 {/* Dotted pattern top left */}
+                 <div className="absolute -top-10 -left-10 w-40 h-40 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '12px 12px' }} />
 
-             {/* Curved shape top right */}
-             <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#97ce32] rounded-full blur-2xl opacity-40" />
-             {/* Curved shape bottom left */}
-             <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#97ce32] rounded-full blur-3xl opacity-40" />
-          </div>
+                 {/* Curved shape top right */}
+                 <div className="absolute -top-20 -right-10 w-64 h-64 bg-[#97ce32] rounded-full blur-2xl opacity-40" />
+                 {/* Curved shape bottom left */}
+                 <div className="absolute -bottom-10 -left-20 w-80 h-80 bg-[#97ce32] rounded-full blur-3xl opacity-40" />
+              </div>
 
-          {/* Background Icons */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
-            <motion.div
-              animate={{ y: [0, -10, 0], rotate: [-12, -8, -12] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-6 left-8"
-            >
-              <ConciergeBell className="w-16 h-16" strokeWidth={1} />
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 8, 0], rotate: [12, 16, 12] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute top-6 right-8"
-            >
-              <Soup className="w-12 h-12" strokeWidth={1} />
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, -8, 0], rotate: [-12, -16, -12] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-10 left-8"
-            >
-              <Utensils className="w-12 h-12" strokeWidth={1} />
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 6, 0], rotate: [0, 4, 0] }}
-              transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-              className="absolute bottom-10 right-8"
-            >
-              <Home className="w-12 h-12" strokeWidth={1} />
-            </motion.div>
-          </div>
+              {/* Background Icons */}
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
+                <motion.div
+                  animate={{ y: [0, -10, 0], rotate: [-12, -8, -12] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute top-6 left-8"
+                >
+                  <ConciergeBell className="w-16 h-16" strokeWidth={1} />
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, 8, 0], rotate: [12, 16, 12] }}
+                  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  className="absolute top-6 right-8"
+                >
+                  <Soup className="w-12 h-12" strokeWidth={1} />
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, -8, 0], rotate: [-12, -16, -12] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                  className="absolute bottom-10 left-8"
+                >
+                  <Utensils className="w-12 h-12" strokeWidth={1} />
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, 6, 0], rotate: [0, 4, 0] }}
+                  transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                  className="absolute bottom-10 right-8"
+                >
+                  <Home className="w-12 h-12" strokeWidth={1} />
+                </motion.div>
+              </div>
 
-          <div className="relative z-10 flex flex-col items-center pt-8 pb-10 px-6 text-center text-white">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#86bf24] ring-[4px] ring-white"
-            >
-              <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
-            </motion.div>
-            
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 uppercase">
-              {companyName}
-            </h1>
-            <div className="flex items-center gap-2 justify-center">
-               <div className="h-[1px] w-6 md:w-8 bg-white/70" />
-               <p className="text-[12px] md:text-[14px] font-bold tracking-[0.1em] uppercase whitespace-nowrap">
-                 Delivery Partner Portal
-               </p>
-               <div className="h-[1px] w-6 md:w-8 bg-white/70" />
+              <div className="relative z-10 flex flex-col items-center pt-8 pb-10 px-6 text-center text-white">
+                <motion.div
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center mb-3 shadow-2xl overflow-hidden border-[2px] border-[#86bf24] ring-[4px] ring-white"
+                >
+                  <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
+                </motion.div>
+                
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 uppercase">
+                  {companyName}
+                </h1>
+                <div className="flex items-center gap-2 justify-center">
+                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
+                   <p className="text-[12px] md:text-[14px] font-bold tracking-[0.1em] uppercase whitespace-nowrap">
+                     Delivery Partner Portal
+                   </p>
+                   <div className="h-[1px] w-6 md:w-8 bg-white/70" />
+                </div>
+                <div className="h-1 w-8 bg-white rounded-full mt-2" />
+              </div>
             </div>
-            <div className="h-1 w-8 bg-white rounded-full mt-2" />
-          </div>
-        </div>
 
-        {/* Wave SVG directly below the blue section */}
-        <div className="w-full overflow-hidden leading-[0] -mt-0.5">
-          <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block">
-            <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#86bf24" />
-          </svg>
-        </div>
+            {/* Wave SVG directly below the blue section */}
+            <div className="w-full overflow-hidden leading-[0] -mt-0.5">
+              <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block">
+                <path d="M0,0 L1440,0 L1440,40 C1200,10 960,10 720,40 C480,80 240,80 0,40 Z" fill="#86bf24" />
+              </svg>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-3 py-1 text-white">
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden border border-white shrink-0">
+              <img src={logoUrl || zozomenLogo} alt="Logo" className="w-full h-full object-cover rounded-full" />
+            </div>
+            <div className="text-left leading-tight">
+              <h1 className="text-sm font-black uppercase tracking-tight">{companyName}</h1>
+              <p className="text-[10px] font-bold tracking-wider uppercase opacity-90">Delivery Partner</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 pb-4 ${isKeyboardOpen ? 'mt-2 justify-center overflow-hidden' : 'mt-16 md:mt-20 overflow-y-auto'}`}>
+      <div className={`flex-1 max-w-[420px] mx-auto w-full px-4 flex flex-col relative z-20 ${isKeyboardOpen ? 'pt-3 pb-2 overflow-y-auto justify-start' : 'mt-16 md:mt-20 pb-4 overflow-y-auto'}`}>
         {/* Main Card */}
         <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 shrink-0 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center mb-5">
@@ -349,7 +362,7 @@ export default function DeliverySignIn() {
           </div>
         </div>
 
-        <div className="text-center pt-4 pb-2">
+        <div className="text-center pt-2 pb-2">
           <p className="text-slate-400 text-xs font-medium">
             By continuing, you agree to our <br />
             <Link to="/food/delivery/terms" className="text-[#86bf24] font-bold hover:underline">
@@ -367,7 +380,7 @@ export default function DeliverySignIn() {
         </div>
       </div>
 
-      <div className="pb-8 text-center mt-auto">
+      <div className={`pb-6 text-center mt-auto ${isKeyboardOpen ? 'hidden' : 'block'}`}>
           <p className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">
             &copy; {new Date().getFullYear()} {companyName.toUpperCase()} DELIVERY PARTNER
           </p>
