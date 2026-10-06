@@ -130,18 +130,18 @@ export const ProfileBankV2 = () => {
            upiId: form.upiId
         };
 
-        await deliveryAPI.updateProfileDetails(payload);
+        await deliveryAPI.updateProfile(payload);
 
         // 2. Upload UPI QR Code image if a new file was selected
         if (upiQrFile) {
           const formData = new FormData();
           formData.append('upiQrCode', upiQrFile);
-          await deliveryAPI.updateProfileMultipart(formData);
+          await deliveryAPI.updateBankDetailsMultipart(formData);
         } else if (!upiQrPreview && form.upiQrCode) {
           // If removed
           const formData = new FormData();
           formData.append('removeUpiQrCode', 'true');
-          await deliveryAPI.updateProfileMultipart(formData).catch(() => {});
+          await deliveryAPI.updateBankDetailsMultipart(formData).catch(() => {});
         }
 
         toast.success("Bank and UPI details saved to database");
