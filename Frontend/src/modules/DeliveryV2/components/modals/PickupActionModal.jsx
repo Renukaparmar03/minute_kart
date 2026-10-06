@@ -9,7 +9,57 @@ import { ActionSlider } from '@/modules/DeliveryV2/components/ui/ActionSlider';
 import { uploadAPI } from '@food/api';
 import { toast } from 'sonner';
 import { openCamera } from "@food/utils/imageUploadUtils";
-import { isMixedOrder, normalizePickupPoints } from '@/modules/DeliveryV2/utils/orderRouting';
+const getItemImage = (item) => {
+  if (!item) return null;
+  return (
+    item.image ||
+    item.img ||
+    item.imageUrl ||
+    item.imagePath ||
+    item.thumbnail ||
+    item.photo ||
+    item.itemImage ||
+    (typeof item.productId === 'object' ? (
+      item.productId?.image ||
+      item.productId?.images?.[0] ||
+      item.productId?.thumbnail ||
+      item.productId?.imageUrl
+    ) : null) ||
+    null
+  );
+};
+
+const getItemWeightOrVariant = (item) => {
+  if (!item) return '';
+  const parts = [];
+  
+  const w = item.weight || (typeof item.productId === 'object' ? item.productId?.weight : null);
+  const u = item.unit || (typeof item.productId === 'object' ? item.productId?.unit : null);
+  
+  if (w) parts.push(String(w).trim());
+  if (u && (!w || !String(w).toLowerCase().includes(String(u).toLowerCase()))) {
+    parts.push(String(u).trim());
+  }
+
+  const variant = item.variantName || item.variant || item.selectedVariant?.name || item.quantityDescription || item.packSize || item.size || item.volume;
+  if (variant && !parts.includes(String(variant).trim())) {
+    parts.push(String(variant).trim());
+  }
+
+  if (parts.length > 0) {
+    return Array.from(new Set(parts)).join(' • ');
+  }
+  return item.description || '';
+};
+
+const getItemPrice = (item) => {
+  if (!item) return null;
+  const p = item.price ?? item.itemPrice ?? item.amount ?? item.priceAtPurchase ?? item.totalPrice;
+  if (p !== undefined && p !== null && !isNaN(Number(p)) && Number(p) > 0) {
+    return `₹${Number(p).toFixed(0)}`;
+  }
+  return null;
+};
 
 /**
  * PickupActionModal - Unified White/Green Theme with Slider Actions.
@@ -308,15 +358,73 @@ export const PickupActionModal = ({
           </button>
 
           {showItems && (
-            <div className="overflow-hidden space-y-2 px-1">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center p-3 border-b border-gray-50 last:border-0">
-                  <span className="text-gray-700 text-sm font-bold">{item.name || 'Item Name'}</span>
-                  <span className="text-[#86bf24] font-bold bg-[#f3f9e8] px-2.5 py-1 rounded-lg text-xs">x{item.quantity || 1}</span>
-                </div>
-              ))}
+            <div className="overflow-hidden space-y-2 px-0.5 pt-2">
+              {items.map((item, idx) => {
+                const itemImg = getItemImage(item);
+                const itemWeight = getItemWeightOrVariant(item);
+                const itemPrice = getItemPrice(item);
+                const itemName = item.name || item.title || item.productName || (typeof item.productId === 'object' ? item.productId?.name : '') || 'Item Name';
+                const itemQty = item.quantity || item.qty || item.count || 1;
+
+                return (
+                  <div 
+                    key={idx} 
+                    className="flex items-center justify-between p-2.5 bg-gray-50/90 rounded-2xl border border-gray-100 hover:bg-gray-100/60 transition-all gap-3"
+                  >
+                    {/* Item Image & Details */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Image Thumbnail */}
+                      <div className="w-12 h-12 rounded-xl bg-white border border-gray-200/80 overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-xs">
+                        {itemImg ? (
+                          <img 
+                            src={itemImg} 
+                            alt={itemName} 
+                            className="w-full h-full object-contain rounded-lg"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              if (e.target.nextSibling) {
+                                e.target.nextSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-full h-full items-center justify-center text-gray-400 ${itemImg ? 'hidden' : 'flex'}`}>
+                          <Package className="w-5 h-5 text-gray-400 stroke-[1.5]" />
+                        </div>
+                      </div>
+
+                      {/* Name, weight/variant & price */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-gray-900 text-xs font-extrabold truncate leading-tight mb-0.5">
+                          {itemName}
+                        </p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {itemWeight ? (
+                            <span className="text-[10px] font-bold text-gray-600 bg-white border border-gray-200/80 px-1.5 py-0.5 rounded-md leading-none shadow-2xs">
+                              {itemWeight}
+                            </span>
+                          ) : null}
+                          {itemPrice ? (
+                            <span className="text-[10px] font-black text-gray-700">
+                              {itemPrice}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quantity Badge */}
+                    <div className="shrink-0">
+                      <span className="text-[#86bf24] font-black bg-[#f3f9e8] border border-[#e6f4cf] px-2.5 py-1 rounded-xl text-xs flex items-center justify-center shadow-2xs">
+                        x{itemQty}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
+
         </div>
       </motion.div>
     </div>
