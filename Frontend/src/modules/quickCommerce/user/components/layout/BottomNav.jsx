@@ -189,7 +189,10 @@ const BottomNav = () => {
                     );
                 })}
             </div>
-            <div className="w-full bg-black" style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }} />
+            <div 
+                className={`w-full transition-all duration-300 ${isVisible ? "bg-black border-t-0 border-transparent" : "bg-white dark:bg-[#0a0a0a] border-t border-gray-200 dark:border-gray-800"}`} 
+                style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }} 
+            />
         </div>
     );
 };
