@@ -73,22 +73,22 @@ export default function BottomNavigation() {
     <>
       <DraggableModuleSwitcher />
       <div 
-        className={`md:hidden fixed left-4 right-4 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
-        style={{ bottom: "max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))" }}
+        className={`md:hidden fixed left-0 right-0 bottom-0 z-50 transition-all duration-300 ease-in-out bg-white dark:bg-[#1a1a1a] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-gray-100 dark:border-gray-800 ${isVisible ? "translate-y-0" : "translate-y-full"}`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between gap-1">
+        <div className="flex items-center justify-between px-4 py-2">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
           replace
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
-            isDelivery
-              ? "bg-[#379702]/10 text-[#379702] font-semibold"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
-          }`}
+          className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
         >
-          <Truck className="h-5 w-5" strokeWidth={2.5} />
-          <span className="text-[9px] font-black tracking-wider uppercase">
+          <Truck 
+            className={`h-[26px] w-[26px] ${isDelivery ? "text-gray-900 dark:text-white" : "text-gray-500"}`} 
+            strokeWidth={isDelivery ? 2 : 1.5} 
+            fill={isDelivery ? "#FDE047" : "none"} 
+          />
+          <span className={`text-[10px] tracking-wide ${isDelivery ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-500"}`}>
             Delivery
           </span>
         </Link>
@@ -97,14 +97,14 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/under-250"
           replace
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
-            isUnder250
-              ? "bg-[#379702]/10 text-[#379702] font-semibold"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
-          }`}
+          className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
         >
-          <Tag className="h-5 w-5" strokeWidth={2.5} />
-          <span className="text-[9px] font-black tracking-wider uppercase">
+          <Tag 
+            className={`h-[26px] w-[26px] ${isUnder250 ? "text-gray-900 dark:text-white" : "text-gray-500"}`} 
+            strokeWidth={isUnder250 ? 2 : 1.5} 
+            fill={isUnder250 ? "#FDE047" : "none"} 
+          />
+          <span className={`text-[10px] tracking-wide ${isUnder250 ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-500"}`}>
             Under 250
           </span>
         </Link>
@@ -113,25 +113,24 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/cart"
           replace
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
-            isCart
-              ? "bg-[#379702]/10 text-[#379702] font-semibold"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
-          }`}
+          className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
         >
-          <ShoppingCart className="h-5 w-5" strokeWidth={2.5} />
-          <span className="text-[9px] font-black tracking-wider uppercase">
+          <ShoppingCart 
+            className={`h-[26px] w-[26px] ${isCart ? "text-gray-900 dark:text-white" : "text-gray-500"}`} 
+            strokeWidth={isCart ? 2 : 1.5} 
+            fill={isCart ? "#FDE047" : "none"} 
+          />
+          <span className={`text-[10px] tracking-wide ${isCart ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-500"}`}>
             Cart
           </span>
         </Link>
 
-        {/* Minutemart Link Button */}
+        {/* Minutemart Link Button (styled like Zomato button) */}
         <Link
           to="/quick"
-          className="flex items-center gap-0.5 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
+          className="flex items-center justify-center bg-[#E23744] text-white px-3.5 py-1.5 rounded-[10px] shadow-sm transition-all active:scale-95 ml-2 h-9"
         >
-          <span>Minutemart</span>
-          <ChevronRight className="h-3 w-3" strokeWidth={4} />
+          <span className="font-black text-[13px] tracking-tight lowercase">minutemart</span>
         </Link>
       </div>
     </div>

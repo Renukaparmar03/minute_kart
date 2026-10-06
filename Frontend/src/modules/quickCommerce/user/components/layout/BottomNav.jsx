@@ -76,50 +76,52 @@ const BottomNav = () => {
 
                     const content = (
                         <div className="flex flex-col items-center justify-center relative w-full h-full">
-                            <div className={cn("relative flex items-center justify-center", item.label === 'Profile' ? "h-7 w-7" : "h-5 w-5")}>
+                            <div className={cn("relative flex items-center justify-center", item.label === 'Profile' ? "h-[26px] w-[26px]" : "h-[26px] w-[26px]")}>
                                 {item.label === 'Profile' ? (
                                     profileImageUrl ? (
                                         <img
                                             src={profileImageUrl}
                                             alt="Profile"
                                             className={cn(
-                                                "h-7 w-7 rounded-full object-cover transition-all duration-300 border",
-                                                isActive ? "border-[#0c831f] scale-105" : "border-gray-200"
+                                                "h-6 w-6 rounded-full object-cover transition-all duration-300 border",
+                                                isActive ? "border-gray-900 dark:border-white scale-105" : "border-gray-200"
                                             )}
                                         />
                                     ) : avatarInitial ? (
                                         <div
                                             className={cn(
-                                                "h-7 w-7 rounded-full flex items-center justify-center text-[13px] font-black leading-none transition-all duration-300",
+                                                "h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-black leading-none transition-all duration-300",
                                                 isActive 
-                                                    ? "bg-[#0c831f] text-white scale-105" 
-                                                    : "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400"
+                                                    ? "bg-[#FDE047] text-gray-900 scale-105 border border-gray-900" 
+                                                    : "bg-gray-100 text-gray-500"
                                             )}
                                         >
                                             {avatarInitial}
                                         </div>
                                     ) : (
                                         <IconComponent
-                                            size={20}
-                                            strokeWidth={isActive ? 2.5 : 2}
+                                            size={26}
+                                            strokeWidth={isActive ? 2 : 1.5}
+                                            fill={isActive ? "#FDE047" : "none"}
                                             className={cn(
                                                 "transition-colors duration-300",
-                                                isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
+                                                isActive ? "text-gray-900 dark:text-white" : "text-gray-500"
                                             )}
                                         />
                                     )
                                 ) : (
                                     <IconComponent
-                                        size={20}
-                                        strokeWidth={isActive ? 2.5 : 2}
+                                        size={26}
+                                        strokeWidth={isActive ? 2 : 1.5}
+                                        fill={isActive ? "#FDE047" : "none"}
                                         className={cn(
                                             "transition-colors duration-300",
-                                            isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
+                                            isActive ? "text-gray-900 dark:text-white" : "text-gray-500"
                                         )}
                                     />
                                 )}
                                 {item.hasBadge && cartCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-2.5 bg-[#e23737] text-white text-[8px] font-black rounded-full min-w-[14px] h-[14px] px-0.5 flex items-center justify-center border border-white shadow-sm">
+                                    <span className="absolute -top-1 -right-2 bg-[#e23737] text-white text-[8px] font-black rounded-full min-w-[14px] h-[14px] px-0.5 flex items-center justify-center border border-white shadow-sm">
                                         {cartCount}
                                     </span>
                                 )}
@@ -128,8 +130,8 @@ const BottomNav = () => {
                             {item.label && (
                                 <span
                                     className={cn(
-                                        "text-[9px] font-extrabold tracking-tight mt-1 transition-colors duration-300 leading-none",
-                                        isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
+                                        "text-[10px] tracking-wide mt-1 transition-colors duration-300 leading-none",
+                                        isActive ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-500"
                                     )}
                                 >
                                     {item.label}
@@ -146,13 +148,6 @@ const BottomNav = () => {
                                 className="flex-1 flex flex-col items-center justify-center h-full relative group transition-all"
                             >
                                 {content}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="topLine"
-                                        className="absolute top-0 w-8 h-[3px] bg-[#0c831f] rounded-full"
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    />
-                                )}
                             </Link>
                         );
                     }

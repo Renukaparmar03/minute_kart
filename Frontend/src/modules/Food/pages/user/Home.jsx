@@ -495,9 +495,18 @@ export default function Home() {
   };
 
   const handleVegModeChange = (newValue) => {
-    setVegModeContext(newValue);
+    if (newValue) {
+      setVegModeContext(true);
+      setShowVegModePopup(true);
+    } else {
+      setShowSwitchOffPopup(true);
+    }
   };
 
+  const confirmSwitchOffVegMode = () => {
+    setVegModeContext(false);
+    setShowSwitchOffPopup(false);
+  };
   const handleSearchFocus = useCallback(() => {
     if (activeTab === "quick") navigate("/quick/search");
     else navigate("/food/user/search");
@@ -1119,6 +1128,13 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      <VegModePopups
+        showVegModePopup={showVegModePopup}
+        showSwitchOffPopup={showSwitchOffPopup}
+        onCloseVegPopup={() => setShowVegModePopup(false)}
+        onCloseSwitchOffPopup={() => setShowSwitchOffPopup(false)}
+        onConfirmSwitchOff={confirmSwitchOffVegMode}
+      />
     </div>
   );
 }

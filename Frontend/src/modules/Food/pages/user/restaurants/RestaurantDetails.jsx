@@ -108,6 +108,7 @@ function RestaurantDetailsContent() {
   const [highlightedDishId, setHighlightedDishId] = useState(null)
   const [loadingMenuItems, setLoadingMenuItems] = useState(true)
   const [selectedMenuCategory, setSelectedMenuCategory] = useState("all")
+  const [showInfoModal, setShowInfoModal] = useState(false)
   const dishCardRefs = useRef({})
 
   const getLineItemIdForDish = (item, variant = null) =>
@@ -2069,7 +2070,10 @@ function RestaurantDetailsContent() {
                 <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                   {restaurant?.name || "Unknown Restaurant"}
                 </h1>
-                <Info className="h-5 w-5 text-gray-400 cursor-pointer" />
+                <Info 
+                  className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" 
+                  onClick={() => setShowInfoModal(true)} 
+                />
               </div>
               <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                 <Utensils className="h-4 w-4" />
@@ -4018,6 +4022,100 @@ function RestaurantDetailsContent() {
             linkTo="/food/user/cart"
             hideOnPages={true}
           />,
+          document.body
+        )}
+
+      {/* Restaurant Info Modal */}
+      {typeof window !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {showInfoModal && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+                  onClick={() => setShowInfoModal(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl z-[110] overflow-hidden flex flex-col max-h-[85vh]"
+                >
+                  <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Restaurant Details</h3>
+                    <button
+                      onClick={() => setShowInfoModal(false)}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    >
+                      <X className="h-5 w-5 text-gray-500" />
+                    </button>
+                  </div>
+                  
+                  <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                    {/* Header Info */}
+                    <div className="space-y-1">
+                      <h2 className="text-xl font-black text-gray-900 dark:text-white">{restaurant?.name}</h2>
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                        <Utensils className="h-4 w-4" />
+                        <span>{restaurant?.topCategory || restaurant?.cuisine || "Multi-cuisine"}</span>
+                      </div>
+                    </div>
+
+                    {/* Address & Timings */}
+                    <div className="bg-gray-50 dark:bg-[#222] rounded-2xl p-4 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Location</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {restaurant?.address || restaurant?.location || "Address not available"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Timings</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {(() => {
+                              const formatTime = (timeStr) => {
+                                if (!timeStr) return "";
+                                const [h, m] = timeStr.split(':');
+                                const hours = parseInt(h, 10);
+                                const ampm = hours >= 12 ? 'PM' : 'AM';
+                                const displayHours = hours % 12 || 12;
+                                return `${displayHours}:${m || '00'} ${ampm}`;
+                              };
+                              const open = restaurant?.openingTime ? formatTime(restaurant.openingTime) : "10:00 AM";
+                              const close = restaurant?.closingTime ? formatTime(restaurant.closingTime) : "11:00 PM";
+                              return `${open} - ${close}`;
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* FSSAI License */}
+                    {restaurant?.fssaiLicense && (
+                      <div className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-[#1a1a1a]">
+                        <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0">
+                          <img src={fssaiLogo} alt="FSSAI" className="w-7 h-7 object-contain opacity-80" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">FSSAI License</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{restaurant.fssaiLicense}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
           document.body
         )}
     </AnimatedPage>
