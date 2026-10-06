@@ -56,7 +56,10 @@ const resolveBackPath = ({ pathname, search, state }) => {
     return explicitBackPath || "/food/user/profile"
   }
 
-  if (normalizedPath === "/user/wallet") {
+  if (normalizedPath === "/user/wallet" || pathname === "/quick/wallet") {
+    if (searchParams.get("from") === "home") {
+      return pathname.startsWith("/quick") ? "/quick" : "/food/user"
+    }
     if (pathname.startsWith('/quick') || searchParams.get('from') === 'quick') {
       return "/profile?from=quick"
     }

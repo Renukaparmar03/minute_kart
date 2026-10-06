@@ -136,7 +136,7 @@ export default function BottomNavigation() {
         </Link>
         </div>
         {/* Black background for safe area (OS navigation buttons) */}
-        <div className="w-full bg-black" style={{ height: "env(safe-area-inset-bottom, 0px)" }} />
+        <div className={`w-full transition-colors duration-300 ${isVisible ? "bg-black" : "bg-white dark:bg-[#0a0a0a]"}`} style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }} />
       </div>
     </>
   )
