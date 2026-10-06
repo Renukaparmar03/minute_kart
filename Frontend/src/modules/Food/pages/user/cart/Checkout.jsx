@@ -68,7 +68,12 @@ export default function Checkout() {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          image: item.image
+          image: item.image || item.imageUrl,
+          weight: item.weight,
+          unit: item.unit,
+          variantName: item.variantName || item.variant,
+          packSize: item.packSize || item.size,
+          volume: item.volume
         })),
         address: selectedAddress,
         paymentMethod: defaultPayment,

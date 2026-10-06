@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CreditCard, MapPin, Minus, Plus, ShoppingBag, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@food/components/ui/button";
 import { useCart } from "@food/context/CartContext";
@@ -11,6 +13,8 @@ import { orderAPI } from "@food/api";
 import { initRazorpayPayment } from "@food/utils/razorpay";
 import { useCompanyName } from "@food/hooks/useCompanyName";
 import { useSettings } from "@core/context/SettingsContext";
+
+import zoopSound from "@food/assets/audio/zomato_sms.mp3";
 
 const RUPEE_SYMBOL = "\u20B9";
 
@@ -87,6 +91,11 @@ const mapCartItemsToPayload = (cart) =>
     quantity: Number(item.quantity || 1),
     price: Number(item.price || 0),
     image: sanitizeOrderImage(item.image || item.imageUrl || ""),
+    weight: item.weight,
+    unit: item.unit,
+    variantName: item.variantName || item.variant,
+    packSize: item.packSize || item.size,
+    volume: item.volume,
     isVeg: item.isVeg ?? true,
     notes: sanitizeOrderNotes(item.notes || ""),
   }));
@@ -103,6 +112,10 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
   const [pricing, setPricing] = useState(null);
   const [isPricingLoading, setIsPricingLoading] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState(null);
+  const [placedOrderData, setPlacedOrderData] = useState(null);
+  const orderSuccessAudioRef = useRef(null);
   const { settings } = useSettings();
 
   useEffect(() => {
@@ -129,6 +142,28 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
       setSelectedAddressId(defaultId);
     }
   }, [defaultAddress, selectedAddressId]);
+
+  useEffect(() => {
+    const audio = new Audio(zoopSound);
+    audio.preload = "auto";
+    audio.volume = 0.8;
+    orderSuccessAudioRef.current = audio;
+
+    return () => {
+      if (orderSuccessAudioRef.current) {
+        orderSuccessAudioRef.current.pause();
+        orderSuccessAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showOrderSuccess || !orderSuccessAudioRef.current) return;
+    orderSuccessAudioRef.current.currentTime = 0;
+    orderSuccessAudioRef.current.play().catch((error) => {
+      console.warn("Order success sound blocked by browser:", error?.message || error);
+    });
+  }, [showOrderSuccess]);
 
   const selectedAddress = useMemo(() => {
     if (initialAddress) return initialAddress;
@@ -220,10 +255,12 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
 
       if (selectedPaymentMethod === "cash") {
         toast.success("Quick order placed successfully");
+        setPlacedOrderId(order?._id || order?.orderId || order?.id);
+        setPlacedOrderData(order || null);
+        setShowOrderSuccess(true);
+        window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
         clearCart();
-        navigate(`/food/user/orders/${order?._id || order?.orderId || order?.id}?confirmed=true`, {
-          state: order ? { prefetchedOrder: order } : undefined,
-        });
+        setIsPlacingOrder(false);
         return;
       }
 
@@ -257,10 +294,12 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
 
           if (verifyResponse?.data?.success) {
             toast.success("Quick order placed successfully");
+            setPlacedOrderId(order?._id || order?.orderId || order?.id);
+            setPlacedOrderData(order || null);
+            setShowOrderSuccess(true);
+            window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
             clearCart();
-            navigate(`/food/user/orders/${order?._id || order?.orderId || order?.id}?confirmed=true`, {
-              state: order ? { prefetchedOrder: order } : undefined,
-            });
+            setIsPlacingOrder(false);
             return;
           }
 
@@ -308,7 +347,14 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
     }
   };
 
-  if (quickCart.length === 0) {
+  const handleGoToOrders = () => {
+    setShowOrderSuccess(false);
+    navigate(`/food/user/orders/${placedOrderId}?confirmed=true`, {
+      state: placedOrderData ? { prefetchedOrder: placedOrderData } : undefined,
+    });
+  };
+
+  if (quickCart.length === 0 && !showOrderSuccess) {
     return (
       <div className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -508,6 +554,137 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
           </aside>
         </div>
       </div>
+
+      {/* Animation Styles */}
+      <style>{`
+        @keyframes scaleIn {
+          from { transform: scale(0); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes checkDraw {
+          0% { stroke-dasharray: 100; stroke-dashoffset: 100; }
+          100% { stroke-dasharray: 100; stroke-dashoffset: 0; }
+        }
+        @keyframes ringPulse {
+          0% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.3); opacity: 0; }
+          100% { transform: scale(1); opacity: 0; }
+        }
+        @keyframes sparkle {
+          0% { transform: rotate(var(--rotation, 0deg)) translateY(0) scale(0); opacity: 1; }
+          100% { transform: rotate(var(--rotation, 0deg)) translateY(-80px) scale(1); opacity: 0; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(30px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes confettiFall {
+          0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        .check-path {
+          stroke-dasharray: 100;
+          stroke-dashoffset: 0;
+        }
+      `}</style>
+
+      {/* Order Success Celebration Page */}
+      {showOrderSuccess && typeof window !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-[100] bg-white flex h-screen w-full flex-col items-center justify-center overflow-hidden"
+          style={{ animation: 'fadeIn 0.3s ease-out' }}
+        >
+          {/* Confetti Background */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(50)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-3 h-3 rounded-sm"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `-10%`,
+                  backgroundColor: ['#10b981', '#059669', '#34d399', '#047857'][Math.floor(Math.random() * 4)],
+                  animation: `confettiFall ${2 + Math.random() * 2}s linear ${Math.random() * 2}s infinite`,
+                  transform: `rotate(${Math.random() * 360}deg)`,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center px-6">
+            <div
+              className="relative mb-8"
+              style={{ animation: 'scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' }}
+            >
+              <div
+                className="absolute inset-0 w-32 h-32 rounded-full border-4 border-emerald-500"
+                style={{
+                  animation: 'ringPulse 1.5s ease-out infinite',
+                  opacity: 0.3
+                }}
+              />
+              <div className="w-32 h-32 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-emerald-200/60">
+                <svg
+                  className="w-16 h-16 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ animation: 'checkDraw 0.5s ease-out 0.5s both' }}
+                >
+                  <path d="M5 12l5 5L19 7" className="check-path" />
+                </svg>
+              </div>
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+                  style={{
+                    top: '50%',
+                    left: '50%',
+                    animation: `sparkle 0.6s ease-out ${0.3 + i * 0.1}s both`,
+                    transform: `rotate(${i * 60}deg) translateY(-80px)`,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div
+              className="text-center"
+              style={{ animation: 'slideUp 0.5s ease-out 0.6s both' }}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <MapPin className="h-5 w-5 text-emerald-500" />
+                <h2 className="text-2xl font-bold text-slate-900">
+                  {defaultAddress?.city || "Your Location"}
+                </h2>
+              </div>
+              <p className="text-slate-500 text-base max-w-sm">
+                {defaultAddress ? (formatFullAddress(defaultAddress) || "Delivery Address") : "Delivery Address"}
+              </p>
+            </div>
+
+            <div
+              className="mt-12 text-center"
+              style={{ animation: 'slideUp 0.5s ease-out 0.8s both' }}
+            >
+              <h3 className="text-3xl font-black text-emerald-600 mb-2">Order Placed!</h3>
+              <p className="text-slate-600 font-medium">Your quick essentials are on their way</p>
+            </div>
+
+            <button
+              onClick={handleGoToOrders}
+              className="mt-10 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-12 rounded-full shadow-lg shadow-emerald-200 transition-all hover:scale-105"
+              style={{ animation: 'slideUp 0.5s ease-out 1s both' }}
+            >
+              Track Your Order
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

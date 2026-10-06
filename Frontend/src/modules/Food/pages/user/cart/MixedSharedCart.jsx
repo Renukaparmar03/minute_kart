@@ -85,6 +85,10 @@ const mapCartItemsToPayload = (cart) =>
       variantName: item.variantName || undefined,
       variantPrice: item.variantPrice || item.price || 0,
       image: sanitizeOrderImage(item.image || item.imageUrl || ""),
+      weight: item.weight,
+      unit: item.unit,
+      packSize: item.packSize || item.size,
+      volume: item.volume,
       isVeg: item.isVeg ?? true,
       notes: sanitizeOrderNotes(item.notes || ""),
     };

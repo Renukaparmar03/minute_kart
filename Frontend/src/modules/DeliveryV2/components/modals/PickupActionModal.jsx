@@ -9,6 +9,7 @@ import { ActionSlider } from '@/modules/DeliveryV2/components/ui/ActionSlider';
 import { uploadAPI } from '@food/api';
 import { toast } from 'sonner';
 import { openCamera } from "@food/utils/imageUploadUtils";
+import { normalizePickupPoints, isMixedOrder } from '@/modules/DeliveryV2/utils/orderRouting';
 const getItemImage = (item) => {
   if (!item) return null;
   return (

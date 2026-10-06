@@ -21,7 +21,7 @@ const orderItemSchema = new mongoose.Schema(
         image: { type: String, default: '' },
         notes: { type: String, default: '' }
     },
-    { _id: false }
+    { _id: false, strict: false }
 );
 
 const pickupPointSchema = new mongoose.Schema(
