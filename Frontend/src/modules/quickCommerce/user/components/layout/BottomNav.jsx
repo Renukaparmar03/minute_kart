@@ -66,8 +66,28 @@ const BottomNav = () => {
         { type: 'link', label: 'Profile', icon: User, path: '/profile?from=quick' },
     ];
 
+    const [isVisible, setIsVisible] = React.useState(true);
+    const [lastScrollY, setLastScrollY] = React.useState(0);
+
+    React.useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            if (Math.abs(currentScrollY - lastScrollY) < 5) return;
+
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                setIsVisible(false);
+            } else {
+                setIsVisible(true);
+            }
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [lastScrollY]);
+
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300">
+        <div className={`fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}>
             <DraggableModuleSwitcher />
             <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-gray-100 dark:border-border flex items-center justify-between h-[65px] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] px-2 pb-[env(safe-area-inset-bottom)]">
                 {items.map((item, index) => {

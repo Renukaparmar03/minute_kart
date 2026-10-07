@@ -73,10 +73,10 @@ export default function BottomNavigation() {
     <>
       <DraggableModuleSwitcher />
       <div 
-        className={`md:hidden fixed left-4 right-4 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
-        style={{ bottom: "max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))" }}
+        className={`md:hidden fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
+        style={{ bottom: 0, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between gap-1">
+        <div className="bg-white dark:bg-[#1a1a1a] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] border-t border-gray-100 dark:border-gray-800 px-3 py-2 flex items-center justify-between gap-1">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
