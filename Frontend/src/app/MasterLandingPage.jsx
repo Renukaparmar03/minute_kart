@@ -11,12 +11,12 @@ export default function MasterLandingPage() {
 
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 font-sans selection:bg-rose-500 selection:text-white">
+    <div className="h-screen w-full overflow-y-auto snap-y snap-mandatory scroll-smooth bg-white text-gray-800 font-sans selection:bg-rose-500 selection:text-white">
       
       {/* ========================================== */}
       {/* HERO SECTION WITH ZOMATO BG IMAGE & SEARCH */}
       {/* ========================================== */}
-      <section className="relative w-full min-h-screen bg-gray-900 text-white flex flex-col justify-between overflow-hidden">
+      <section className="snap-start snap-always relative w-full min-h-screen bg-gray-900 text-white flex flex-col justify-between overflow-hidden">
         
         {/* Background Image & Overlays */}
         <div 
@@ -141,7 +141,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* SECTION 2: BETTER FOOD FOR MORE PEOPLE      */}
       {/* ========================================== */}
-      <section className="relative w-full min-h-screen py-16 bg-white overflow-hidden flex flex-col justify-center items-center selection:bg-rose-500 selection:text-white">
+      <section className="snap-start snap-always relative w-full min-h-screen py-16 bg-white overflow-hidden flex flex-col justify-center items-center selection:bg-rose-500 selection:text-white">
         
         {/* Subtle Decorative Curved Pink Swirl Lines (Zomato Background Art) */}
         <svg 
@@ -163,13 +163,17 @@ export default function MasterLandingPage() {
           />
         </svg>
 
-        {/* Floating Food Illustration 1: Burger (Left) */}
+        {/* Floating Food Illustration 1: Burger (Top Left) */}
         <motion.div 
-          animate={{ y: [0, -12, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-6 sm:left-16 lg:left-28 top-20 sm:top-24 w-32 sm:w-44 lg:w-56 pointer-events-none z-10"
+          initial={{ opacity: 0, scale: 0.7, y: -30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: false, margin: "-40px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute left-2 sm:left-12 lg:left-24 top-10 sm:top-20 w-24 sm:w-40 lg:w-56 pointer-events-none z-10 opacity-40 sm:opacity-100"
         >
-          <img 
+          <motion.img 
+            animate={{ y: [0, -12, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             src="/images/burger_floating.png" 
             alt="Burger" 
             className="w-full h-auto object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.15)] rounded-full transform -rotate-12"
@@ -178,22 +182,32 @@ export default function MasterLandingPage() {
 
         {/* Floating Accent 1: Tomato Slice (Bottom Left) */}
         <motion.div 
-          animate={{ rotate: [0, 360] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute left-12 sm:left-24 bottom-16 w-8 sm:w-12 pointer-events-none z-10 opacity-80"
+          initial={{ opacity: 0, scale: 0.5 }}
+          whileInView={{ opacity: 0.8, scale: 1 }}
+          viewport={{ once: false }}
+          transition={{ duration: 0.6 }}
+          className="absolute left-4 sm:left-20 bottom-12 sm:bottom-20 w-8 sm:w-12 pointer-events-none z-10 hidden sm:block"
         >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-500/80 border-2 border-rose-600 flex items-center justify-center text-white text-[10px] font-bold shadow-md">
+          <motion.div 
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-500/80 border-2 border-rose-600 flex items-center justify-center text-white text-[10px] font-bold shadow-md"
+          >
             🍅
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Floating Food Illustration 2: Momos in Steamer (Top Right) */}
         <motion.div 
-          animate={{ y: [0, 14, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-6 sm:right-16 lg:right-28 top-12 sm:top-16 w-32 sm:w-44 lg:w-52 pointer-events-none z-10"
+          initial={{ opacity: 0, scale: 0.7, y: -30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: false, margin: "-40px" }}
+          transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+          className="absolute right-2 sm:right-12 lg:right-24 top-8 sm:top-14 w-24 sm:w-40 lg:w-52 pointer-events-none z-10 opacity-40 sm:opacity-100"
         >
-          <img 
+          <motion.img 
+            animate={{ y: [0, 14, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             src="/images/momos_floating.png" 
             alt="Momos Steamer" 
             className="w-full h-auto object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.15)] rounded-full transform rotate-6"
@@ -202,22 +216,32 @@ export default function MasterLandingPage() {
 
         {/* Floating Accent 2: Tomato Slice (Middle Right) */}
         <motion.div 
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-12 sm:right-32 top-1/2 w-8 sm:w-10 pointer-events-none z-10"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false }}
+          transition={{ duration: 0.6 }}
+          className="absolute right-6 sm:right-28 top-1/2 w-8 sm:w-10 pointer-events-none z-10 hidden sm:block"
         >
-          <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-red-500 border-2 border-red-600 flex items-center justify-center text-white text-xs shadow-md">
+          <motion.div 
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-red-500 border-2 border-red-600 flex items-center justify-center text-white text-xs shadow-md"
+          >
             🍅
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Floating Food Illustration 3: Pizza Slice (Bottom Right) */}
         <motion.div 
-          animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-8 sm:right-20 lg:right-36 bottom-16 sm:bottom-20 w-32 sm:w-44 lg:w-56 pointer-events-none z-10"
+          initial={{ opacity: 0, scale: 0.7, y: 30 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: false, margin: "-40px" }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="absolute right-4 sm:right-16 lg:right-32 bottom-10 sm:bottom-16 w-24 sm:w-40 lg:w-56 pointer-events-none z-10 opacity-40 sm:opacity-100"
         >
-          <img 
+          <motion.img 
+            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             src="/images/pizza_floating.png" 
             alt="Pizza Slice" 
             className="w-full h-auto object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.15)] rounded-full transform rotate-12"
@@ -228,80 +252,82 @@ export default function MasterLandingPage() {
         <div className="relative z-20 max-w-4xl mx-auto px-4 text-center flex flex-col items-center">
           
           <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4"
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4"
           >
             Better food for <br className="hidden sm:inline" />more people
           </motion.h2>
 
           <motion.p 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-gray-500 font-normal text-base sm:text-xl lg:text-2xl max-w-xl mx-auto leading-relaxed mb-16 sm:mb-20"
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
+            className="text-gray-500 font-normal text-sm sm:text-xl lg:text-2xl max-w-xl mx-auto leading-relaxed mb-10 sm:mb-20 px-2"
           >
             For over a decade, we’ve enabled our customers to discover new tastes, delivered right to their doorstep
           </motion.p>
 
           {/* Bottom Floating Impact Stats Bar (Exact Zomato layout) */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full max-w-3xl bg-white rounded-3xl border border-gray-100/90 shadow-[0_10px_35px_rgba(0,0,0,0.06)] px-6 sm:px-10 py-5 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-4 relative z-20"
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, margin: "-50px" }}
+            transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
+            className="w-full max-w-3xl bg-white rounded-3xl border border-gray-100/90 shadow-[0_15px_40px_rgba(0,0,0,0.06)] px-5 sm:px-10 py-5 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-4 relative z-20"
           >
             {/* Stat 1: Restaurants */}
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
-                <p className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
                   3,00,000+
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   restaurants
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-2xl shadow-inner">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-xl sm:text-2xl shadow-inner">
                 🏪
               </div>
             </div>
 
-            {/* Vertical Divider */}
+            {/* Horizontal Line on Mobile / Vertical Line on Desktop */}
+            <div className="w-full h-px bg-gray-100 sm:hidden" />
             <div className="hidden sm:block w-px h-10 bg-gray-200" />
 
             {/* Stat 2: Cities */}
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
-                <p className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
                   800+
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   cities
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-2xl shadow-inner">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-red-50 flex items-center justify-center text-xl sm:text-2xl shadow-inner">
                 📍
               </div>
             </div>
 
-            {/* Vertical Divider */}
+            {/* Horizontal Line on Mobile / Vertical Line on Desktop */}
+            <div className="w-full h-px bg-gray-100 sm:hidden" />
             <div className="hidden sm:block w-px h-10 bg-gray-200" />
 
             {/* Stat 3: Orders Delivered */}
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
-                <p className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
                   3 billion+
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   orders delivered
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-2xl shadow-inner">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-xl sm:text-2xl shadow-inner">
                 🛍️
               </div>
             </div>
@@ -313,7 +339,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* SECTION 3: WHAT'S WAITING FOR YOU ON THE APP */}
       {/* ========================================== */}
-      <section className="relative w-full min-h-screen py-16 bg-gradient-to-b from-[#fff5f5] via-[#fff0f0] to-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white">
+      <section className="snap-start snap-always relative w-full min-h-screen py-16 bg-gradient-to-b from-[#fff5f5] via-[#fff0f0] to-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white">
         
         {/* Header Content */}
         <div className="relative z-20 max-w-3xl mx-auto px-4 text-center mb-10">
@@ -483,7 +509,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* SECTION 4: ETERNAL / ECOSYSTEM MODULE CARDS */}
       {/* ========================================== */}
-      <section className="relative w-full min-h-screen py-16 bg-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white">
+      <section className="snap-start snap-always relative w-full min-h-screen py-16 bg-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white">
         
         {/* Header Logo & Subtitle */}
         <div className="relative z-20 max-w-4xl mx-auto px-4 text-center mb-12">
@@ -618,7 +644,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* SECTION 5: DOWNLOAD THE APP NOW (QR CODE)  */}
       {/* ========================================== */}
-      <section className="relative w-full min-h-screen py-16 bg-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white px-4 sm:px-6">
+      <section id="get-app-section" className="snap-start snap-always relative w-full min-h-screen py-16 bg-white flex flex-col justify-center items-center overflow-hidden selection:bg-rose-500 selection:text-white px-4 sm:px-6">
         
         {/* Main Card Container */}
         <div className="relative max-w-6xl w-full bg-gradient-to-r from-[#fff0f2] via-[#fff5f6] to-[#fff0f2] border border-rose-200/60 rounded-[44px] shadow-[0_20px_50px_rgba(225,29,72,0.06)] p-8 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-12 overflow-hidden">
@@ -811,7 +837,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* ZOMATO-EXACT BLACK FOOTER                  */}
       {/* ========================================== */}
-      <footer className="bg-black text-gray-300 pt-16 pb-12 border-t border-gray-900 selection:bg-rose-500 selection:text-white">
+      <footer className="snap-start snap-always bg-black text-gray-300 pt-16 pb-12 border-t border-gray-900 selection:bg-rose-500 selection:text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Logo Header Row */}
