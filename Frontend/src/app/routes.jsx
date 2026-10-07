@@ -24,6 +24,7 @@ const SellerPrivacyPage = lazy(() => import('../modules/seller/pages/Privacy'))
 const SellerSupportPage = lazy(() => import('../modules/seller/pages/Support'))
 
 
+const MasterLandingPage = lazy(() => import('./MasterLandingPage'))
 const FoodUserLayout = lazy(() => import('../modules/Food/components/user/UserLayout'))
 const FoodHomePage = lazy(() => import('../modules/Food/pages/user/Home'))
 const GlobalCartPage = lazy(() => import('../modules/Food/pages/user/cart/Cart'))
@@ -161,7 +162,14 @@ const AppRoutes = () => {
   return (
     <Routes>
         {/* Root now lands on the food user page */}
-        <Route path="/" element={<Navigate to={`/food/user${location.search}`} replace />} />
+        <Route
+          path="/"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <MasterLandingPage />
+            </Suspense>
+          }
+        />
 
         {/* Auth Module */}
         <Route path="/user/auth/*" element={<AuthApp />} />
