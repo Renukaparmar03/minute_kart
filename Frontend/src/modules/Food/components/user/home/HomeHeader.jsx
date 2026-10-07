@@ -176,6 +176,7 @@ export default function HomeHeader({
 }) {
   const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
+  const [language, setLanguage] = useState("EN");
   const routerLocation = useRouterLocation();
   
   const { userProfile } = useProfile();
@@ -261,7 +262,7 @@ export default function HomeHeader({
     return foodTheme(vegMode);
   }, [activeTab, quickThemeColor, vegMode]);
   const isFood = activeTab === "food";
-  const walletPath = isFood ? "/food/user/wallet?from=home" : "/quick/wallet?from=home";
+  const walletPath = isFood ? "/food/user/wallet" : "/quick/wallet";
   const displayLabel = useMemo(() => {
     if (savedAddressText === "All Categories") return "All Categories";
     const lbl = String(location?.label || "").trim().toLowerCase();
@@ -504,6 +505,30 @@ export default function HomeHeader({
             <>
               {activeTab === "quick" ? (
                 <>
+                  {/* Language Toggle */}
+                  <div className="flex items-center rounded-lg border border-gray-200 bg-white p-[2px] shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("EN")}
+                      className={cn(
+                        "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
+                        language === "EN" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                      )}
+                    >
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("HI")}
+                      className={cn(
+                        "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[12px] transition-colors",
+                        language === "HI" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                      )}
+                    >
+                      हि
+                    </button>
+                  </div>
+
                   {/* Wallet Icon in place of Notification */}
                   <Link
                     to={walletPath}

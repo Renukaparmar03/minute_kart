@@ -2511,7 +2511,7 @@ function RestaurantDetailsContent() {
                             </div>
 
                             {/* Right Side - Image and Add Button */}
-                            <div className="relative w-40 h-40 md:w-44 md:h-44 flex-shrink-0">
+                            <div className="relative w-32 h-32 flex-shrink-0">
                               {item.image ? (
                                 <img
                                   src={item.image}
@@ -2740,7 +2740,7 @@ function RestaurantDetailsContent() {
                                       </div>
 
                                       {/* Right Side - Image and Add Button */}
-                                      <div className="relative w-40 h-40 md:w-44 md:h-44 flex-shrink-0">
+                                      <div className="relative w-32 h-32 flex-shrink-0">
                                         {item.image ? (
                                           <img
                                             src={item.image}

@@ -73,10 +73,11 @@ export default function BottomNavigation() {
     <>
       <DraggableModuleSwitcher />
       <div 
-        className={`md:hidden fixed left-0 right-0 bottom-0 z-50 transition-all duration-300 ease-in-out flex flex-col ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
+        className={`md:hidden fixed left-0 right-0 bottom-0 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
       >
         <div 
-          className="bg-white dark:bg-[#1a1a1a] rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] border-t border-gray-100 dark:border-gray-800 px-4 pt-3 pb-4 flex items-center justify-between gap-2"
+          className="bg-white dark:bg-[#1a1a1a] rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] border-t border-gray-100 dark:border-gray-800 px-4 pt-3 flex items-center justify-between gap-2"
+          style={{ paddingBottom: "max(1rem, calc(1rem + env(safe-area-inset-bottom, 0px)))" }}
         >
         {/* Delivery Tab */}
         <Link
@@ -134,14 +135,8 @@ export default function BottomNavigation() {
           <span>Minutemart</span>
           <ChevronRight className="h-3 w-3" strokeWidth={4} />
         </Link>
-        </div>
-        {/* Black background for safe area (OS navigation buttons) */}
-        <div 
-          className={`w-full transition-all duration-300 ${isVisible ? "bg-black border-t-0 border-transparent shadow-none" : "bg-gray-50 dark:bg-[#121212] border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]"}`} 
-          style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }} 
-        />
       </div>
+    </div>
     </>
   )
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, LayoutGrid, User, ChevronLeft, Package, ShoppingCart, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,27 +18,6 @@ import { useProfile } from '@food/context/ProfileContext';
 const BottomNav = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    
-    const [isVisible, setIsVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (Math.abs(currentScrollY - lastScrollY) < 5) return;
-
-            if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                setIsVisible(false);
-            } else {
-                setIsVisible(true);
-            }
-            setLastScrollY(currentScrollY);
-        };
-
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, [lastScrollY]);
-
     const cartContext = useCart();
     let cartCount = cartContext ? cartContext.cartCount : 0;
     if (!cartContext) {
@@ -88,9 +67,9 @@ const BottomNav = () => {
     ];
 
     return (
-        <div className={`fixed left-0 right-0 bottom-0 z-[500] md:hidden transition-all duration-300 ease-in-out flex flex-col ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}>
+        <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300">
             <DraggableModuleSwitcher />
-            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-gray-100 dark:border-border flex items-center justify-between h-[65px] rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-2">
+            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-gray-100 dark:border-border flex items-center justify-between h-[65px] rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] px-2 pb-[env(safe-area-inset-bottom)]">
                 {items.map((item, index) => {
                     const isActive = item.type === 'link' && isActivePath(item.path);
                     const IconComponent = item.icon;
@@ -189,10 +168,6 @@ const BottomNav = () => {
                     );
                 })}
             </div>
-            <div 
-                className={`w-full transition-all duration-300 ${isVisible ? "bg-black border-t-0 border-transparent shadow-none" : "bg-gray-50 dark:bg-[#121212] border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]"}`} 
-                style={{ height: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }} 
-            />
         </div>
     );
 };
