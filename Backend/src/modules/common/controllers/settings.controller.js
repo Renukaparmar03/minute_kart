@@ -106,22 +106,56 @@ export async function updateGlobalSettings(req, res, next) {
         if (bannedNumbers !== undefined && Array.isArray(bannedNumbers)) {
             settings.bannedNumbers = bannedNumbers;
         }
+        if (data.landingPage) {
+            if (!settings.landingPage) settings.landingPage = {};
+            
+            // Sync aliases so both forms are persisted
+            const lp = { ...data.landingPage };
+            if (lp.ordersCount !== undefined) lp.ordersDeliveredCount = lp.ordersCount;
+            if (lp.ordersDeliveredCount !== undefined) lp.ordersCount = lp.ordersDeliveredCount;
+            if (lp.playStoreUrl !== undefined) lp.googlePlayUrl = lp.playStoreUrl;
+            if (lp.sec2Headline !== undefined) lp.section2Headline = lp.sec2Headline;
+            if (lp.sec2Subtitle !== undefined) lp.section2Subtitle = lp.sec2Subtitle;
+            if (lp.sec3Headline !== undefined) lp.section3Headline = lp.sec3Headline;
+            if (lp.sec3Subtitle !== undefined) lp.section3Subtitle = lp.sec3Subtitle;
+            if (lp.userAppDesc !== undefined) lp.userAppDescription = lp.userAppDesc;
+            if (lp.userAppLink !== undefined) lp.userAppUrl = lp.userAppLink;
+            if (lp.restaurantAppDesc !== undefined) lp.restaurantAppDescription = lp.restaurantAppDesc;
+            if (lp.restaurantAppLink !== undefined) lp.restaurantAppUrl = lp.restaurantAppLink;
+            if (lp.sellerAppDesc !== undefined) lp.sellerAppDescription = lp.sellerAppDesc;
+            if (lp.sellerAppLink !== undefined) lp.sellerAppUrl = lp.sellerAppLink;
+            if (lp.deliveryAppDesc !== undefined) lp.deliveryAppDescription = lp.deliveryAppDesc;
+            if (lp.deliveryAppLink !== undefined) lp.deliveryAppUrl = lp.deliveryAppLink;
 
-        // Handle file uploads
+            settings.landingPage = {
+                ...(settings.landingPage.toObject?.() || settings.landingPage),
+                ...lp
+            };
+            settings.markModified('landingPage');
+        }
+
+        // Handle file uploads (supports both array from upload.any() and dictionary from upload.fields())
         if (req.files) {
-            if (req.files.logo) {
-                const logoResult = await uploadImageBufferDetailed(req.files.logo[0].buffer, 'business/logos');
-                settings.logo = {
-                    url: logoResult.secure_url,
-                    publicId: logoResult.public_id
-                };
-            }
-            if (req.files.favicon) {
-                const faviconResult = await uploadImageBufferDetailed(req.files.favicon[0].buffer, 'business/favicons');
-                settings.favicon = {
-                    url: faviconResult.secure_url,
-                    publicId: faviconResult.public_id
-                };
+            const filesList = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
+            for (const file of filesList) {
+                if (file.fieldname === 'logo') {
+                    const logoResult = await uploadImageBufferDetailed(file.buffer, 'business/logos');
+                    settings.logo = {
+                        url: logoResult.secure_url,
+                        publicId: logoResult.public_id
+                    };
+                } else if (file.fieldname === 'favicon') {
+                    const faviconResult = await uploadImageBufferDetailed(file.buffer, 'business/favicons');
+                    settings.favicon = {
+                        url: faviconResult.secure_url,
+                        publicId: faviconResult.public_id
+                    };
+                } else {
+                    // Landing page image/video fields
+                    const result = await uploadImageBufferDetailed(file.buffer, 'business/landing');
+                    if (!settings.landingPage) settings.landingPage = {};
+                    settings.landingPage[file.fieldname] = result.secure_url;
+                }
             }
         }
         settings.updatedBy = req.user ? req.user.userId : null;

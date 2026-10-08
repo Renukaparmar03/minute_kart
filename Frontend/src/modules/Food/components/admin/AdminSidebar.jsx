@@ -69,6 +69,7 @@ import {
   Briefcase,
 
   ChevronDown as ChevronDownIcon,
+  Layout,
   LayoutGrid,
 } from "lucide-react"
 import { cn } from "@food/utils/utils"
@@ -111,6 +112,7 @@ const iconMap = {
   Package,
   CreditCard,
   Settings,
+  Layout,
   UserCog,
   User,
   Globe,
@@ -131,6 +133,7 @@ const iconMap = {
   Smartphone,
   Monitor,
   Briefcase,
+  Layout,
 
   X,
   LayoutGrid,

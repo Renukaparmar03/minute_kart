@@ -1,16 +1,129 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { 
   ChevronDown,
   Smartphone
 } from "lucide-react"
+import { getPublicSettings } from "../services/api"
 
 export default function MasterLandingPage() {
   const navigate = useNavigate()
+  const [landingSettings, setLandingSettings] = useState(null)
 
+  useEffect(() => {
+    let isMounted = true
+    getPublicSettings()
+      .then((res) => {
+        const data = res?.data?.data || res?.data
+        if (isMounted && data?.landingPage) {
+          setLandingSettings(data.landingPage)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load landing settings:", err)
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const lp = {
+    heroHeadline: landingSettings?.heroHeadline || "India’s #1 food delivery app",
+    heroSubtitle: landingSettings?.heroSubtitle || "Experience fast & easy online ordering on the Minutekart app",
+    heroBgImage: landingSettings?.heroBgImage || "/images/hero_bg.png",
+    googlePlayUrl: landingSettings?.playStoreUrl || landingSettings?.googlePlayUrl || "#get-app-section",
+    appStoreUrl: landingSettings?.appStoreUrl || "#get-app-section",
+    restaurantsCount: landingSettings?.restaurantsCount || "3,00,000+",
+    citiesCount: landingSettings?.citiesCount || "800+",
+    ordersDeliveredCount: landingSettings?.ordersCount || landingSettings?.ordersDeliveredCount || "3 billion+",
+    section2Headline: landingSettings?.sec2Headline || landingSettings?.section2Headline || "Better food for more people",
+    section2Subtitle: landingSettings?.sec2Subtitle || landingSettings?.section2Subtitle || "For over a decade, we’ve enabled our customers to discover new tastes, delivered right to their doorstep",
+    section3Headline: landingSettings?.sec3Headline || landingSettings?.section3Headline || "What’s waiting for you on the app?",
+    section3Subtitle: landingSettings?.sec3Subtitle || landingSettings?.section3Subtitle || "Our app is packed with features that enable you to experience food delivery like never before",
+    qrCodeHeadline: landingSettings?.qrCodeHeadline || "Download the app now!",
+    qrCodeSubtitle: landingSettings?.qrCodeSubtitle || "Experience seamless online ordering only on the Minutekart app",
+    qrCodeText: landingSettings?.qrCodeText || "Scan the QR code to download the app",
+    qrCodeImage: landingSettings?.qrCodeImage || "",
+    userAppTitle: landingSettings?.userAppTitle || "minutekart user",
+    userAppDescription: landingSettings?.userAppDesc || landingSettings?.userAppDescription || "Get the app now to start ordering your favorite food & groceries!",
+    userAppIcon: landingSettings?.userAppIcon || "/images/minutekart_user.png",
+    userAppUrl: landingSettings?.userAppLink || landingSettings?.userAppUrl || "/food/user",
+    restaurantAppTitle: landingSettings?.restaurantAppTitle || "minutekart restaurant",
+    restaurantAppDescription: landingSettings?.restaurantAppDesc || landingSettings?.restaurantAppDescription || "Partner with us to grow your restaurant business & manage orders!",
+    restaurantAppIcon: landingSettings?.restaurantAppIcon || "/images/minutekart_partner.png",
+    restaurantAppUrl: landingSettings?.restaurantAppLink || landingSettings?.restaurantAppUrl || "/seller",
+    sellerAppTitle: landingSettings?.sellerAppTitle || "minutekart seller",
+    sellerAppDescription: landingSettings?.sellerAppDesc || landingSettings?.sellerAppDescription || "Join as a local shop & instant grocery seller partner!",
+    sellerAppIcon: landingSettings?.sellerAppIcon || "/images/minutekart_partner.png",
+    sellerAppUrl: landingSettings?.sellerAppLink || landingSettings?.sellerAppUrl || "/seller",
+    deliveryAppTitle: landingSettings?.deliveryAppTitle || "minutekart delivery",
+    deliveryAppDescription: landingSettings?.deliveryAppDesc || landingSettings?.deliveryAppDescription || "Deliver with Minutekart & earn flexible daily income!",
+    deliveryAppIcon: landingSettings?.deliveryAppIcon || "/images/minutekart_delivery.png",
+    deliveryAppUrl: landingSettings?.deliveryAppLink || landingSettings?.deliveryAppUrl || "#",
+
+    // Footer Links & Legal Settings
+    footerCopyright: landingSettings?.footerCopyright || "2008-2026 © Minutekart™ Ltd. All rights reserved.",
+    footerDisclaimer: landingSettings?.footerDisclaimer || "By continuing past this page, you agree to our Terms of Service, Cookie Policy, Privacy Policy and Content Policies. All trademarks are properties of their respective owners.",
+    socialLinkedin: landingSettings?.socialLinkedin || "#",
+    socialInstagram: landingSettings?.socialInstagram || "#",
+    socialYoutube: landingSettings?.socialYoutube || "#",
+    socialFacebook: landingSettings?.socialFacebook || "#",
+    socialTwitter: landingSettings?.socialTwitter || "#",
+    socialItems: landingSettings?.socialItems?.length ? landingSettings.socialItems : [
+      { platform: "LinkedIn", url: landingSettings?.socialLinkedin || "#" },
+      { platform: "Instagram", url: landingSettings?.socialInstagram || "#" },
+      { platform: "YouTube", url: landingSettings?.socialYoutube || "#" },
+      { platform: "Facebook", url: landingSettings?.socialFacebook || "#" },
+      { platform: "Twitter / X", url: landingSettings?.socialTwitter || "#" }
+    ],
+    col1Title: landingSettings?.col1Title || "Eternal",
+    col2Title: landingSettings?.col2Title || "For Restaurants",
+    col3Title: landingSettings?.col3Title || "For Delivery Partners",
+    col4Title: landingSettings?.col4Title || "Learn More",
+    col5Title: landingSettings?.col5Title || "Social Links",
+    col1Items: landingSettings?.col1Items?.length ? landingSettings.col1Items : [
+      { title: "Minutekart", url: landingSettings?.linkMinutekart || "/food/user" },
+      { title: "Quick Commerce", url: landingSettings?.linkQuickCommerce || "/quick" },
+      { title: "Dudhwala", url: landingSettings?.linkDudhwala || "/dudhwala" },
+      { title: "Hyperpure", url: landingSettings?.linkHyperpure || "/seller" },
+      { title: "Feeding India", url: landingSettings?.linkFeedingIndia || "#" },
+      { title: "Investor Relations", url: landingSettings?.linkInvestorRelations || "#" }
+    ],
+    col2Items: landingSettings?.col2Items?.length ? landingSettings.col2Items : [
+      { title: "Partner With Us", url: landingSettings?.linkPartnerRestaurant || "/seller" },
+      { title: "Apps For You", url: landingSettings?.linkAppsRestaurant || "/seller/auth" },
+      { title: "Restaurant Consulting", url: landingSettings?.linkConsultingRestaurant || "/seller" }
+    ],
+    col3Items: landingSettings?.col3Items?.length ? landingSettings.col3Items : [
+      { title: "Partner With Us", url: landingSettings?.linkPartnerDelivery || "#" },
+      { title: "Apps For You", url: landingSettings?.linkAppsDelivery || "#" }
+    ],
+    col4Items: landingSettings?.col4Items?.length ? landingSettings.col4Items : [
+      { title: "Privacy", url: landingSettings?.linkPrivacy || "/profile/privacy" },
+      { title: "Security", url: landingSettings?.linkSecurity || "/profile/terms" },
+      { title: "Terms of Service", url: landingSettings?.linkTerms || "/profile/terms" },
+      { title: "Help & Support", url: landingSettings?.linkHelp || "/profile/support" },
+      { title: "Report a Fraud", url: landingSettings?.linkReportFraud || "#" },
+      { title: "Blog", url: landingSettings?.linkBlog || "#" }
+    ]
+  }
+
+  const handleLinkClick = (url, defaultAnchor = "get-app-section") => {
+    if (!url || url === "#" || url === `#${defaultAnchor}`) {
+      const el = document.getElementById(defaultAnchor)
+      if (el) el.scrollIntoView({ behavior: "smooth" })
+      return
+    }
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      window.open(url, "_blank", "noopener,noreferrer")
+    } else {
+      navigate(url)
+    }
+  }
 
   return (
+
     <div className="h-screen w-full overflow-y-auto snap-y snap-mandatory scroll-smooth bg-white text-gray-800 font-sans selection:bg-rose-500 selection:text-white">
       
       {/* ========================================== */}
@@ -21,7 +134,7 @@ export default function MasterLandingPage() {
         {/* Background Image & Overlays */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
-          style={{ backgroundImage: `url('/images/hero_bg.png')` }}
+          style={{ backgroundImage: `url('${lp.heroBgImage}')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/40" />
 
@@ -30,10 +143,7 @@ export default function MasterLandingPage() {
           
           {/* Left: Get the App */}
           <button 
-            onClick={() => {
-              const el = document.getElementById("get-app-section")
-              if (el) el.scrollIntoView({ behavior: "smooth" })
-            }}
+            onClick={() => handleLinkClick(lp.googlePlayUrl)}
             className="flex items-center gap-2 text-sm sm:text-base font-semibold hover:text-rose-400 transition-colors bg-black/20 hover:bg-black/40 px-3.5 py-1.5 rounded-full backdrop-blur-md border border-white/10"
           >
             <Smartphone className="w-4 h-4 text-rose-400" />
@@ -63,9 +173,9 @@ export default function MasterLandingPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] mb-4 drop-shadow-lg"
+            className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] mb-4 drop-shadow-lg whitespace-pre-line"
           >
-            India’s #1 <br className="sm:hidden" />food delivery app
+            {lp.heroHeadline}
           </motion.h2>
 
           {/* Subtitle */}
@@ -75,7 +185,7 @@ export default function MasterLandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg sm:text-2xl font-medium text-gray-200 mb-8 max-w-2xl leading-relaxed drop-shadow-md"
           >
-            Experience fast & easy online ordering on the Minutekart app
+            {lp.heroSubtitle}
           </motion.p>
 
           {/* App Download Buttons Row */}
@@ -87,12 +197,12 @@ export default function MasterLandingPage() {
           >
             {/* Google Play Button */}
             <a 
-              href="#get-app-section" 
+              href={lp.googlePlayUrl || "#get-app-section"} 
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById("get-app-section")?.scrollIntoView({ behavior: "smooth" });
+                handleLinkClick(lp.googlePlayUrl);
               }}
-              className="w-56 sm:w-auto bg-black/80 hover:bg-black text-white border border-white/20 px-6 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-xl backdrop-blur-md"
+              className="w-56 sm:w-auto bg-black/80 hover:bg-black text-white border border-white/20 px-6 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-xl backdrop-blur-md cursor-pointer"
             >
               <svg className="w-7 h-7 fill-current text-emerald-400" viewBox="0 0 24 24">
                 <path d="M3.609 1.814L13.792 12 3.61 22.186c-.198-.184-.31-.443-.31-.715V2.53c0-.273.112-.532.31-.716zM15.207 13.414l2.482 2.483-12.87 7.424 10.388-9.907zm0-2.828L4.819.679l12.87 7.424-2.482 2.483zM16.621 12l2.969-1.688c.616-.35.616-1.274 0-1.624L16.621 7.05 14.138 9.533 16.621 12z"/>
@@ -105,12 +215,12 @@ export default function MasterLandingPage() {
 
             {/* App Store Button */}
             <a 
-              href="#get-app-section" 
+              href={lp.appStoreUrl || "#get-app-section"} 
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById("get-app-section")?.scrollIntoView({ behavior: "smooth" });
+                handleLinkClick(lp.appStoreUrl);
               }}
-              className="w-56 sm:w-auto bg-black/80 hover:bg-black text-white border border-white/20 px-6 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-xl backdrop-blur-md"
+              className="w-56 sm:w-auto bg-black/80 hover:bg-black text-white border border-white/20 px-6 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-xl backdrop-blur-md cursor-pointer"
             >
               <svg className="w-7 h-7 fill-current text-white" viewBox="0 0 24 24">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.54c.64-.78 1.08-1.85.96-2.93-.93.04-2.06.62-2.73 1.4-.6.69-1.12 1.79-.98 2.86 1.04.08 2.11-.55 2.75-1.33z"/>
@@ -256,9 +366,9 @@ export default function MasterLandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, margin: "-50px" }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4"
+            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4 whitespace-pre-line"
           >
-            Better food for <br className="hidden sm:inline" />more people
+            {lp.section2Headline}
           </motion.h2>
 
           <motion.p 
@@ -268,7 +378,7 @@ export default function MasterLandingPage() {
             transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
             className="text-gray-500 font-normal text-sm sm:text-xl lg:text-2xl max-w-xl mx-auto leading-relaxed mb-10 sm:mb-20 px-2"
           >
-            For over a decade, we’ve enabled our customers to discover new tastes, delivered right to their doorstep
+            {lp.section2Subtitle}
           </motion.p>
 
           {/* Bottom Floating Impact Stats Bar (Exact Zomato layout) */}
@@ -283,7 +393,7 @@ export default function MasterLandingPage() {
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
                 <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                  3,00,000+
+                  {lp.restaurantsCount}
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   restaurants
@@ -302,7 +412,7 @@ export default function MasterLandingPage() {
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
                 <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                  800+
+                  {lp.citiesCount}
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   cities
@@ -321,7 +431,7 @@ export default function MasterLandingPage() {
             <div className="flex items-center gap-4 text-left w-full sm:w-auto justify-between sm:justify-start">
               <div>
                 <p className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                  3 billion+
+                  {lp.ordersDeliveredCount}
                 </p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-400">
                   orders delivered
@@ -348,9 +458,9 @@ export default function MasterLandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4"
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#ef4f5f] tracking-tight leading-tight mb-4 whitespace-pre-line"
           >
-            What’s waiting for you <br />on the app?
+            {lp.section3Headline}
           </motion.h2>
 
           <motion.p 
@@ -360,9 +470,10 @@ export default function MasterLandingPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-gray-500 font-normal text-base sm:text-lg max-w-md mx-auto leading-relaxed"
           >
-            Our app is packed with features that enable you to experience food delivery like never before
+            {lp.section3Subtitle}
           </motion.p>
         </div>
+
 
         {/* Feature Cards Showcase with Smartphone Center */}
         <div className="relative z-20 max-w-6xl mx-auto px-4 w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
@@ -547,17 +658,18 @@ export default function MasterLandingPage() {
             {/* Card 1: minutekart user */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-gradient-to-b from-[#fff1f2] via-[#fff6f6] to-[#fff0f1] rounded-[32px] p-7 border border-rose-200/60 shadow-[0_10px_30px_rgba(225,29,72,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full"
+              onClick={() => handleLinkClick(lp.userAppUrl)}
+              className="bg-gradient-to-b from-[#fff1f2] via-[#fff6f6] to-[#fff0f1] rounded-[32px] p-7 border border-rose-200/60 shadow-[0_10px_30px_rgba(225,29,72,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full cursor-pointer"
             >
               {/* App Icon */}
               <div className="w-28 h-28 rounded-3xl bg-white flex items-center justify-center shadow-xl shadow-rose-500/10 mb-6 group-hover:scale-105 transition-transform overflow-hidden p-2 border border-rose-100">
-                <img src="/images/minutekart_user.png" alt="minutekart user" className="w-full h-full object-contain" />
+                <img src={lp.userAppIcon} alt={lp.userAppTitle} className="w-full h-full object-contain" />
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-black text-gray-900 mb-2">minutekart user</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{lp.userAppTitle}</h3>
               <p className="text-gray-500 font-medium text-xs sm:text-sm leading-relaxed mb-6">
-                Get the app now to start ordering your favorite food & groceries!
+                {lp.userAppDescription}
               </p>
 
               {/* Link */}
@@ -570,17 +682,18 @@ export default function MasterLandingPage() {
             {/* Card 2: minutekart restaurant */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-gradient-to-b from-[#f0fdf4] via-[#f7fee7] to-[#ecfdf5] rounded-[32px] p-7 border border-emerald-200/60 shadow-[0_10px_30px_rgba(16,185,129,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full"
+              onClick={() => handleLinkClick(lp.restaurantAppUrl)}
+              className="bg-gradient-to-b from-[#f0fdf4] via-[#f7fee7] to-[#ecfdf5] rounded-[32px] p-7 border border-emerald-200/60 shadow-[0_10px_30px_rgba(16,185,129,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full cursor-pointer"
             >
               {/* App Icon */}
               <div className="w-28 h-28 rounded-3xl bg-white flex items-center justify-center shadow-xl shadow-emerald-500/10 mb-6 group-hover:scale-105 transition-transform overflow-hidden p-2 border border-emerald-100">
-                <img src="/images/minutekart_partner.png" alt="minutekart restaurant" className="w-full h-full object-contain" />
+                <img src={lp.restaurantAppIcon} alt={lp.restaurantAppTitle} className="w-full h-full object-contain" />
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-black text-gray-900 mb-2">minutekart restaurant</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{lp.restaurantAppTitle}</h3>
               <p className="text-gray-500 font-medium text-xs sm:text-sm leading-relaxed mb-6">
-                Partner with us to grow your restaurant business & manage orders!
+                {lp.restaurantAppDescription}
               </p>
 
               {/* Link */}
@@ -593,17 +706,18 @@ export default function MasterLandingPage() {
             {/* Card 3: minutekart seller */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-gradient-to-b from-[#fefce8] via-[#fffbeb] to-[#fef3c7]/30 rounded-[32px] p-7 border border-amber-200/60 shadow-[0_10px_30px_rgba(245,158,11,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full"
+              onClick={() => handleLinkClick(lp.sellerAppUrl)}
+              className="bg-gradient-to-b from-[#fefce8] via-[#fffbeb] to-[#fef3c7]/30 rounded-[32px] p-7 border border-amber-200/60 shadow-[0_10px_30px_rgba(245,158,11,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full cursor-pointer"
             >
               {/* App Icon */}
               <div className="w-28 h-28 rounded-3xl bg-white flex items-center justify-center shadow-xl shadow-amber-500/10 mb-6 group-hover:scale-105 transition-transform overflow-hidden p-2 border border-amber-100">
-                <img src="/images/minutekart_partner.png" alt="minutekart seller" className="w-full h-full object-contain" />
+                <img src={lp.sellerAppIcon} alt={lp.sellerAppTitle} className="w-full h-full object-contain" />
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-black text-gray-900 mb-2">minutekart seller</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{lp.sellerAppTitle}</h3>
               <p className="text-gray-500 font-medium text-xs sm:text-sm leading-relaxed mb-6">
-                Join as a local shop & instant grocery seller partner!
+                {lp.sellerAppDescription}
               </p>
 
               {/* Link */}
@@ -616,17 +730,18 @@ export default function MasterLandingPage() {
             {/* Card 4: minutekart delivery */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-gradient-to-b from-[#f0fdf4] via-[#f7fee7] to-[#ecfdf5] rounded-[32px] p-7 border border-emerald-200/60 shadow-[0_10px_30px_rgba(16,185,129,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full"
+              onClick={() => handleLinkClick(lp.deliveryAppUrl)}
+              className="bg-gradient-to-b from-[#f0fdf4] via-[#f7fee7] to-[#ecfdf5] rounded-[32px] p-7 border border-emerald-200/60 shadow-[0_10px_30px_rgba(16,185,129,0.04)] hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center group h-full cursor-pointer"
             >
               {/* App Icon */}
               <div className="w-28 h-28 rounded-3xl bg-white flex items-center justify-center shadow-xl shadow-emerald-500/10 mb-6 group-hover:scale-105 transition-transform overflow-hidden p-2 border border-emerald-100">
-                <img src="/images/minutekart_delivery.png" alt="minutekart delivery" className="w-full h-full object-contain" />
+                <img src={lp.deliveryAppIcon} alt={lp.deliveryAppTitle} className="w-full h-full object-contain" />
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-black text-gray-900 mb-2">minutekart delivery</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{lp.deliveryAppTitle}</h3>
               <p className="text-gray-500 font-medium text-xs sm:text-sm leading-relaxed mb-6">
-                Deliver with Minutekart & earn flexible daily income!
+                {lp.deliveryAppDescription}
               </p>
 
               {/* Link */}
@@ -661,9 +776,9 @@ export default function MasterLandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight mb-4 leading-tight"
+              className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight mb-4 leading-tight whitespace-pre-line"
             >
-              Download the app now!
+              {lp.qrCodeHeadline}
             </motion.h2>
 
             <motion.p 
@@ -673,7 +788,7 @@ export default function MasterLandingPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-gray-500 font-medium text-base sm:text-xl leading-relaxed mb-10"
             >
-              Experience seamless online ordering only on the Minutekart app
+              {lp.qrCodeSubtitle}
             </motion.p>
 
             {/* App Download Buttons */}
@@ -686,9 +801,12 @@ export default function MasterLandingPage() {
             >
               {/* Google Play Button */}
               <a 
-                href="#" 
-                onClick={(e) => e.preventDefault()}
-                className="w-52 sm:w-auto bg-black hover:bg-gray-900 text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-lg"
+                href={lp.googlePlayUrl || "#"} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLinkClick(lp.googlePlayUrl);
+                }}
+                className="w-52 sm:w-auto bg-black hover:bg-gray-900 text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-lg cursor-pointer"
               >
                 <svg className="w-6 h-6 fill-current text-emerald-400" viewBox="0 0 24 24">
                   <path d="M3.609 1.814L13.792 12 3.61 22.186c-.198-.184-.31-.443-.31-.715V2.53c0-.273.112-.532.31-.716zM15.207 13.414l2.482 2.483-12.87 7.424 10.388-9.907zm0-2.828L4.819.679l12.87 7.424-2.482 2.483zM16.621 12l2.969-1.688c.616-.35.616-1.274 0-1.624L16.621 7.05 14.138 9.533 16.621 12z"/>
@@ -701,9 +819,12 @@ export default function MasterLandingPage() {
 
               {/* App Store Button */}
               <a 
-                href="#" 
-                onClick={(e) => e.preventDefault()}
-                className="w-52 sm:w-auto bg-black hover:bg-gray-900 text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-lg"
+                href={lp.appStoreUrl || "#"} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLinkClick(lp.appStoreUrl);
+                }}
+                className="w-52 sm:w-auto bg-black hover:bg-gray-900 text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-lg cursor-pointer"
               >
                 <svg className="w-6 h-6 fill-current text-white" viewBox="0 0 24 24">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.54c.64-.78 1.08-1.85.96-2.93-.93.04-2.06.62-2.73 1.4-.6.69-1.12 1.79-.98 2.86 1.04.08 2.11-.55 2.75-1.33z"/>
@@ -735,100 +856,102 @@ export default function MasterLandingPage() {
 
               {/* Screen Text */}
               <p className="text-xs sm:text-sm font-semibold text-gray-500 mb-5 max-w-[170px] leading-snug">
-                Scan the QR code to download the app
+                {lp.qrCodeText}
               </p>
 
               {/* QR Code Container */}
               <div className="p-3.5 bg-white rounded-3xl border border-rose-200/90 shadow-md flex items-center justify-center relative group">
-                
-                {/* Custom SVG QR Code with Zomato Red Corner Accents */}
-                <svg className="w-36 h-36 sm:w-40 sm:h-40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Top-Left Corner Box (Red) */}
-                  <rect x="5" y="5" width="26" height="26" rx="6" fill="#e23744" />
-                  <rect x="9" y="9" width="18" height="18" rx="4" fill="white" />
-                  <rect x="13" y="13" width="10" height="10" rx="2" fill="#e23744" />
+                {lp.qrCodeImage ? (
+                  <img src={lp.qrCodeImage} alt="QR Code" className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-2xl" />
+                ) : (
+                  /* Custom SVG QR Code with Zomato Red Corner Accents */
+                  <svg className="w-36 h-36 sm:w-40 sm:h-40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Top-Left Corner Box (Red) */}
+                    <rect x="5" y="5" width="26" height="26" rx="6" fill="#e23744" />
+                    <rect x="9" y="9" width="18" height="18" rx="4" fill="white" />
+                    <rect x="13" y="13" width="10" height="10" rx="2" fill="#e23744" />
 
-                  {/* Top-Right Corner Box (Red) */}
-                  <rect x="69" y="5" width="26" height="26" rx="6" fill="#e23744" />
-                  <rect x="73" y="9" width="18" height="18" rx="4" fill="white" />
-                  <rect x="77" y="13" width="10" height="10" rx="2" fill="#e23744" />
+                    {/* Top-Right Corner Box (Red) */}
+                    <rect x="69" y="5" width="26" height="26" rx="6" fill="#e23744" />
+                    <rect x="73" y="9" width="18" height="18" rx="4" fill="white" />
+                    <rect x="77" y="13" width="10" height="10" rx="2" fill="#e23744" />
 
-                  {/* Bottom-Left Corner Box (Red) */}
-                  <rect x="5" y="69" width="26" height="26" rx="6" fill="#e23744" />
-                  <rect x="9" y="73" width="18" height="18" rx="4" fill="white" />
-                  <rect x="13" y="77" width="10" height="10" rx="2" fill="#e23744" />
+                    {/* Bottom-Left Corner Box (Red) */}
+                    <rect x="5" y="69" width="26" height="26" rx="6" fill="#e23744" />
+                    <rect x="9" y="73" width="18" height="18" rx="4" fill="white" />
+                    <rect x="13" y="77" width="10" height="10" rx="2" fill="#e23744" />
 
-                  {/* QR Matrix Dots Grid */}
-                  <rect x="36" y="5" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="44" y="5" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="52" y="5" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="58" y="5" width="5" height="5" rx="1" fill="#1e293b" />
+                    {/* QR Matrix Dots Grid */}
+                    <rect x="36" y="5" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="44" y="5" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="52" y="5" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="58" y="5" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="13" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="48" y="13" width="5" height="5" rx="1" fill="#e23744" />
-                  <rect x="58" y="13" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="13" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="48" y="13" width="5" height="5" rx="1" fill="#e23744" />
+                    <rect x="58" y="13" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="21" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="44" y="21" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="52" y="21" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="21" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="44" y="21" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="52" y="21" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="5" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="13" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="21" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="36" y="36" width="5" height="5" rx="1" fill="#e23744" />
-                  <rect x="44" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="52" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="69" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="77" y="36" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="85" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="5" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="13" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="21" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="36" width="5" height="5" rx="1" fill="#e23744" />
+                    <rect x="44" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="52" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="69" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="77" y="36" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="85" y="36" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="5" y="44" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="21" y="44" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="29" y="44" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="44" y="44" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="58" y="44" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="69" y="44" width="5" height="5" rx="1" fill="#e23744" />
-                  <rect x="85" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="5" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="21" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="29" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="44" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="58" y="44" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="69" y="44" width="5" height="5" rx="1" fill="#e23744" />
+                    <rect x="85" y="44" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="13" y="52" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="29" y="52" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="36" y="52" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="52" y="52" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="61" y="52" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="77" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="13" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="29" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="52" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="61" y="52" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="77" y="52" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="61" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="44" y="61" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="58" y="61" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="69" y="61" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="85" y="61" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="61" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="44" y="61" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="58" y="61" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="69" y="61" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="85" y="61" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="69" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="52" y="69" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="61" y="69" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="77" y="69" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="69" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="52" y="69" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="61" y="69" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="77" y="69" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="77" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="44" y="77" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="58" y="77" width="5" height="5" rx="1" fill="#e23744" />
-                  <rect x="69" y="77" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="85" y="77" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="36" y="77" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="44" y="77" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="58" y="77" width="5" height="5" rx="1" fill="#e23744" />
+                    <rect x="69" y="77" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="85" y="77" width="5" height="5" rx="1" fill="#1e293b" />
 
-                  <rect x="36" y="85" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="48" y="85" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="58" y="85" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="77" y="85" width="5" height="5" rx="1" fill="#1e293b" />
-                  <rect x="85" y="85" width="5" height="5" rx="1" fill="#1e293b" />
-                </svg>
-
+                    <rect x="36" y="85" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="48" y="85" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="58" y="85" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="77" y="85" width="5" height="5" rx="1" fill="#1e293b" />
+                    <rect x="85" y="85" width="5" height="5" rx="1" fill="#1e293b" />
+                  </svg>
+                )}
               </div>
 
             </div>
           </motion.div>
 
         </div>
-
       </section>
+
 
 
 
@@ -850,79 +973,131 @@ export default function MasterLandingPage() {
           {/* Links 5-Column Grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12 text-sm font-normal mb-12">
             
-            {/* Col 1: Eternal */}
-            <div>
-              <h4 className="font-bold text-white tracking-wide text-base mb-4">
-                Eternal
-              </h4>
-              <ul className="space-y-2.5 text-gray-400 font-normal">
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/food/user")}>Minutekart</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/quick")}>Quick Commerce</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/dudhwala")}>Dudhwala</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/seller")}>Hyperpure</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Feeding India</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Investor Relations</li>
-              </ul>
-            </div>
+            {/* Col 1 */}
+            {lp.col1Title && (
+              <div>
+                <h4 className="font-bold text-white tracking-wide text-base mb-4">
+                  {lp.col1Title}
+                </h4>
+                <ul className="space-y-2.5 text-gray-400 font-normal">
+                  {(lp.col1Items || []).filter(item => item && item.title).map((item, idx) => (
+                    <li 
+                      key={idx} 
+                      className="hover:text-white cursor-pointer transition-colors" 
+                      onClick={() => handleLinkClick(item.url)}
+                    >
+                      {item.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* Col 2: For Restaurants */}
-            <div>
-              <h4 className="font-bold text-white tracking-wide text-base mb-4">
-                For Restaurants
-              </h4>
-              <ul className="space-y-2.5 text-gray-400 font-normal">
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/seller")}>Partner With Us</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/seller/auth")}>Apps For You</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/seller")}>Restaurant Consulting</li>
-              </ul>
-            </div>
+            {/* Col 2 */}
+            {lp.col2Title && (
+              <div>
+                <h4 className="font-bold text-white tracking-wide text-base mb-4">
+                  {lp.col2Title}
+                </h4>
+                <ul className="space-y-2.5 text-gray-400 font-normal">
+                  {(lp.col2Items || []).filter(item => item && item.title).map((item, idx) => (
+                    <li 
+                      key={idx} 
+                      className="hover:text-white cursor-pointer transition-colors" 
+                      onClick={() => handleLinkClick(item.url)}
+                    >
+                      {item.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* Col 3: For Delivery Partners */}
-            <div>
-              <h4 className="font-bold text-white tracking-wide text-base mb-4">
-                For Delivery Partners
-              </h4>
-              <ul className="space-y-2.5 text-gray-400 font-normal">
-                <li className="hover:text-white cursor-pointer transition-colors">Partner With Us</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Apps For You</li>
-              </ul>
-            </div>
+            {/* Col 3 */}
+            {lp.col3Title && (
+              <div>
+                <h4 className="font-bold text-white tracking-wide text-base mb-4">
+                  {lp.col3Title}
+                </h4>
+                <ul className="space-y-2.5 text-gray-400 font-normal">
+                  {(lp.col3Items || []).filter(item => item && item.title).map((item, idx) => (
+                    <li 
+                      key={idx} 
+                      className="hover:text-white cursor-pointer transition-colors" 
+                      onClick={() => handleLinkClick(item.url)}
+                    >
+                      {item.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* Col 4: Learn More */}
-            <div>
-              <h4 className="font-bold text-white tracking-wide text-base mb-4">
-                Learn More
-              </h4>
-              <ul className="space-y-2.5 text-gray-400 font-normal">
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/profile/privacy")}>Privacy</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/profile/terms")}>Security</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/profile/terms")}>Terms of Service</li>
-                <li className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate("/profile/support")}>Help & Support</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Report a Fraud</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Blog</li>
-              </ul>
-            </div>
+            {/* Col 4 */}
+            {lp.col4Title && (
+              <div>
+                <h4 className="font-bold text-white tracking-wide text-base mb-4">
+                  {lp.col4Title}
+                </h4>
+                <ul className="space-y-2.5 text-gray-400 font-normal">
+                  {(lp.col4Items || []).filter(item => item && item.title).map((item, idx) => (
+                    <li 
+                      key={idx} 
+                      className="hover:text-white cursor-pointer transition-colors" 
+                      onClick={() => handleLinkClick(item.url)}
+                    >
+                      {item.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Col 5: Social Links & App Downloads */}
             <div className="col-span-2 md:col-span-1">
               <h4 className="font-bold text-white tracking-wide text-base mb-4">
-                Social Links
+                {lp.col5Title || "Social Links"}
               </h4>
               
               {/* Circular Social Icons */}
-              <div className="flex items-center gap-2.5 mb-6">
-                <span className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors">in</span>
-                <span className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors">📷</span>
-                <span className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors">▶</span>
-                <span className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors">f</span>
-                <span className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors">X</span>
+              <div className="flex items-center gap-2.5 mb-6 flex-wrap">
+                {(lp.socialItems || []).filter(item => item && item.platform).map((item, idx) => {
+                  const p = (item.platform || '').toLowerCase();
+                  let symbol = (item.platform || '').slice(0, 2);
+                  if (p.includes('linkedin') || p === 'in') symbol = 'in';
+                  else if (p.includes('insta') || p.includes('gram')) symbol = '📷';
+                  else if (p.includes('tube') || p.includes('yt')) symbol = '▶';
+                  else if (p.includes('face') || p.includes('fb')) symbol = 'f';
+                  else if (p.includes('twitter') || p === 'x') symbol = 'X';
+                  else if (p.includes('whatsapp')) symbol = '💬';
+
+                  return (
+                    <a 
+                      key={idx} 
+                      href={item.url || '#'} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title={item.platform}
+                      className="w-7 h-7 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-rose-500 hover:text-white transition-colors uppercase"
+                    >
+                      {symbol}
+                    </a>
+                  );
+                })}
               </div>
 
               {/* App Store Buttons Stack */}
               <div className="space-y-3">
                 <a 
-                  href="#" 
-                  onClick={(e) => e.preventDefault()}
+                  href={lp.appStoreUrl} 
+                  onClick={(e) => {
+                    if (lp.appStoreUrl.startsWith("/")) {
+                      e.preventDefault();
+                      navigate(lp.appStoreUrl);
+                    }
+                  }}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full bg-black border border-gray-700 hover:border-gray-500 text-white px-4 py-2 rounded-xl flex items-center gap-3 transition-colors shadow-sm"
                 >
                   <svg className="w-5 h-5 fill-current text-white" viewBox="0 0 24 24">
@@ -935,8 +1110,15 @@ export default function MasterLandingPage() {
                 </a>
 
                 <a 
-                  href="#" 
-                  onClick={(e) => e.preventDefault()}
+                  href={lp.googlePlayUrl} 
+                  onClick={(e) => {
+                    if (lp.googlePlayUrl.startsWith("/")) {
+                      e.preventDefault();
+                      navigate(lp.googlePlayUrl);
+                    }
+                  }}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full bg-black border border-gray-700 hover:border-gray-500 text-white px-4 py-2 rounded-xl flex items-center gap-3 transition-colors shadow-sm"
                 >
                   <svg className="w-5 h-5 fill-current text-emerald-400" viewBox="0 0 24 24">
@@ -954,9 +1136,9 @@ export default function MasterLandingPage() {
 
           {/* Bottom Separator Line & Legal Copyright Notice */}
           <div className="pt-8 border-t border-gray-800 text-left text-[11px] sm:text-xs text-gray-400 font-normal leading-relaxed">
-            By continuing past this page, you agree to our Terms of Service, Cookie Policy, Privacy Policy and Content Policies. All trademarks are properties of their respective owners.
+            {lp.footerDisclaimer}
             <br />
-            2008-2026 © Minutekart™ Ltd. All rights reserved.
+            {lp.footerCopyright}
           </div>
 
         </div>

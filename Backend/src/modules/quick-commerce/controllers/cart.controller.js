@@ -71,7 +71,13 @@ const mapCart = async (idQuery) => {
       if (!product) return null;
 
       const variant = item.variantSku && Array.isArray(product.variants)
-        ? product.variants.find((v) => v.sku === item.variantSku)
+        ? product.variants.find(
+            (v) =>
+              String(v.sku || "").trim() === String(item.variantSku).trim() ||
+              String(v._id || "").trim() === String(item.variantSku).trim() ||
+              String(v.id || "").trim() === String(item.variantSku).trim() ||
+              String(v.name || "").trim() === String(item.variantSku).trim()
+          )
         : null;
 
       const unitPrice = variant

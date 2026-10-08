@@ -399,11 +399,24 @@ export const getProducts = async (req, res) => {
         }
       }
 
+      // Fetch all child subcategory IDs so querying parent category includes subcategory products
+      const childCats = await QuickCategory.find({
+        $or: [
+          { parentId: resolvedCategoryId },
+          { parentId: String(resolvedCategoryId) }
+        ]
+      }).select('_id').lean();
+
+      const allCatIds = [resolvedCategoryId, ...childCats.map(c => c._id)];
+      const objectIds = allCatIds.filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id));
+      const stringIds = allCatIds.map(id => String(id));
+      const combinedCatIds = [...new Set([...objectIds, ...stringIds])];
+
       andConditions.push({
         $or: [
-          { categoryId: resolvedCategoryId },
-          { subcategoryId: resolvedCategoryId },
-          { headerId: resolvedCategoryId }
+          { categoryId: { $in: combinedCatIds } },
+          { subcategoryId: { $in: combinedCatIds } },
+          { headerId: { $in: combinedCatIds } }
         ]
       });
     }

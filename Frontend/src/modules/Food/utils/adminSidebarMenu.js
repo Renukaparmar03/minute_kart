@@ -200,7 +200,8 @@ export const adminSidebarMenu = [
     type: "section",
     label: "BANNER SETTINGS",
     items: [
-      { type: "link", label: "Landing Page Management", path: "/admin/food/hero-banner-management", icon: "Image" },
+      { type: "link", label: "Master Landing Page", path: "/admin/global-settings/landing", icon: "Layout" },
+      { type: "link", label: "Food Banners Management", path: "/admin/food/hero-banner-management", icon: "Image" },
     ],
   },
 
