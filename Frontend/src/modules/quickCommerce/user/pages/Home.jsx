@@ -1152,26 +1152,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
             </div>
           )}
 
-          {embedded && (
-            <>
-              <div className="hidden md:block">
-                <Footer />
-              </div>
-              <div className="md:hidden">
-                <MobileFooterMessage />
-                <BottomNav />
-              </div>
-            </>
-          )}
 
-          {embedded && (
-            <>
-              <MiniCart
-                linkTo={getQuickCartPath(routePathname)}
-              />
-              <ProductDetailSheet />
-            </>
-          )}
         </div>
       )}
     </div>
