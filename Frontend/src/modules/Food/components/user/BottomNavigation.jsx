@@ -70,24 +70,25 @@ export default function BottomNavigation() {
   if (isKeyboardOpen) return null
 
   return (
-    <div 
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-[500] transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-y-0" : "translate-y-full"
-      }`}
-    >
-      <div className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 px-3 py-1 pb-[max(0.25rem,env(safe-area-inset-bottom,0.25rem))] flex items-center justify-between gap-1 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+    <>
+      <DraggableModuleSwitcher />
+      <div 
+        className={`md:hidden fixed left-4 right-4 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
+        style={{ bottom: "max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))" }}
+      >
+        <div className="bg-white dark:bg-[#1a1a1a] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between gap-1">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
           replace
-          className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isDelivery
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
-          <Truck className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[8.5px] font-black tracking-wider uppercase">
+          <Truck className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Delivery
           </span>
         </Link>
@@ -96,14 +97,14 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/under-250"
           replace
-          className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isUnder250
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
-          <Tag className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[8.5px] font-black tracking-wider uppercase">
+          <Tag className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Under 250
           </span>
         </Link>
@@ -112,14 +113,14 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/cart"
           replace
-          className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isCart
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
-          <ShoppingCart className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[8.5px] font-black tracking-wider uppercase">
+          <ShoppingCart className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Cart
           </span>
         </Link>
@@ -127,12 +128,13 @@ export default function BottomNavigation() {
         {/* Minutemart Link Button */}
         <Link
           to="/quick"
-          className="flex items-center gap-1 bg-[#379702] text-white px-3 py-1.5 rounded-full font-black text-[9px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
+          className="flex items-center gap-0.5 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
         >
           <span>Minutemart</span>
           <ChevronRight className="h-3 w-3" strokeWidth={4} />
         </Link>
       </div>
     </div>
+    </>
   )
 }

@@ -68,28 +68,29 @@ const BottomNav = () => {
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300">
-            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-gray-100 dark:border-border flex items-center justify-between h-[50px] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 pb-[max(0.15rem,env(safe-area-inset-bottom,0px))]">
+            <DraggableModuleSwitcher />
+            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-gray-100 dark:border-border flex items-center justify-between h-[65px] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] px-2 pb-[env(safe-area-inset-bottom)]">
                 {items.map((item, index) => {
                     const isActive = item.type === 'link' && isActivePath(item.path);
                     const IconComponent = item.icon;
 
                     const content = (
-                        <div className="flex flex-col items-center justify-center relative w-full h-full py-0.5">
-                            <div className={cn("relative flex items-center justify-center", item.label === 'Profile' ? "h-5 w-5" : "h-4 w-4")}>
+                        <div className="flex flex-col items-center justify-center relative w-full h-full">
+                            <div className={cn("relative flex items-center justify-center", item.label === 'Profile' ? "h-7 w-7" : "h-5 w-5")}>
                                 {item.label === 'Profile' ? (
                                     profileImageUrl ? (
                                         <img
                                             src={profileImageUrl}
                                             alt="Profile"
                                             className={cn(
-                                                "h-5 w-5 rounded-full object-cover transition-all duration-300 border",
+                                                "h-7 w-7 rounded-full object-cover transition-all duration-300 border",
                                                 isActive ? "border-[#0c831f] scale-105" : "border-gray-200"
                                             )}
                                         />
                                     ) : avatarInitial ? (
                                         <div
                                             className={cn(
-                                                "h-5 w-5 rounded-full flex items-center justify-center text-[11px] font-black leading-none transition-all duration-300",
+                                                "h-7 w-7 rounded-full flex items-center justify-center text-[13px] font-black leading-none transition-all duration-300",
                                                 isActive 
                                                     ? "bg-[#0c831f] text-white scale-105" 
                                                     : "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400"
@@ -99,7 +100,7 @@ const BottomNav = () => {
                                         </div>
                                     ) : (
                                         <IconComponent
-                                            size={18}
+                                            size={20}
                                             strokeWidth={isActive ? 2.5 : 2}
                                             className={cn(
                                                 "transition-colors duration-300",
@@ -109,7 +110,7 @@ const BottomNav = () => {
                                     )
                                 ) : (
                                     <IconComponent
-                                        size={18}
+                                        size={20}
                                         strokeWidth={isActive ? 2.5 : 2}
                                         className={cn(
                                             "transition-colors duration-300",
