@@ -42,8 +42,6 @@ export default function BottomNavigation() {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-      <DraggableModuleSwitcher />
-
       <div className="relative bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-lg">
         <div className="flex items-center justify-around h-auto px-2 sm:px-4">
           {/* Home */}

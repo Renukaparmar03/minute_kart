@@ -680,8 +680,8 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
     <div className="relative h-screen w-full bg-white text-gray-900 overflow-hidden flex flex-col">
       {/* ─── 1. TOP HEADER (Dark Green #087A45 - Matched with Home Header) ─── */}
       {['feed'].includes(currentTab) && (
-      <div className="absolute top-0 inset-x-0 bg-[#087A45] shadow-md z-[200] safe-top pb-2">
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="absolute top-0 inset-x-0 bg-[#087A45] shadow-md z-[200] safe-top pt-8 pb-4">
+        <div className="flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
              <div 
                 onClick={() => navigate('/food/delivery/profile')}
@@ -752,7 +752,7 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
       {/* ─── 2. MAIN CONTENT ─── */}
       <div 
         ref={scrollContainerRef}
-        className={`flex-1 relative overflow-y-auto ${['feed'].includes(currentTab) ? 'pt-[64px]' : 'pt-0'} no-scrollbar`}
+        className={`flex-1 relative overflow-y-auto ${['feed'].includes(currentTab) ? 'pt-[80px]' : 'pt-0'} no-scrollbar`}
       >
          {currentTab === 'home' ? (
            <DashboardHome
