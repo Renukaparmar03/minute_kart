@@ -67,16 +67,16 @@ const BottomNav = () => {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 bg-white dark:bg-card pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+        <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 bg-white dark:bg-card m-0 p-0 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
             <DraggableModuleSwitcher />
-            <div className="border-t border-gray-100 dark:border-border flex items-center justify-between h-[58px] px-2">
+            <div className="border-t border-gray-100 dark:border-border flex items-center justify-between h-[58px] px-0 m-0">
                 {items.map((item, index) => {
                     const isActive = item.type === 'link' && isActivePath(item.path);
                     const IconComponent = item.icon;
 
                     const content = (
-                        <div className="flex flex-col items-center justify-center relative w-full h-full py-1">
-                            <div className="relative flex items-center justify-center h-5 w-5">
+                        <div className="flex flex-col items-center justify-center relative w-full h-full p-0 m-0">
+                            <div className="relative flex items-center justify-center h-5 w-5 m-0 p-0">
                                 {item.label === 'Profile' ? (
                                     profileImageUrl ? (
                                         <img
@@ -128,7 +128,7 @@ const BottomNav = () => {
                             {item.label && (
                                 <span
                                     className={cn(
-                                        "text-[10px] font-bold tracking-tight mt-1 transition-colors duration-300 leading-none",
+                                        "text-[10px] font-bold tracking-tight mt-0.5 transition-colors duration-300 leading-none",
                                         isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
                                     )}
                                 >
