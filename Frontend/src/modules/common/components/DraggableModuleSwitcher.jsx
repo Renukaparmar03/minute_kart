@@ -39,7 +39,7 @@ const DraggableModuleSwitcher = () => {
             drag
             dragMomentum={false}
             whileDrag={{ scale: 1.05 }}
-            className="fixed z-[60] cursor-grab active:cursor-grabbing"
+            className="fixed z-[501] cursor-grab active:cursor-grabbing"
             style={{ bottom: '75px', left: '16px' }} 
         >
             <div 
