@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   ChevronRight, 
   Save, 
@@ -101,6 +102,44 @@ const GlobalApplicationSettings = () => {
   const [logoFile, setLogoFile] = useState(null);
   const [faviconFile, setFaviconFile] = useState(null);
 
+  // Landing Page State
+  const [landingData, setLandingData] = useState({
+    heroHeadline: "India’s #1 food delivery app",
+    heroSubtitle: "Experience fast & easy online ordering on the Minutekart app",
+    heroBgImage: "/images/hero_bg.png",
+    heroBgVideo: "",
+    playStoreUrl: "#get-app-section",
+    appStoreUrl: "#get-app-section",
+    qrCodeImage: "",
+    qrCodeText: "Scan the QR code to download the app",
+    restaurantsCount: "3,00,000+",
+    citiesCount: "800+",
+    ordersCount: "3 billion+",
+    sec2Headline: "Better food for more people",
+    sec2Subtitle: "For over a decade, we’ve enabled our customers to discover new tastes, delivered right to their doorstep",
+    sec3Headline: "What’s waiting for you on the app?",
+    sec3Subtitle: "Our app is packed with features that enable you to experience food delivery like never before",
+    userAppTitle: "minutekart user",
+    userAppDesc: "Get the app now to start ordering your favorite food & groceries!",
+    userAppIcon: "/images/minutekart_user.png",
+    userAppLink: "/food/user",
+    restaurantAppTitle: "minutekart restaurant",
+    restaurantAppDesc: "Partner with us to grow your restaurant business & manage orders!",
+    restaurantAppIcon: "/images/minutekart_partner.png",
+    restaurantAppLink: "/seller",
+    sellerAppTitle: "minutekart seller",
+    sellerAppDesc: "Join as a local shop & instant grocery seller partner!",
+    sellerAppIcon: "/images/minutekart_partner.png",
+    sellerAppLink: "/seller",
+    deliveryAppTitle: "minutekart delivery",
+    deliveryAppDesc: "Deliver with Minutekart & earn flexible daily income!",
+    deliveryAppIcon: "/images/minutekart_delivery.png",
+    deliveryAppLink: "#"
+  });
+
+  const [landingFiles, setLandingFiles] = useState({});
+  const [landingPreviews, setLandingPreviews] = useState({});
+
   const [formData, setFormData] = useState({
     companyName: "",
     themeColor: "#0a0a0a",
@@ -131,6 +170,19 @@ const GlobalApplicationSettings = () => {
 
         if (settings.logo?.url) setLogoPreview(settings.logo.url);
         if (settings.favicon?.url) setFaviconPreview(settings.favicon.url);
+
+        if (settings.landingPage) {
+          setLandingData(prev => ({
+            ...prev,
+            ...settings.landingPage
+          }));
+          if (settings.landingPage.heroBgImage) setLandingPreviews(p => ({ ...p, heroBgImage: settings.landingPage.heroBgImage }));
+          if (settings.landingPage.qrCodeImage) setLandingPreviews(p => ({ ...p, qrCodeImage: settings.landingPage.qrCodeImage }));
+          if (settings.landingPage.userAppIcon) setLandingPreviews(p => ({ ...p, userAppIcon: settings.landingPage.userAppIcon }));
+          if (settings.landingPage.restaurantAppIcon) setLandingPreviews(p => ({ ...p, restaurantAppIcon: settings.landingPage.restaurantAppIcon }));
+          if (settings.landingPage.sellerAppIcon) setLandingPreviews(p => ({ ...p, sellerAppIcon: settings.landingPage.sellerAppIcon }));
+          if (settings.landingPage.deliveryAppIcon) setLandingPreviews(p => ({ ...p, deliveryAppIcon: settings.landingPage.deliveryAppIcon }));
+        }
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -149,6 +201,22 @@ const GlobalApplicationSettings = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleLandingChange = (name, value) => {
+    setLandingData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleLandingFileUpload = (fieldName, file) => {
+    setLandingFiles(prev => ({ ...prev, [fieldName]: file }));
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLandingPreviews(prev => ({ ...prev, [fieldName]: String(reader.result || '') }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAddBannedNumber = () => {
@@ -193,9 +261,12 @@ const GlobalApplicationSettings = () => {
         address: formData.address,
         bannedNumbers: formData.bannedNumbers,
         showLocationPopup: formData.showLocationPopup,
+        landingPage: landingData,
       };
 
-      const files = {};
+      const files = {
+        ...landingFiles
+      };
       if (logoFile) files.logo = logoFile;
       if (faviconFile) files.favicon = faviconFile;
 
@@ -205,7 +276,7 @@ const GlobalApplicationSettings = () => {
       if (updatedSettings) {
         setCachedSettings(updatedSettings);
       }
-      toast.success('Configuration saved successfully!');
+      toast.success('Landing Page & Global Configuration saved successfully!');
     } catch (err) {
       toast.error('Failed to save settings');
     } finally {
@@ -228,6 +299,19 @@ const GlobalApplicationSettings = () => {
     reader.readAsDataURL(file);
   };
 
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.pathname.includes('/landing')) return 'landing';
+    return 'landing';
+  });
+
+  useEffect(() => {
+    if (location.pathname.includes('/landing')) {
+      setActiveTab('landing');
+    }
+  }, [location.pathname]);
+
+
   if (loading) {
      return (
        <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -240,8 +324,11 @@ const GlobalApplicationSettings = () => {
     <div className="min-h-screen bg-gray-50 p-6 lg:p-10 font-sans">
       
       {/* Header */}
-      <div className="mb-10 flex items-center justify-between">
-        <h1 className="text-[15px] font-black text-gray-800 uppercase tracking-widest">GLOBAL SETTINGS</h1>
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-black text-gray-800 uppercase tracking-wider">GLOBAL APPLICATION SETTINGS</h1>
+          <p className="text-xs font-semibold text-gray-500 mt-1">Manage core application details, branding assets & security settings</p>
+        </div>
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
            <span>Common</span>
            <ChevronRight size={12} strokeWidth={3} />
@@ -269,6 +356,7 @@ const GlobalApplicationSettings = () => {
               <ImageUploadBox title="Favicon" size="80px x 80px" preview={faviconPreview} onUpload={handleFaviconUpload} onClear={() => { setFaviconPreview(null); setFaviconFile(null); }} />
            </div>
         </SectionCard>
+
 
         {/* Banned Numbers */}
         <SectionCard title="Banned Numbers">
@@ -314,12 +402,14 @@ const GlobalApplicationSettings = () => {
           </div>
         </SectionCard>
 
+
       </div>
 
       {/* Persistence Controls */}
-      <div className="fixed bottom-10 right-10">
-         <button onClick={handleUpdate} disabled={saving} className="bg-[#00BFA5] text-white w-16 h-16 rounded-full flex items-center justify-center shadow-[0_15px_40px_rgba(0,191,165,0.4)] hover:bg-[#00AC95] active:scale-90 transition-all disabled:opacity-50">
+      <div className="fixed bottom-10 right-10 z-50">
+         <button onClick={handleUpdate} disabled={saving} className="bg-[#00BFA5] text-white px-6 h-16 rounded-full flex items-center justify-center gap-3 font-bold uppercase tracking-wider shadow-[0_15px_40px_rgba(0,191,165,0.4)] hover:bg-[#00AC95] active:scale-90 transition-all disabled:opacity-50">
             {saving ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />}
+            <span>Save Settings</span>
          </button>
       </div>
 

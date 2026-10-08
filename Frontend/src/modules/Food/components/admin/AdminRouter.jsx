@@ -145,6 +145,7 @@ const WhyChotuuManagement = lazy(() => import("@/modules/Dudhwala/admin/pages/Wh
 
 
 const GlobalApplicationSettings = lazy(() => import("@/modules/common/admin/pages/GlobalApplicationSettings"));
+const ManageLandingPageAdmin = lazy(() => import("@/modules/common/admin/pages/ManageLandingPageAdmin"));
 const ModuleManagement = lazy(() => import("@/modules/common/admin/pages/ModuleManagement"));
 const SubAdminPage = lazy(() => import("@/modules/common/admin/pages/SubAdminPage"));
 
@@ -195,6 +196,7 @@ export default function AdminRouter() {
           <Route path="global-settings">
             <Route index element={<Navigate to="app" replace />} />
             <Route path="app" element={<GlobalApplicationSettings />} />
+            <Route path="landing" element={<ManageLandingPageAdmin />} />
             <Route path="admin" element={<AdminProfile />} />
             <Route path="modules" element={<ModuleManagement />} />
             <Route path="sub-admins" element={<SubAdminPage />} />

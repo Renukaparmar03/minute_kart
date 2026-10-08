@@ -71,8 +71,33 @@ const CategoryProductCard = ({ product }) => {
     const swipe = useCarouselSwipe(allImages);
     const { currentImgIdx, setCurrentImgIdx } = swipe;
     
-    const cartItem = cart.find(item => item.id === product.id || item.productId === product.id);
-    const quantity = cartItem ? cartItem.quantity : 0;
+    const getComparableProductId = React.useCallback(
+        (value) => String(value ?? "").split("::")[0],
+        [],
+    );
+
+    const baseProductId = getComparableProductId(product.id || product._id);
+
+    const cartItem = React.useMemo(
+        () =>
+            cart.find(
+                (item) =>
+                    getComparableProductId(item.productId || item.itemId || item.id || item._id) ===
+                    baseProductId,
+            ),
+        [cart, getComparableProductId, baseProductId],
+    );
+
+    const quantity = React.useMemo(() => {
+        return cart
+            .filter(
+                (item) =>
+                    getComparableProductId(item.productId || item.itemId || item.id || item._id) ===
+                    baseProductId,
+            )
+            .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    }, [cart, getComparableProductId, baseProductId]);
+
     const isWishlisted = isInWishlist(product.id || product._id);
 
     const displayPrice = product.price || product.salePrice;
@@ -190,7 +215,8 @@ const CategoryProductCard = ({ product }) => {
                     <div className="mt-1">
                         {quantity === 0 ? (
                             <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     addToCart(product);
                                     if (imageRef.current) {
                                         const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
@@ -204,12 +230,14 @@ const CategoryProductCard = ({ product }) => {
                         ) : (
                             <div className="w-full flex items-center justify-between bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[26px]">
                                 <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         if (imageRef.current) {
                                             const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
                                             animateRemoveFromCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
                                         }
-                                        updateQuantity(product.id, -1);
+                                        const targetId = cartItem ? (cartItem.id || cartItem._id || cartItem.productId) : (product.id || product._id);
+                                        updateQuantity(targetId, -1);
                                     }}
                                     className="px-3 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
                                 >
@@ -219,12 +247,14 @@ const CategoryProductCard = ({ product }) => {
                                     {quantity}
                                 </span>
                                 <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         if (imageRef.current) {
                                             const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
                                             animateAddToCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
                                         }
-                                        updateQuantity(product.id, 1);
+                                        const targetId = cartItem ? (cartItem.id || cartItem._id || cartItem.productId) : (product.id || product._id);
+                                        updateQuantity(targetId, 1);
                                     }}
                                     className="px-3 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
                                 >
@@ -444,11 +474,10 @@ const CategoryProductsPage = () => {
                 }
 
                 const [prodRes, expRes, heroRes] = await Promise.all([
-                    hasValidLocation ? customerApi.getProducts({
+                    customerApi.getProducts({
                         categoryId: normId,
-                        lat: currentLocation.latitude,
-                        lng: currentLocation.longitude,
-                    }).catch(() => null) : null,
+                        ...(hasValidLocation ? { lat: currentLocation.latitude, lng: currentLocation.longitude } : {})
+                    }).catch(() => null),
                     customerApi.getExperienceSections({ pageType: 'header', headerId: normId }).catch(() => null),
                     customerApi.getHeroConfig({ pageType: 'header', headerId: normId }).catch(() => null)
                 ]);

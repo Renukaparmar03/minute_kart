@@ -11,9 +11,6 @@ router.get('/public', settingsController.getGlobalSettings);
 
 // Protected admin endpoints
 router.get('/', authMiddleware, requireRoles('ADMIN', 'SUB_ADMIN'), settingsController.getGlobalSettings);
-router.patch('/', authMiddleware, requireRoles('ADMIN'), upload.fields([
-    { name: 'logo', maxCount: 1 },
-    { name: 'favicon', maxCount: 1 }
-]), settingsController.updateGlobalSettings);
+router.patch('/', authMiddleware, requireRoles('ADMIN'), upload.any(), settingsController.updateGlobalSettings);
 
 export default router;

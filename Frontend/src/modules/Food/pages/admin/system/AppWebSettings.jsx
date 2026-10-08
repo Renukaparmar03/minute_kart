@@ -1,7 +1,9 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import { Settings, Info, Smartphone, Apple } from "lucide-react"
 
 function ToggleSwitch({ enabled, onToggle }) {
+
   return (
     <button
       type="button"
@@ -90,7 +92,7 @@ export default function AppWebSettings() {
     <div className="p-2 lg:p-3 bg-slate-50 min-h-screen">
       <div className="w-full mx-auto max-w-6xl">
         {/* Page Title */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-3">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center">
               <Settings className="w-3.5 h-3.5 text-white" />
@@ -98,6 +100,18 @@ export default function AppWebSettings() {
             <h1 className="text-lg font-bold text-slate-900">App & Web Settings</h1>
           </div>
         </div>
+
+        {/* Global Landing Page Settings Banner */}
+        <div className="bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">🌐 Manage Main Landing Page</h3>
+            <p className="text-xs text-rose-100 mt-1 font-medium">Configure headlines, background images, QR code, app store links, and ecosystem cards for http://localhost:5173/</p>
+          </div>
+          <Link to="/admin/global-settings/app" className="bg-white text-rose-600 hover:bg-rose-50 font-extrabold text-xs px-4 py-2.5 rounded-lg shadow transition-all transform hover:scale-105 whitespace-nowrap">
+            Open Landing Page Settings →
+          </Link>
+        </div>
+
 
         {/* General Web Settings */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-3">

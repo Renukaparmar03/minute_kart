@@ -479,11 +479,13 @@ const ProductDetailPage = () => {
       itemId: currentVariantId,
       name: `${product.name} (${selectedVariant.name})`,
       price: displayPrice,
+      salePrice: displayPrice,
       originalPrice: displayOriginalPrice,
       mrp: displayOriginalPrice,
       weight: selectedVariant.name,
       stock: selectedVariant.stock,
       sku: selectedVariant.sku,
+      variantSku: selectedVariant.sku || selectedVariant._id || selectedVariant.name,
     };
   }, [product, selectedVariant, currentVariantId, displayPrice, displayOriginalPrice]);
 

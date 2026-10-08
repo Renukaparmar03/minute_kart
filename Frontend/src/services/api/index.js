@@ -978,15 +978,22 @@ export const adminAPI = {
     const formData = new FormData();
     // Add JSON data as a string in the 'data' field
     formData.append("data", JSON.stringify(data));
-    // Add files with the same names expected by the backend
-    if (files.logo) formData.append("logo", files.logo);
-    if (files.favicon) formData.append("favicon", files.favicon);
+    // Add all files dynamically with the key names expected by backend
+    Object.keys(files || {}).forEach((key) => {
+      if (files[key]) {
+        formData.append(key, files[key]);
+      }
+    });
 
     return apiClient.patch(API_ENDPOINTS.ADMIN.BUSINESS_SETTINGS, formData, {
       contextModule: "admin",
     });
   },
+  getPublicSettings: () => apiClient.get("/common/settings/public"),
 };
+
+export const getPublicSettings = () => apiClient.get("/common/settings/public");
+
 
 /** Restaurant API - OTP login via new backend; no email/password. */
 export const restaurantAPI = {

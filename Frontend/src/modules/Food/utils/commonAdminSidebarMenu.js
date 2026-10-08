@@ -5,6 +5,12 @@ export const commonAdminSidebarMenu = [
     items: [
       {
         type: "link",
+        label: "Manage Landing Page",
+        path: "/admin/global-settings/landing",
+        icon: "Layout",
+      },
+      {
+        type: "link",
         label: "App Settings",
         path: "/admin/global-settings/app",
         icon: "Settings",
