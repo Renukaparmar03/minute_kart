@@ -70,13 +70,12 @@ export default function BottomNavigation() {
   if (isKeyboardOpen) return null
 
   return (
-    <>
-      <DraggableModuleSwitcher />
-      <div 
-        className={`md:hidden fixed left-4 right-4 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}
-        style={{ bottom: "max(0.5rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))" }}
-      >
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between gap-1">
+    <div 
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-[500] transition-transform duration-300 ease-in-out ${
+        isVisible ? "translate-y-0" : "translate-y-full"
+      }`}
+    >
+      <div className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 px-4 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] flex items-center justify-between gap-1 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
@@ -128,13 +127,12 @@ export default function BottomNavigation() {
         {/* Minutemart Link Button */}
         <Link
           to="/quick"
-          className="flex items-center gap-0.5 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
+          className="flex items-center gap-1 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
         >
           <span>Minutemart</span>
           <ChevronRight className="h-3 w-3" strokeWidth={4} />
         </Link>
       </div>
     </div>
-    </>
   )
 }
