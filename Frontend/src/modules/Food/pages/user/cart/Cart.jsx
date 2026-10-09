@@ -2098,13 +2098,15 @@ export default function Cart() {
   }
 
   const handleGoToOrders = () => {
-    setShowOrderSuccess(false)
-    navigate(`/user/orders/${placedOrderId}?confirmed=true`, {
-      state: placedOrderData ? { prefetchedOrder: placedOrderData } : undefined,
-    })
+    const targetId = placedOrderId || placedOrderData?._id || placedOrderData?.orderId || placedOrderData?.id
+    if (targetId) {
+      navigate(`/food/user/orders/${targetId}?confirmed=true`, {
+        state: placedOrderData ? { prefetchedOrder: placedOrderData } : undefined,
+      })
+    } else {
+      navigate("/food/user/orders")
+    }
   }
-
-
 
   if (isQuickCart) {
     return (
@@ -2123,12 +2125,12 @@ export default function Cart() {
     }
   }, [cart.length])
 
-  // Empty cart state - redirect to home ONLY if user manually decremented items on this page session
+  // Empty cart state - redirect to home ONLY if user manually decremented items on this page session and no order was placed
   useEffect(() => {
-    if (hadItemsRef.current && cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
+    if (hadItemsRef.current && cart.length === 0 && !showOrderSuccess && !showPlacingOrder && !placedOrderId) {
       navigate("/food/user", { replace: true })
     }
-  }, [cart.length, showOrderSuccess, showPlacingOrder, navigate])
+  }, [cart.length, showOrderSuccess, showPlacingOrder, placedOrderId, navigate])
 
   if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
     return (

@@ -271,7 +271,7 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
       if (selectedPaymentMethod === "cash") {
         toast.success("Mixed order placed successfully");
         clearCart();
-        navigate(`/user/orders/${order?.orderId || order?._id}?confirmed=true`, {
+        navigate(`/food/user/orders/${order?.orderId || order?._id}?confirmed=true`, {
           state: order ? { prefetchedOrder: order } : undefined,
         });
         return;
@@ -309,7 +309,7 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
           if (verifyResponse?.data?.success) {
             toast.success("Mixed order placed successfully");
             clearCart();
-            navigate(`/user/orders/${order?.orderId || order?._id}?confirmed=true`, {
+            navigate(`/food/user/orders/${order?.orderId || order?._id}?confirmed=true`, {
               state: order ? { prefetchedOrder: order } : undefined,
             });
           } else {

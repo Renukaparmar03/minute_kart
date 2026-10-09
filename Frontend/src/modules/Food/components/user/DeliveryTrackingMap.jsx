@@ -20,7 +20,7 @@ import {
   trimPolylineFromDistanceAlongRoute,
 } from '@food/utils/liveTrackingPolyline';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Navigation, Info, Circle } from 'lucide-react';
+import { Play, Navigation, Info, Circle, Utensils, Home } from 'lucide-react';
 
 const LIBRARIES = ['geometry', 'places'];
 
@@ -40,6 +40,31 @@ const CUSTOMER_PIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" hei
   <path d="M12 2C8.13 2 5 5.13 5 9c0 4.17 4.42 9.92 6.24 12.11.4.48 1.08.48 1.52 0C14.58 18.92 19 13.17 19 9c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/>
   <circle cx="12" cy="9" r="3" fill="#FFFFFF"/>
 </svg>`;
+
+function generateCurvedAirPath(p1, p2, numPoints = 50) {
+  if (!p1 || !p2 || !Number.isFinite(p1.lat) || !Number.isFinite(p1.lng) || !Number.isFinite(p2.lat) || !Number.isFinite(p2.lng)) {
+    return [];
+  }
+  const dLat = p2.lat - p1.lat;
+  const dLng = p2.lng - p1.lng;
+  
+  const curvature = 0.25;
+  const midLat = (p1.lat + p2.lat) / 2;
+  const midLng = (p1.lng + p2.lng) / 2;
+
+  const ctrlLat = midLat - dLng * curvature;
+  const ctrlLng = midLng + dLat * curvature;
+
+  const points = [];
+  for (let i = 0; i <= numPoints; i++) {
+    const t = i / numPoints;
+    const invT = 1 - t;
+    const lat = invT * invT * p1.lat + 2 * invT * t * ctrlLat + t * t * p2.lat;
+    const lng = invT * invT * p1.lng + 2 * invT * t * ctrlLng + t * t * p2.lng;
+    points.push({ lat, lng });
+  }
+  return points;
+}
 
 const debugLog = (...args) => console.log('[DeliveryTrackingMap]', ...args);
 
@@ -213,14 +238,44 @@ const DeliveryTrackingMap = ({
   // Use smooth location for sync if available
   const displayRiderLocation = smoothLocation || riderLocation;
 
-  const tripStatus = order?.status || order?.orderStatus || 'pending';
-  const isOrderPickedUp = ['picked_up', 'out_for_delivery', 'delivered'].includes(tripStatus.toLowerCase());
+  const tripStatus = String(order?.status || order?.orderStatus || 'pending').toLowerCase();
+
+  // Strict check: Rider/Delivery boy has accepted the order
+  const isAccepted = Boolean(
+    order?.deliveryPartnerId ||
+    order?.deliveryState?.driverId ||
+    order?.deliveryState?.deliveryPartnerId ||
+    ['accepted', 'assigned', 'arrived', 'picked_up', 'out_for_delivery', 'in_transit', 'arrived_at_pickup'].includes(
+      String(order?.deliveryState?.status || order?.deliveryStatus || '').toLowerCase()
+    ) ||
+    ['picked_up', 'out_for_delivery'].includes(tripStatus)
+  );
+
+  const isOrderPickedUp = ['picked_up', 'out_for_delivery', 'delivered'].includes(tripStatus);
+
+  const airCurvedPath = useMemo(() => {
+    if (isAccepted || !customerCoords || !restaurantCoords) return [];
+    return generateCurvedAirPath(customerCoords, restaurantCoords);
+  }, [isAccepted, customerCoords, restaurantCoords]);
 
   // 2. Pro Camera: Intelligent Frame Management (Throttled)
   const lastCameraUpdateRef = useRef({ time: 0, status: null });
   
   useEffect(() => {
     if (!map || !restaurantCoords || !customerCoords || !isLoaded) return;
+
+    if (!isAccepted) {
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend(restaurantCoords);
+      bounds.extend(customerCoords);
+      map.fitBounds(bounds, { 
+        top: 80, 
+        bottom: 120, 
+        left: 60, 
+        right: 60 
+      });
+      return;
+    }
     
     const now = Date.now();
     const statusChanged = lastCameraUpdateRef.current.status !== isOrderPickedUp;
@@ -249,7 +304,7 @@ const DeliveryTrackingMap = ({
     });
     
     debugLog(`[Camera] Focusing on ${isOrderPickedUp ? 'Delivery' : 'Pickup'} leg`);
-  }, [map, riderLocation, restaurantCoords, customerCoords, isOrderPickedUp, isLoaded]);
+  }, [map, riderLocation, restaurantCoords, customerCoords, isOrderPickedUp, isAccepted, isLoaded]);
 
   // 3. Directions Management
   const directionsCallback = useCallback((result, status) => {
@@ -274,7 +329,7 @@ const DeliveryTrackingMap = ({
   }, [directions, lastDirectionsAt]);
 
   const directionsServiceOptions = useMemo(() => {
-    if (!riderLocation) return null;
+    if (!isAccepted || !riderLocation) return null;
     const dest = isOrderPickedUp ? customerCoords : restaurantCoords;
     if (!dest) return null;
     return {
@@ -282,18 +337,23 @@ const DeliveryTrackingMap = ({
       destination: dest,
       travelMode: 'DRIVING'
     };
-  }, [riderLocation?.lat, riderLocation?.lng, isOrderPickedUp, restaurantCoords?.lat, restaurantCoords?.lng, customerCoords?.lat, customerCoords?.lng]);
+  }, [isAccepted, riderLocation?.lat, riderLocation?.lng, isOrderPickedUp, restaurantCoords?.lat, restaurantCoords?.lng, customerCoords?.lat, customerCoords?.lng]);
 
   const center = useMemo(() => {
-    // Highly stable center: use restaurant or customer as anchor, not the moving rider
+    if (!isAccepted && customerCoords && restaurantCoords) {
+      return {
+        lat: (customerCoords.lat + restaurantCoords.lat) / 2,
+        lng: (customerCoords.lng + restaurantCoords.lng) / 2
+      };
+    }
     if (isOrderPickedUp) return customerCoords || { lat: 0, lng: 0 };
     return restaurantCoords || { lat: 0, lng: 0 };
-  }, [isOrderPickedUp, restaurantCoords, customerCoords]);
+  }, [isAccepted, isOrderPickedUp, restaurantCoords, customerCoords]);
 
-  const zoom = useMemo(() => 15, []);
+  const zoom = useMemo(() => (isAccepted ? 15 : 12), [isAccepted]);
 
   const visibleCloudPolylinePath = useMemo(() => {
-    if (!cloudPolyline || !window.google?.maps?.geometry?.encoding) return null;
+    if (!isAccepted || !cloudPolyline || !window.google?.maps?.geometry?.encoding) return null;
 
     try {
       const encodedPolyline = typeof cloudPolyline === 'string'
@@ -353,7 +413,7 @@ const DeliveryTrackingMap = ({
       console.error('[DeliveryTrackingMap] Error decoding/trimming cloud polyline:', err);
       return null;
     }
-  }, [cloudPolyline, displayRiderLocation, isOrderPickedUp, trackingIds]);
+  }, [isAccepted, cloudPolyline, displayRiderLocation, isOrderPickedUp, trackingIds]);
 
   const fallbackDirectionsPath = useMemo(() => {
     const overviewPath = directions?.routes?.[0]?.overview_path;
@@ -368,7 +428,7 @@ const DeliveryTrackingMap = ({
     ? visibleCloudPolylinePath
     : fallbackDirectionsPath;
 
-  const markerRiderLocation = displayRiderLocation
+  const markerRiderLocation = isAccepted && displayRiderLocation
     ? {
         ...displayRiderLocation,
         heading: getRouteHeading(activeHeadingPath, displayRiderLocation, displayRiderLocation.heading),
@@ -376,13 +436,13 @@ const DeliveryTrackingMap = ({
     : null;
 
   const baselineDirectionsServiceOptions = useMemo(() => {
-    if (!restaurantCoords || !customerCoords) return null;
+    if (!isAccepted || !restaurantCoords || !customerCoords) return null;
     return {
       origin: restaurantCoords,
       destination: customerCoords,
       travelMode: 'DRIVING'
     };
-  }, [restaurantCoords?.lat, restaurantCoords?.lng, customerCoords?.lat, customerCoords?.lng]);
+  }, [isAccepted, restaurantCoords?.lat, restaurantCoords?.lng, customerCoords?.lat, customerCoords?.lng]);
 
   if (!isLoaded) return <div className="w-full h-full bg-gray-100 animate-pulse" />;
 
@@ -408,8 +468,32 @@ const DeliveryTrackingMap = ({
           ]
         }}
       >
+        {/* BEFORE ORDER ACCEPTANCE: AIR CURVED DASHED LINE */}
+        {!isAccepted && airCurvedPath.length > 0 && (
+          <Polyline
+            path={airCurvedPath}
+            options={{
+              strokeColor: '#000000',
+              strokeOpacity: 0,
+              strokeWeight: 4,
+              zIndex: 15,
+              icons: [{
+                icon: {
+                  path: 'M 0,-1 0,1',
+                  strokeOpacity: 1,
+                  scale: 3,
+                  strokeWeight: 4,
+                  strokeColor: '#000000'
+                },
+                offset: '0',
+                repeat: '15px'
+              }]
+            }}
+          />
+        )}
+
         {/* 1. PERSISTENT BASELINE (Full journey: Restaurant -> Customer) */}
-        {!baselineDirections && baselineDirectionsServiceOptions && (
+        {isAccepted && !baselineDirections && baselineDirectionsServiceOptions && (
            <DirectionsService
              options={baselineDirectionsServiceOptions}
              callback={(r, s) => { 
@@ -427,7 +511,7 @@ const DeliveryTrackingMap = ({
         )}
 
         {/* 1. PERSISTENT BASELINE (Full journey: Restaurant -> Customer) */}
-        {baselineDirections && (
+        {isAccepted && baselineDirections && (
           <Polyline
             path={baselineDirections.routes[0].overview_path}
             options={{
@@ -451,7 +535,7 @@ const DeliveryTrackingMap = ({
         )}
 
         {/* 2. LIVE RIDER LEG (From Rider's App: Current Rider Pos -> Target) */}
-        {visibleCloudPolylinePath?.length > 0 && (
+        {isAccepted && visibleCloudPolylinePath?.length > 0 && (
           <Polyline
             path={visibleCloudPolylinePath}
             options={{
@@ -464,14 +548,14 @@ const DeliveryTrackingMap = ({
         )}
 
         {/* 2. LIVE RIDER LEG (Rider -> Target) */}
-        {!visibleCloudPolylinePath?.length && directionsServiceOptions && (
+        {isAccepted && !visibleCloudPolylinePath?.length && directionsServiceOptions && (
           <DirectionsService
             options={directionsServiceOptions}
             callback={shouldUpdateRoute ? directionsCallback : undefined}
           />
         )}
 
-        {directions && !visibleCloudPolylinePath?.length && (
+        {isAccepted && directions && !visibleCloudPolylinePath?.length && (
           <DirectionsRenderer
             directions={directions}
             options={{
@@ -487,62 +571,78 @@ const DeliveryTrackingMap = ({
           />
         )}
 
-        {/* RESTAURANT PIN (OVERLAY VIEW FOR CUSTOM STLYE) */}
+        {/* RESTAURANT PIN */}
         <OverlayView
           position={restaurantCoords}
           mapPaneName={OverlayView.MARKER_LAYER}
         >
-          <div className="relative -translate-x-1/2 -translate-y-full mb-1 group">
-             {/* Pulsing ring if this is the active destination */}
-             {!isOrderPickedUp && (
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                 <motion.div 
-                   animate={{ scale: [1, 2], opacity: [0.5, 0] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="w-16 h-16 rounded-full border-4 border-orange-500/50"
-                 />
+          {!isAccepted ? (
+            <div className="relative -translate-x-1/2 -translate-y-1/2 group z-20">
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-2xl border-2 border-white">
+                <Utensils className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          ) : (
+            <div className="relative -translate-x-1/2 -translate-y-full mb-1 group">
+               {/* Pulsing ring if this is the active destination */}
+               {!isOrderPickedUp && (
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                   <motion.div 
+                     animate={{ scale: [1, 2], opacity: [0.5, 0] }}
+                     transition={{ duration: 2, repeat: Infinity }}
+                     className="w-16 h-16 rounded-full border-4 border-orange-500/50"
+                   />
+                 </div>
+               )}
+               <div className="relative w-11 h-11 rounded-full p-1 bg-white shadow-xl border-2 border-orange-500 overflow-hidden group-hover:scale-110 transition-transform">
+                  <img 
+                    src={order?.restaurantLogo || order?.restaurantId?.logo || order?.restaurantId?.profileImage || `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`}
+                    alt="Restaurant"
+                    className="w-full h-full object-contain rounded-full bg-gray-50"
+                    onError={(e) => { e.target.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`; }}
+                  />
                </div>
-             )}
-             <div className="relative w-11 h-11 rounded-full p-1 bg-white shadow-xl border-2 border-orange-500 overflow-hidden group-hover:scale-110 transition-transform">
-                <img 
-                  src={order?.restaurantLogo || order?.restaurantId?.logo || order?.restaurantId?.profileImage || `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`}
-                  alt="Restaurant"
-                  className="w-full h-full object-contain rounded-full bg-gray-50"
-                  onError={(e) => { e.target.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`; }}
-                />
-             </div>
-             {/* Pin Tip */}
-             <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-3 h-3 bg-orange-500 clip-triangle rotate-180 -mt-1 shadow-sm" style={{ clipPath: 'polygon(50% 100%, 0 0, 100% 0)' }} />
-          </div>
+               {/* Pin Tip */}
+               <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-3 h-3 bg-orange-500 clip-triangle rotate-180 -mt-1 shadow-sm" style={{ clipPath: 'polygon(50% 100%, 0 0, 100% 0)' }} />
+            </div>
+          )}
         </OverlayView>
 
-        {/* CUSTOMER PIN (OVERLAY VIEW FOR CUSTOM STYLE) */}
+        {/* CUSTOMER PIN */}
         <OverlayView
           position={customerCoords}
           mapPaneName={OverlayView.MARKER_LAYER}
         >
-          <div className="relative -translate-x-1/2 -translate-y-full mb-1 group">
-             {/* Pulsing ring if this is the active destination */}
-             {isOrderPickedUp && (
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                 <motion.div 
-                   animate={{ scale: [1, 2], opacity: [0.5, 0] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="w-16 h-16 rounded-full border-4 border-green-500/50"
-                 />
+          {!isAccepted ? (
+            <div className="relative -translate-x-1/2 -translate-y-1/2 group z-20">
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-2xl border-2 border-white">
+                <Home className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          ) : (
+            <div className="relative -translate-x-1/2 -translate-y-full mb-1 group">
+               {/* Pulsing ring if this is the active destination */}
+               {isOrderPickedUp && (
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                   <motion.div 
+                     animate={{ scale: [1, 2], opacity: [0.5, 0] }}
+                     transition={{ duration: 2, repeat: Infinity }}
+                     className="w-16 h-16 rounded-full border-4 border-green-500/50"
+                   />
+                 </div>
+               )}
+               <div className="relative w-11 h-11 rounded-full p-1 bg-white shadow-xl border-2 border-green-500 overflow-hidden group-hover:scale-110 transition-transform">
+                  <img 
+                    src={order?.customerImage || order?.userId?.profileImage || order?.userId?.avatar || `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(CUSTOMER_PIN_SVG)}`}
+                    alt="Me"
+                    className="w-full h-full object-contain rounded-full bg-gray-50"
+                    onError={(e) => { e.target.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(CUSTOMER_PIN_SVG)}`; }}
+                  />
                </div>
-             )}
-             <div className="relative w-11 h-11 rounded-full p-1 bg-white shadow-xl border-2 border-green-500 overflow-hidden group-hover:scale-110 transition-transform">
-                <img 
-                  src={order?.customerImage || order?.userId?.profileImage || order?.userId?.avatar || `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(CUSTOMER_PIN_SVG)}`}
-                  alt="Me"
-                  className="w-full h-full object-contain rounded-full bg-gray-50"
-                  onError={(e) => { e.target.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(CUSTOMER_PIN_SVG)}`; }}
-                />
-             </div>
-             {/* Pin Tip */}
-             <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-3 h-3 bg-green-500 clip-triangle rotate-180 -mt-1 shadow-sm" style={{ clipPath: 'polygon(50% 100%, 0 0, 100% 0)' }} />
-          </div>
+               {/* Pin Tip */}
+               <div className="absolute top-[100%] left-1/2 -translate-x-1/2 w-3 h-3 bg-green-500 clip-triangle rotate-180 -mt-1 shadow-sm" style={{ clipPath: 'polygon(50% 100%, 0 0, 100% 0)' }} />
+            </div>
+          )}
         </OverlayView>
 
         {/* PRO RIDER (OVERLAY VIEW FOR SMOOTH ROTATION / GLIDE) */}

@@ -173,10 +173,10 @@ export default function OrderHelp() {
   const handleAction = (action) => {
     switch (action) {
       case "track":
-        navigate(`/user/orders/${orderId}`)
+        navigate(`/food/user/orders/${orderId}`)
         break
       case "invoice":
-        navigate(`/user/orders/${orderId}/invoice`)
+        navigate(`/food/user/orders/${orderId}/invoice`)
         break
       case "support":
         // Scroll to support section or open contact modal
@@ -202,7 +202,7 @@ export default function OrderHelp() {
                 We couldn't find an order with ID: {orderId}
               </p>
               <div className="flex gap-4 justify-center">
-                <Link to="/user/orders">
+                <Link to="/food/user/orders">
                   <Button variant="outline">View All Orders</Button>
                 </Link>
                 <Link to="/user/help">
@@ -353,7 +353,7 @@ export default function OrderHelp() {
             </CardHeader>
             <CardContent className="p-4 md:p-5 lg:p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
-                <Link to={`/user/orders/${orderId}`}>
+                <Link to={`/food/user/orders/${orderId}`}>
                   <Button
                     variant="outline"
                     className="w-full justify-start gap-2 h-auto py-3"
@@ -365,7 +365,7 @@ export default function OrderHelp() {
                     </div>
                   </Button>
                 </Link>
-                <Link to={`/user/orders/${orderId}/invoice`}>
+                <Link to={`/food/user/orders/${orderId}/invoice`}>
                   <Button
                     variant="outline"
                     className="w-full justify-start gap-2 h-auto py-3"
@@ -458,7 +458,7 @@ export default function OrderHelp() {
         {/* Back to Orders */}
         <ScrollReveal delay={0.5}>
           <div className="flex gap-4">
-            <Link to="/user/orders" className="flex-1">
+            <Link to="/food/user/orders" className="flex-1">
               <Button variant="outline" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to All Orders

@@ -586,7 +586,7 @@ Order again from this restaurant in the ${companyName} app.`
 
   const handleViewOrderDetails = (order) => {
     setActiveMenuOrderId(null)
-    navigate(`/user/orders/${order.id}/details`)
+    navigate(`/food/user/orders/${order.id}/details`)
   }
 
   // Open rating modal for an order
@@ -998,7 +998,7 @@ Order again from this restaurant in the ${companyName} app.`
                     )}
                   </div>
                   <div className="flex items-center ml-4">
-                    <Link to={`/user/orders/${order.id}`}>
+                    <Link to={`/food/user/orders/${order.id}`}>
                       <button className="text-xs text-[#DC021B] font-medium hover:text-[#B30216] flex items-center gap-1">
                         View Details
                         <ChevronRight className="w-4 h-4" />

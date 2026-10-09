@@ -348,10 +348,14 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
   };
 
   const handleGoToOrders = () => {
-    setShowOrderSuccess(false);
-    navigate(`/food/user/orders/${placedOrderId}?confirmed=true`, {
-      state: placedOrderData ? { prefetchedOrder: placedOrderData } : undefined,
-    });
+    const targetId = placedOrderId || placedOrderData?._id || placedOrderData?.orderId || placedOrderData?.id;
+    if (targetId) {
+      navigate(`/food/user/orders/${targetId}?confirmed=true`, {
+        state: placedOrderData ? { prefetchedOrder: placedOrderData } : undefined,
+      });
+    } else {
+      navigate("/food/user/orders");
+    }
   };
 
   if (quickCart.length === 0 && !showOrderSuccess) {

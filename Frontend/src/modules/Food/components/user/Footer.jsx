@@ -58,7 +58,7 @@ export default function Footer() {
     ],
     user: [
       { name: "My Account", href: "/user/profile" },
-      { name: "My Orders", href: "/user/orders" },
+      { name: "My Orders", href: "/food/user/orders" },
       { name: "Favorites", href: "/user/profile/favorites" },
       { name: "Offers", href: "/user/offers" },
     ],
