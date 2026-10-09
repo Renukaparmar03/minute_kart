@@ -238,7 +238,10 @@ export default function MasterLandingPage() {
         <div className="relative z-20 pb-6 w-full flex justify-center">
           <button 
             onClick={() => {
-              window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+              const sec2 = document.getElementById("section-2");
+              if (sec2) {
+                sec2.scrollIntoView({ behavior: 'smooth' });
+              }
             }}
             className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors bg-black/30 hover:bg-black/50 px-4 py-2 rounded-full border border-white/10 backdrop-blur-sm cursor-pointer"
           >
@@ -251,7 +254,7 @@ export default function MasterLandingPage() {
       {/* ========================================== */}
       {/* SECTION 2: BETTER FOOD FOR MORE PEOPLE      */}
       {/* ========================================== */}
-      <section className="snap-start snap-always relative w-full min-h-screen py-16 bg-white overflow-hidden flex flex-col justify-center items-center selection:bg-rose-500 selection:text-white">
+      <section id="section-2" className="snap-start snap-always relative w-full min-h-screen py-16 bg-white overflow-hidden flex flex-col justify-center items-center selection:bg-rose-500 selection:text-white">
         
         {/* Subtle Decorative Curved Pink Swirl Lines (Zomato Background Art) */}
         <svg 
