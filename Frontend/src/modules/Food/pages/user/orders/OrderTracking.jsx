@@ -816,6 +816,7 @@ export default function OrderTracking() {
     null
   const isQuickOrder =
     String(location.state?.orderType || "").toLowerCase() === "quick" ||
+    location.pathname.startsWith("/quick") ||
     /^QC/i.test(String(orderId || ""))
   const backPath = isQuickOrder ? "/quick" : "/food/user"
   const ordersContext = useOptionalOrders()
@@ -993,9 +994,20 @@ export default function OrderTracking() {
     resolveOrderFromList: async (rawLookupId) => {
       const needle = normalizeLookupId(rawLookupId)
       if (!needle) return null
-      if (isQuickOrder) return null
-      const maxPages = 3
-      const limit = 50
+      if (isQuickOrder) {
+        try {
+          const listResponse = await customerApi.getMyOrders({ page: 1, limit: 25 })
+          const orders = listResponse?.data?.data?.orders || listResponse?.data?.orders || []
+          return (orders || []).find((o) => {
+            const candidates = [o?._id, o?.id, o?.orderId, o?.mongoId].map(normalizeLookupId)
+            return candidates.includes(needle)
+          }) || null
+        } catch {
+          return null
+        }
+      }
+      const maxPages = 2
+      const limit = 25
 
       for (let page = 1; page <= maxPages; page += 1) {
         const listResponse = await orderAPI.getOrders({ page, limit })
@@ -1032,7 +1044,19 @@ export default function OrderTracking() {
           return await orderAPI.getOrderDetails(id, options)
         } catch (err) {
           lastError = err
-          if (err?.response?.status === 400 || err?.response?.status === 404) continue
+          if (err?.response?.status === 400 || err?.response?.status === 404) {
+            // Immediate cross-module fallback if order might belong to the other service
+            try {
+              if (isQuickOrder) {
+                return await orderAPI.getOrderDetails(id, options)
+              } else {
+                return await customerApi.getOrderDetails(id, options)
+              }
+            } catch (crossErr) {
+              lastError = crossErr
+            }
+            continue
+          }
           throw err
         }
       }
@@ -1323,32 +1347,14 @@ export default function OrderTracking() {
         let response = null;
         let finalOrderData = null;
 
-        if (isInitial && !isQuickOrder) {
-          const detailPromise = fetchOrderDetailsWithFallback({ force: true })
-            .then((res) => {
-              response = res;
-              const payload = extractOrderDetailsPayload(res);
-              if (!payload) throw new Error("detail lookup returned empty payload");
-              return payload;
-            });
-
-          const listPromise = resolveOrderFromList(orderId).then((matchedOrder) => {
-            if (!matchedOrder) throw new Error("order not found in list");
-            return matchedOrder;
-          });
-
-          try {
-            finalOrderData = await Promise.any([detailPromise, listPromise]);
-          } catch {
-            response = await fetchOrderDetailsWithFallback({ force: true });
-            finalOrderData = extractOrderDetailsPayload(response) || NO_RESULT;
-            if (finalOrderData === NO_RESULT) {
-              finalOrderData = await resolveOrderFromList(orderId) || null;
-            }
-          }
-        } else {
+        try {
           response = await fetchOrderDetailsWithFallback({ force: isInitial });
           finalOrderData = extractOrderDetailsPayload(response);
+        } catch (fetchErr) {
+          debugWarn("Direct lookup failed, trying list resolution fallback:", fetchErr);
+          if (isInitial) {
+            finalOrderData = await resolveOrderFromList(orderId);
+          }
         }
 
         if (!isSubscribed) return;
