@@ -608,9 +608,11 @@ export default function OrdersPage({ statusKey = "all" }) {
   useEffect(() => {
     if (statusKey !== "all") return undefined
 
-    const backendUrl = API_BASE_URL.replace(/\/api\/?$/, "")
+    const backendUrl =
+      (import.meta.env?.VITE_SOCKET_URL || '').replace(/\/$/, '') ||
+      (API_BASE_URL || '').replace(/\/api(?:\/v\d+)?\/?$/, "")
     // Backend disconnected - do not open Socket.IO (new backend in progress)
-    if (!API_BASE_URL || !backendUrl || !backendUrl.startsWith("http")) {
+    if (!backendUrl || !backendUrl.startsWith("http")) {
       return undefined
     }
 

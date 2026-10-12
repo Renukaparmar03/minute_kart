@@ -886,16 +886,16 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                 {(tripStatus === 'PICKED_UP' || tripStatus === 'REACHED_DROP') && (
                   <div className="absolute bottom-4 inset-x-0 z-[120] px-4">
                     {tripStatus === 'PICKED_UP' ? (
-                      <div className="bg-white rounded-[3rem] p-8 shadow-[0_-20px_80px_rgba(0,0,0,0.4)] border border-gray-100 flex flex-col items-center">
+                      <div className="bg-white rounded-3xl p-4 shadow-[0_-15px_40px_rgba(0,0,0,0.25)] border border-gray-100 flex flex-col items-center max-w-md mx-auto">
                         {/* Handle / Minimize */}
-                        <div className="w-full flex justify-center pb-4 pt-0 -mt-2">
+                        <div className="w-full flex justify-center pb-2 pt-0 -mt-1">
                           <button onClick={() => setIsModalMinimized(true)} className="p-1 hover:bg-gray-100 active:scale-95 transition-all rounded-full flex flex-col items-center">
-                             <ChevronDown className="w-6 h-6 text-gray-400 stroke-[3]" />
+                             <ChevronDown className="w-5 h-5 text-gray-400 stroke-[2.5]" />
                           </button>
                         </div>
-                        <div className="flex justify-between w-full items-center mb-10 px-2 text-left">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                        <div className="flex justify-between w-full items-center mb-3 px-1 text-left">
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-xl overflow-hidden border border-gray-100 shadow-xs">
                                <img 
                                  src={activeOrder?.user?.logo || activeOrder?.user?.profileImage || 'https://cdn-icons-png.flaticon.com/512/1275/1275302.png'} 
                                  className="w-full h-full object-cover" 
@@ -903,9 +903,9 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
                                />
                             </div>
                             <div>
-                               <h3 className="text-gray-950 text-2xl font-bold uppercase">Handover Drop</h3>
-                               <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mt-1.5 ${isWithinRange ? 'text-[#86bf24]' : 'text-orange-500'}`}>
-                                 {isWithinRange ? 'Ready - Swipe to Arrive √' : `${(distanceToTarget / 1000).toFixed(1)} km • ${eta || '--'} min Arrival`}
+                               <h3 className="text-gray-950 text-base font-bold uppercase">Handover Drop</h3>
+                               <p className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${isWithinRange ? 'text-[#86bf24]' : 'text-orange-500'}`}>
+                                 {isWithinRange ? 'Ready - Swipe to Arrive ✓' : `${(distanceToTarget / 1000).toFixed(1)} km • ${eta || '--'} min Arrival`}
                                </p>
                             </div>
                           </div>
@@ -913,24 +913,24 @@ export default function DeliveryHomeV2({ tab = 'feed' }) {
 
                         {/* Customer Instructions Panel */}
                         {activeOrder?.note && (
-                          <div className="w-full bg-orange-50 border border-orange-100 rounded-3xl p-5 mb-8 flex gap-4 items-start shadow-sm mx-2">
-                             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm shrink-0 border border-orange-50">
-                                <Package className="w-5 h-5" />
+                          <div className="w-full bg-orange-50 border border-orange-100 rounded-xl p-2.5 mb-3 flex gap-2.5 items-start shadow-xs">
+                             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-orange-500 shadow-2xs shrink-0 border border-orange-50">
+                                <Package className="w-4 h-4" />
                              </div>
-                             <div className="flex-1">
-                                <p className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] mb-1.5 opacity-80">Drop Message</p>
-                                <p className="text-sm font-bold text-gray-950 leading-relaxed capitalize">"{activeOrder.note}"</p>
+                             <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black text-orange-600 uppercase tracking-wider mb-0.5 opacity-80">Drop Message</p>
+                                <p className="text-xs font-bold text-gray-950 leading-snug truncate capitalize">"{activeOrder.note}"</p>
                              </div>
                           </div>
                         )}
-                        <ActionSlider label="Slide to Arrive" successLabel="Arrived ✓" disabled={!isWithinRange} onConfirm={reachDrop} color="bg-[#86bf24]" />
+                        <ActionSlider label="Slide to Arrive" successLabel="Arrived ✓" disabled={!isWithinRange} onConfirm={reachDrop} color="bg-[#86bf24]" size="compact" />
                       </div>
                     ) : (
                       <button 
                         onClick={() => setShowVerification(true)} 
-                        className="w-full bg-[#86bf24] hover:bg-[#86bf24] text-white shadow-xl shadow-[#86bf24]/30 rounded-2xl py-5 font-bold text-sm tracking-[0.2em] transform transition-all active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full max-w-md mx-auto bg-[#86bf24] hover:bg-[#86bf24] text-white shadow-xl shadow-[#86bf24]/30 rounded-xl py-3.5 font-bold text-xs tracking-wider transform transition-all active:scale-95 flex items-center justify-center gap-2"
                       >
-                        <CheckCircle2 className="w-6 h-6" /> VERIFY & COMPLETE
+                        <CheckCircle2 className="w-5 h-5" /> VERIFY & COMPLETE
                       </button>
                     )}
                   </div>

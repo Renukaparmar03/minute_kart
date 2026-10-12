@@ -1016,15 +1016,28 @@ export default function GlobalNewOrderPopup() {
                     </span>
                   </div>
 
-                  {/* Customer Note */}
-                  {((popupOrder || newOrder)?.restaurantNote || (popupOrder || newOrder)?.note) && (
-                    <div className="mb-4 bg-orange-50 p-3 rounded-lg border border-orange-200 shadow-sm">
+                  {/* Cooking / Restaurant Note */}
+                  {(popupOrder || newOrder)?.restaurantNote && (
+                    <div className="mb-3 bg-orange-50 p-3 rounded-lg border border-orange-200 shadow-sm">
                       <p className="text-[11px] font-bold text-orange-800 mb-1 uppercase tracking-wider flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        Note from Customer
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        Cooking / Restaurant Instruction
                       </p>
                       <p className="text-sm font-medium text-orange-950">
-                        {(popupOrder || newOrder)?.restaurantNote || (popupOrder || newOrder)?.note}
+                        {(popupOrder || newOrder)?.restaurantNote}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Delivery Note */}
+                  {(popupOrder || newOrder)?.note && (
+                    <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200 shadow-sm">
+                      <p className="text-[11px] font-bold text-blue-800 mb-1 uppercase tracking-wider flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        Delivery Instruction (for Rider)
+                      </p>
+                      <p className="text-sm font-medium text-blue-950">
+                        {(popupOrder || newOrder)?.note}
                       </p>
                     </div>
                   )}

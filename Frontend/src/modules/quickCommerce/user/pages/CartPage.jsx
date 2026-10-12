@@ -144,6 +144,9 @@ const CartPage = () => {
   const userPickedAddressRef = React.useRef(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const isOrderPlacedRef = React.useRef(false);
+  const [placedOrderId, setPlacedOrderId] = useState(null);
+  const [placedOrderData, setPlacedOrderData] = useState(null);
   const [savedRecipient, setSavedRecipient] = useState(null);
   const [isSomeoneElseModalOpen, setIsSomeoneElseModalOpen] = useState(false);
   const [recipientPhone, setRecipientPhone] = useState("");
@@ -500,7 +503,7 @@ const CartPage = () => {
           phone: savedRecipient ? savedRecipient.phone : (selectedAddress.phone || user?.phone || ""),
           location: selectedAddress.location,
         },
-        paymentMode: selectedPayment === "razorpay" ? "ONLINE" : "COD",
+        paymentMode: selectedPayment === "razorpay" ? "ONLINE" : selectedPayment === "wallet" ? "WALLET" : "COD",
         discountTotal: selectedCoupon ? selectedCoupon.discountAmount || selectedCoupon.discount || 0 : 0,
         taxTotal: gstAmount,
         platformFee: platformFee,
@@ -542,23 +545,30 @@ const CartPage = () => {
                   });
 
                   if (verifyRes.data.success) {
+                    isOrderPlacedRef.current = true;
+                    setPlacedOrderId(placedOrderId);
+                    setPlacedOrderData(order);
+                    window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
                     clearCart();
                     showToast("Order placed successfully.", "success");
-                    navigate(getQuickOrderDetailPath(placedOrderId));
+                    navigate(getQuickOrderDetailPath(placedOrderId, true), {
+                      replace: true,
+                      state: { prefetchedOrder: order, orderType: "quick" }
+                    });
                   } else {
                     showToast("Payment verification failed", "error");
-                    navigate(getQuickOrderDetailPath(placedOrderId));
+                    navigate(getQuickOrderDetailPath(placedOrderId, false));
                   }
                 } catch (verifyError) {
                   showToast("Payment verification failed", "error");
-                  navigate(getQuickOrderDetailPath(placedOrderId));
+                  navigate(getQuickOrderDetailPath(placedOrderId, false));
                 }
               },
               modal: {
                 ondismiss: async () => {
                   showToast("Payment cancelled. Order cancelled.", "warning");
                   try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
-                  navigate(getQuickOrderDetailPath(placedOrderId));
+                  navigate(getQuickOrderDetailPath(placedOrderId, false));
                 }
               }
             });
@@ -567,15 +577,30 @@ const CartPage = () => {
             console.error("Razorpay init error:", rzpErr);
             showToast("Failed to initialize payment gateway", "error");
             try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
-            navigate(getQuickOrderDetailPath(placedOrderId));
+            navigate(getQuickOrderDetailPath(placedOrderId, false));
             return;
           }
         }
 
-        // COD Order
+        // COD or Wallet Order
+        isOrderPlacedRef.current = true;
+        setPlacedOrderId(placedOrderId);
+        setPlacedOrderData(order);
+        window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
         clearCart();
         showToast("Order placed — waiting for seller to accept.", "success");
-        navigate(getQuickOrderDetailPath(placedOrderId));
+        if (selectedPayment === "wallet") {
+          try {
+            const walletResponse = await userAPI.getWallet();
+            if (walletResponse?.data?.success && walletResponse?.data?.data?.wallet) {
+              setWalletBalance(walletResponse.data.data.wallet.balance || 0);
+            }
+          } catch (e) {}
+        }
+        navigate(getQuickOrderDetailPath(placedOrderId, true), {
+          replace: true,
+          state: { prefetchedOrder: order, orderType: "quick" }
+        });
       } else {
         showToast(response.data.message || "Failed to place order", "error");
       }
@@ -683,10 +708,10 @@ const CartPage = () => {
   useEffect(() => {
     if (cart.length > 0) {
       hasItemsRef.current = true;
-    } else if (!loading && cart.length === 0 && hasItemsRef.current) {
+    } else if (!loading && cart.length === 0 && hasItemsRef.current && !isOrderPlacedRef.current && !placedOrderId && !isPlacingOrder) {
       navigate("/quick", { replace: true });
     }
-  }, [loading, cart.length, navigate]);
+  }, [loading, cart.length, isPlacingOrder, placedOrderId, navigate]);
 
   const selectedPaymentMethod =
     paymentMethods.find((method) => method.id === selectedPayment) || null;
@@ -706,6 +731,17 @@ const CartPage = () => {
   }
 
   if (cart.length === 0) {
+    if (isOrderPlacedRef.current || placedOrderId || isPlacingOrder) {
+      return (
+        <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 py-6 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-neutral-700 border-t-[#0c831f] dark:border-t-emerald-500" />
+            <p className="mt-4 text-sm font-bold text-slate-700 dark:text-slate-300">Opening your order...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (hasItemsRef.current) {
       return null;
     }

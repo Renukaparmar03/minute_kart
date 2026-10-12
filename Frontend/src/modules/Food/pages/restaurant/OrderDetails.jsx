@@ -230,6 +230,7 @@ export default function OrderDetails() {
             dispatchStatus: order.dispatch?.status || null,
             reason: order.cancellationReason || '',
             restaurantNote: order.restaurantNote || '',
+            deliveryNote: order.note || '',
             timeline: [
               { event: 'Order placed', timestamp: new Date(order.createdAt).toLocaleString('en-GB'), status: 'completed' },
               ...(reached.confirmed ? [{ event: 'Order confirmed', timestamp: order.tracking?.confirmed?.timestamp ? new Date(order.tracking.confirmed.timestamp).toLocaleString('en-GB') : '', status: 'completed' }] : []),
@@ -802,7 +803,7 @@ export default function OrderDetails() {
         {/* Restaurant Note Section */}
         {orderData.restaurantNote && (
           <div>
-            <h2 className="text-base font-bold text-gray-900 mb-3">Restaurant Note</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-3">Cooking / Restaurant Note</h2>
             <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5">
@@ -817,6 +818,22 @@ export default function OrderDetails() {
                 <div>
                   <p className="text-sm text-orange-900 font-medium">{orderData.restaurantNote}</p>
                   <p className="text-xs text-orange-700 mt-1">Special cooking instructions from customer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Note Section */}
+        {orderData.deliveryNote && (
+          <div>
+            <h2 className="text-base font-bold text-gray-900 mb-3">Delivery Instruction (for Rider)</h2>
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-blue-600 font-bold">🛵</div>
+                <div>
+                  <p className="text-sm text-blue-900 font-medium">{orderData.deliveryNote}</p>
+                  <p className="text-xs text-blue-700 mt-1">Note left for delivery partner</p>
                 </div>
               </div>
             </div>

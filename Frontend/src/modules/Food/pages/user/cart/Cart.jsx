@@ -108,9 +108,7 @@ const mapOrderItem = (item) => ({
   weight: item.weight,
   unit: item.unit,
   packSize: item.packSize || item.size,
-  volume: item.volume,
-  isVeg: item.isVeg !== false,
-  notes: sanitizeOrderNotes(item.notes || ""),
+  isVeg: item.isVeg === false || String(item.foodType || "").toLowerCase().includes("non") || /\b(chicken|mutton|fish|prawn|egg|lamb|pork|beef|crab|keema|seafood)\b/i.test(item.name || "") ? false : true,
   preparationTime: item.preparationTime,
   isCustomCake: item.isCustomCake || undefined,
   customCakeRequestId: item.customCakeRequestId || undefined,
@@ -1346,12 +1344,24 @@ export default function Cart() {
   }
 
   const handleBack = () => {
-    // Priority: slug > restaurantId (both work for the restaurant details route)
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1)
+      return
+    }
     const idOrSlug = restaurantData?.slug || restaurantId
     if (idOrSlug) {
       navigate(`/food/user/restaurants/${idOrSlug}`)
     } else {
-      goBack()
+      navigate("/food/user")
+    }
+  }
+
+  const handleAddMoreItems = () => {
+    const idOrSlug = restaurantData?.slug || restaurantId
+    if (idOrSlug) {
+      navigate(`/food/user/restaurants/${idOrSlug}`)
+    } else {
+      navigate("/food/user")
     }
   }
 
@@ -2134,22 +2144,40 @@ export default function Cart() {
 
   if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] flex flex-col justify-center items-center px-4 py-12 text-center">
-        <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-4xl md:text-5xl shadow-inner">
-          🛒
+      <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 py-6">
+        <div className="mx-auto max-w-md">
+          <div className="mb-5 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-neutral-900 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-neutral-800 cursor-pointer"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Your Cart</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Add items to get started</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white dark:bg-neutral-900 px-6 py-10 text-center shadow-sm border border-transparent dark:border-neutral-800">
+            <div className="w-24 h-24 md:w-32 md:h-32 mb-6 mx-auto rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-4xl md:text-5xl shadow-inner">
+              🛒
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Your cart is empty
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-6 font-medium">
+              Good food is always waiting for you! Explore top restaurants and add delicious items to your cart.
+            </p>
+            <Button
+              onClick={() => navigate("/food/user")}
+              className="h-12 w-full rounded-2xl bg-[#DC021B] hover:bg-[#b50216] text-white font-bold shadow-lg shadow-red-500/20 transition-all active:scale-95"
+            >
+              Explore Menu
+            </Button>
+          </div>
         </div>
-        <h2 className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-white mb-2">
-          Your cart is empty
-        </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-6 font-medium leading-relaxed">
-          Good food is always waiting for you! Explore top restaurants and add delicious items to your cart.
-        </p>
-        <Button
-          onClick={() => navigate("/food/user")}
-          className="bg-[#DC021B] hover:bg-[#b50216] text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-red-500/20 transition-all active:scale-95"
-        >
-          Explore Menu
-        </Button>
       </div>
     )
   }
@@ -2157,35 +2185,32 @@ export default function Cart() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-slate-50 dark:bg-[#0a0a0a]">
       {/* Header - Sticky at top */}
-      <div className="bg-white dark:bg-[#1a1a1a] border-b dark:border-gray-800 sticky top-0 z-20 flex-shrink-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between px-3 md:px-6 py-2 md:py-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 flex-shrink-0 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 -ml-1"
-                onClick={handleBack}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-[17px] md:text-xl font-bold text-[#1c1c1c] dark:text-white truncate" style={{ fontFamily: 'var(--font-okra)' }}>
-                  {restaurantName}
-                </h1>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0"
-              onClick={handleShare}
+      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-neutral-800 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer flex-shrink-0"
             >
-              <Share2 className="h-4 w-4 md:h-5 md:w-5" />
-            </Button>
+              <ArrowLeft size={16} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-[17px] md:text-xl font-bold text-slate-900 dark:text-white truncate" style={{ fontFamily: 'var(--font-okra)' }}>
+                {restaurantName || "Checkout"}
+              </h1>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 flex-shrink-0 rounded-full text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+          </Button>
         </div>
-      </div>
+      </header>
 
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-40 md:pb-44">
@@ -2206,11 +2231,24 @@ export default function Cart() {
               {/* Cart Items */}
               <div className="bg-white dark:bg-[#1a1a1a] px-4 md:px-6 py-4 md:py-5 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-gray-800">
                 <div className="space-y-3 md:space-y-4">
-                  {cart.map((item) => (
+                  {cart.map((item) => {
+                    const rawFoodType = String(item.foodType || "").trim().toLowerCase();
+                    const rawName = String(item.name || "").toLowerCase();
+                    const hasNonVegKeyword = /\b(chicken|mutton|fish|prawn|egg|lamb|pork|beef|crab|keema|seafood)\b/i.test(rawName);
+                    const isNonVeg =
+                      item.isVeg === false ||
+                      item.isVeg === 0 ||
+                      String(item.isVeg).toLowerCase() === "false" ||
+                      rawFoodType.includes("non") ||
+                      rawFoodType === "egg" ||
+                      hasNonVegKeyword;
+                    const isVeg = !isNonVeg && (item.isVeg === true || rawFoodType === "veg" || item.isVeg !== false);
+
+                    return (
                     <div key={item.id} className="flex min-w-0 items-start gap-2 md:gap-4">
                       {/* Veg/Non-veg indicator */}
-                      <div className={`w-4 h-4 md:w-5 md:h-5 border-2 ${item.isVeg !== false ? 'border-green-600' : 'border-red-600'} flex items-center justify-center mt-1 flex-shrink-0`}>
-                        <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${item.isVeg !== false ? 'bg-green-600' : 'bg-red-600'}`} />
+                      <div className={`w-4 h-4 md:w-5 md:h-5 border-2 ${isVeg ? 'border-green-600' : 'border-red-600'} flex items-center justify-center mt-1 flex-shrink-0`}>
+                        <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${isVeg ? 'bg-green-600' : 'bg-red-600'}`} />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -2259,14 +2297,15 @@ export default function Cart() {
                         </p>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
 
                 {/* Actions Carousel (Add more, Notes, Cutlery) */}
                 <div className="mt-4 md:mt-6 pb-2 -mx-4 px-4 md:-mx-6 md:px-6 flex overflow-x-auto gap-3 snap-x scrollbar-hide">
                   {!cart.some(item => item.isCustomCake) && (
                     <button
-                      onClick={handleBack}
+                      onClick={handleAddMoreItems}
                       className="flex-shrink-0 snap-center flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-[#DC021B]/10 rounded-xl text-[#DC021B] hover:bg-red-100"
                     >
                       <Plus className="h-4 w-4 md:h-5 md:w-5" />

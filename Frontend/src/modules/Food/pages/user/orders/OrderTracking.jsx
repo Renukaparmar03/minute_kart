@@ -1934,12 +1934,19 @@ export default function OrderTracking() {
         startY: y,
         margin: { left: margin, right: margin },
         head: [["Item", "Qty", "Unit Price", "Line Total"]],
-        body: (order?.items || []).map((item) => ([
-          item?.variantName ? `${item.name || "Item"} (${item.variantName})` : (item?.name || "Item"),
-          String(item?.quantity || 1),
-          formatInvoiceCurrency(item?.price || 0),
-          formatInvoiceCurrency((Number(item?.price || 0) * Number(item?.quantity || 1))),
-        ])),
+        body: (order?.items || []).map((item) => {
+          const name = item?.variantName
+            ? `${item.name || item.foodName || item.productId?.name || "Item"} (${item.variantName})`
+            : (item?.name || item.foodName || item.productId?.name || "Item")
+          const qty = Number(item?.quantity ?? item?.qty ?? 1)
+          const price = Number(item?.price || 0)
+          return [
+            name,
+            String(qty),
+            formatInvoiceCurrency(price),
+            formatInvoiceCurrency(price * qty),
+          ]
+        }),
         theme: "striped",
         headStyles: {
           fillColor: [17, 24, 39],
@@ -1964,15 +1971,15 @@ export default function OrderTracking() {
       const totalsXLabel = pageWidth - margin - 180
       const totalsXValue = pageWidth - margin
       const totals = [
-        ["Subtotal", formatInvoiceCurrency(order?.subtotal)],
-        ["Delivery Fee", formatInvoiceCurrency(order?.deliveryFee)],
-        ["Platform Fee", formatInvoiceCurrency(order?.platformFee)],
-        ["Packaging Fee", formatInvoiceCurrency(order?.packagingFee)],
-        ["GST & Taxes", formatInvoiceCurrency(order?.gst)],
+        ["Subtotal", formatInvoiceCurrency(order?.subtotal ?? order?.itemsPrice ?? order?.itemTotal ?? 0)],
+        ["Delivery Fee", formatInvoiceCurrency(order?.deliveryFee ?? order?.deliveryCharge ?? 0)],
+        ["Platform Fee", formatInvoiceCurrency(order?.platformFee ?? 0)],
+        ["Packaging Fee", formatInvoiceCurrency(order?.packagingFee ?? 0)],
+        ["GST & Taxes", formatInvoiceCurrency(order?.gst ?? order?.tax ?? order?.taxes ?? 0)],
       ]
 
-      if (Number(order?.discount || 0) > 0) {
-        totals.push(["Discount", `- ${formatInvoiceCurrency(order?.discount)}`])
+      if (Number(order?.discount || order?.couponDiscount || 0) > 0) {
+        totals.push(["Discount", `- ${formatInvoiceCurrency(order?.discount || order?.couponDiscount || 0)}`])
       }
 
       doc.setFontSize(10)

@@ -21,8 +21,8 @@ export const getQuickProfilePath = () => `/quick/profile`;
 export const getQuickWishlistPath = () => `${STANDALONE_BASE}/wishlist`;
 export const getQuickOffersPath = () => `${STANDALONE_BASE}/offers`;
 export const getQuickOrdersPath = () => `${STANDALONE_BASE}/orders`;
-export const getQuickOrderDetailPath = (orderId) =>
-  `${STANDALONE_BASE}/orders/${orderId}`;
+export const getQuickOrderDetailPath = (orderId, confirmed = false) =>
+  `${STANDALONE_BASE}/orders/${orderId}${confirmed ? "?confirmed=true" : ""}`;
 export const getQuickAddressesPath = () => `${STANDALONE_BASE}/addresses`;
 export const getQuickSupportPath = () => `${STANDALONE_BASE}/support`;
 export const getQuickWalletPath = () => `${STANDALONE_BASE}/wallet`;

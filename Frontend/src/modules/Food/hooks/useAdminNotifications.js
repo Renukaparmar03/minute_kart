@@ -308,7 +308,7 @@ export default function useAdminNotifications(options = {}) {
 
   useEffect(() => {
     const token = localStorage.getItem("admin_accessToken") || localStorage.getItem("accessToken");
-    const socketOrigin = resolveSocketOrigin(API_BASE_URL);
+    const socketOrigin = import.meta.env?.VITE_SOCKET_URL || resolveSocketOrigin(API_BASE_URL);
     if (!token || !socketOrigin) return undefined;
 
     const socket = io(socketOrigin, {

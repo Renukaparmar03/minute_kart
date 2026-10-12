@@ -114,6 +114,18 @@ const normalizeCartData = (rawCart) => {
         item.cartLineId ||
         buildCartLineId(baseItemId, variantId)
 
+      const rawFoodType = String(item.foodType || item.food_type || "").trim().toLowerCase()
+      const rawName = String(item.name || item.product?.name || "").toLowerCase()
+      const hasNonVegKeyword = /\b(chicken|mutton|fish|prawn|egg|lamb|pork|beef|crab|keema|seafood)\b/i.test(rawName)
+      const isExplicitNonVeg =
+        item.isVeg === false ||
+        item.isVeg === 0 ||
+        String(item.isVeg).toLowerCase() === "false" ||
+        rawFoodType.includes("non") ||
+        rawFoodType === "egg" ||
+        hasNonVegKeyword
+      const resolvedIsVeg = isExplicitNonVeg ? false : (item.isVeg === true || rawFoodType === "veg" || item.isVeg !== false)
+
       return {
         ...item,
         id: lineItemId,
@@ -141,6 +153,8 @@ const normalizeCartData = (rawCart) => {
         restaurantId: normalizedRestaurantId,
         image: normalizedImage,
         imageUrl: normalizedImage,
+        isVeg: resolvedIsVeg,
+        foodType: item.foodType || (resolvedIsVeg ? "Veg" : "Non-Veg"),
       }
     })
 }
@@ -644,7 +658,7 @@ export function CartProvider({ children }) {
                         <div
                           className="w-2 h-2 rounded-full"
                           style={{
-                            backgroundColor: variantSelector.dish.isVeg ? "#1c7a43" : "#dc2626"
+                            backgroundColor: (variantSelector.dish.isVeg === true || (variantSelector.dish.foodType && String(variantSelector.dish.foodType).toLowerCase() === "veg")) ? "#1c7a43" : "#dc2626"
                           }}
                         />
                       </div>
@@ -727,20 +741,26 @@ export function CartProvider({ children }) {
                             <button
                               type="button"
                               onClick={() => {
+                                const dish = variantSelector.dish;
+                                const isDishVeg = dish.isVeg !== undefined
+                                  ? Boolean(dish.isVeg)
+                                  : String(dish.foodType || "").toLowerCase() === "veg";
                                 const cartItemData = {
                                   id: lineItemId,
                                   lineItemId,
-                                  itemId: variantSelector.dish.id || variantSelector.dish.itemId,
-                                  name: variantSelector.dish.name,
+                                  itemId: dish.id || dish.itemId,
+                                  name: dish.name,
                                   price: variant.price,
                                   variantId: variant.id,
                                   variantName: variant.name,
                                   variantPrice: variant.price,
-                                  image: variantSelector.dish.image || variantSelector.dish.imageUrl,
+                                  image: dish.image || dish.imageUrl,
                                   restaurant: variantSelector.restaurant,
                                   restaurantId: variantSelector.restaurantId,
-                                  description: variantSelector.dish.description || "",
-                                  originalPrice: variantSelector.dish.originalPrice || variantSelector.dish.price,
+                                  description: dish.description || "",
+                                  originalPrice: dish.originalPrice || dish.price,
+                                  isVeg: isDishVeg,
+                                  foodType: dish.foodType || (isDishVeg ? "Veg" : "Non-Veg"),
                                 };
                                 const result = addToCart(cartItemData, variantSelector.sourcePosition);
                                 if (result?.ok === false) {

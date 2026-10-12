@@ -104,7 +104,10 @@ const DeliveryTrackingMap = ({
   }, [orderId, orderTrackingIds]);
 
   const backendUrl = useMemo(() => {
-    return (API_BASE_URL || '').replace(/\/api\/v1\/?$/i, '').replace(/\/api\/?$/i, '');
+    return (
+      (import.meta.env?.VITE_SOCKET_URL || '').replace(/\/$/, '') ||
+      (API_BASE_URL || '').replace(/\/api\/v1\/?$/i, '').replace(/\/api\/?$/i, '')
+    );
   }, []);
 
   const beginRiderTransition = useCallback((nextPos) => {

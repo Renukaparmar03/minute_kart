@@ -107,11 +107,17 @@ export default function NewOrderNotification({ order, onClose, onViewOrder }) {
                 </div>
               )}
 
-              {/* Note */}
+              {/* Instructions */}
+              {order.restaurantNote && (
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-xs text-orange-800 font-bold mb-1">Cooking Instruction:</p>
+                  <p className="text-sm text-orange-900 font-medium">{order.restaurantNote}</p>
+                </div>
+              )}
               {order.note && (
-                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-xs text-yellow-800 font-medium mb-1">Note:</p>
-                  <p className="text-sm text-yellow-900">{order.note}</p>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-800 font-bold mb-1">Delivery Instruction (for Rider):</p>
+                  <p className="text-sm text-blue-900 font-medium">{order.note}</p>
                 </div>
               )}
             </div>

@@ -406,6 +406,7 @@ const CheckoutPage = () => {
   );
   const [categoryFeeMap, setCategoryFeeMap] = useState({});
   const postOrderNavigateRef = useRef(null);
+  const placedOrderRef = useRef(null);
   const [currentAddress, setCurrentAddress] = useState(
     storedCheckoutState.currentAddress || DEFAULT_CURRENT_ADDRESS,
   );
@@ -1770,6 +1771,8 @@ const CheckoutPage = () => {
                   });
 
                   if (verifyRes.data.success) {
+                    placedOrderRef.current = order;
+                    window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
                     clearCart();
                     try {
                       if (typeof window !== "undefined") {
@@ -1785,23 +1788,26 @@ const CheckoutPage = () => {
                     if (postOrderNavigateRef.current) clearTimeout(postOrderNavigateRef.current);
                     postOrderNavigateRef.current = setTimeout(() => {
                       postOrderNavigateRef.current = null;
-                      navigate(getQuickOrderDetailPath(placedOrderId));
+                      navigate(getQuickOrderDetailPath(placedOrderId, true), {
+                        replace: true,
+                        state: { prefetchedOrder: order, orderType: "quick" }
+                      });
                     }, 1200);
                   } else {
                     showToast("Payment verification failed", "error");
-                    navigate(getQuickOrderDetailPath(placedOrderId));
+                    navigate(getQuickOrderDetailPath(placedOrderId, false));
                   }
                 } catch (verifyError) {
                   showToast("Payment verification failed", "error");
                   try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
-                  navigate(getQuickOrderDetailPath(placedOrderId));
+                  navigate(getQuickOrderDetailPath(placedOrderId, false));
                 }
               },
               modal: {
                 ondismiss: async () => {
                   showToast("Payment cancelled. Order cancelled.", "warning");
                   try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
-                  navigate(getQuickOrderDetailPath(placedOrderId));
+                  navigate(getQuickOrderDetailPath(placedOrderId, false));
                 }
               }
             });
@@ -1811,13 +1817,15 @@ const CheckoutPage = () => {
             console.error("Razorpay init error:", rzpErr);
             showToast("Failed to initialize payment gateway", "error");
             try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
-            navigate(getQuickOrderDetailPath(placedOrderId));
+            navigate(getQuickOrderDetailPath(placedOrderId, false));
             setIsPlacingOrder(false);
             return;
           }
         }
 
         // COD or Wallet flow
+        placedOrderRef.current = order;
+        window.dispatchEvent(new CustomEvent('order-placed', { detail: { order } }));
         clearCart();
         try {
           if (typeof window !== "undefined") {
@@ -1837,7 +1845,10 @@ const CheckoutPage = () => {
         }
         postOrderNavigateRef.current = setTimeout(() => {
           postOrderNavigateRef.current = null;
-          navigate(getQuickOrderDetailPath(placedOrderId));
+          navigate(getQuickOrderDetailPath(placedOrderId, true), {
+            replace: true,
+            state: { prefetchedOrder: order, orderType: "quick" }
+          });
         }, 1200);
       }
     } catch (error) {
@@ -3060,7 +3071,19 @@ const CheckoutPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6 text-center">
+            onClick={() => {
+              if (orderId) {
+                if (postOrderNavigateRef.current) {
+                  clearTimeout(postOrderNavigateRef.current);
+                  postOrderNavigateRef.current = null;
+                }
+                navigate(getQuickOrderDetailPath(orderId, true), {
+                  replace: true,
+                  state: { prefetchedOrder: placedOrderRef.current, orderType: "quick" }
+                });
+              }
+            }}
+            className="fixed inset-0 z-[100] bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6 text-center cursor-pointer">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

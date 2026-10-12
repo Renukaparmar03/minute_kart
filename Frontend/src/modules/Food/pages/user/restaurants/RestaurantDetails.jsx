@@ -758,11 +758,15 @@ function RestaurantDetailsContent() {
                      if (foodType.toLowerCase() === 'veg') foodType = 'Veg'
                      else if (foodType.toLowerCase() === 'non-veg' || foodType.toLowerCase() === 'nonveg') foodType = 'Non-Veg'
                    }
+                   const isVeg = item.isVeg !== undefined
+                     ? (item.isVeg === true || item.isVeg === 1 || String(item.isVeg).toLowerCase() === 'true')
+                     : (foodType === 'Veg');
                    return {
                      ...item,
                       id: String(item.id || item._id || `${Date.now()}-${Math.random()}`),
                       name: item.name || "Unnamed Item",
                       foodType,
+                      isVeg,
                       price: getFoodDisplayPrice(item),
                       variants: getFoodVariants(item),
                       variations: getFoodVariants(item),
@@ -868,10 +872,14 @@ function RestaurantDetailsContent() {
                   menuSections: finalMenuSections,
                 }))
 
-                // Set first 3 sections (Recommended, Starters, Main Course) as expanded by default
-                const defaultExpandedSections = new Set(
-                  Array.from({ length: Math.min(3, finalMenuSections.length) }, (_, idx) => idx)
-                )
+                // Expand all sections and subsections by default so all items are visible
+                const defaultExpandedSections = new Set()
+                finalMenuSections.forEach((section, idx) => {
+                  defaultExpandedSections.add(idx)
+                  toRenderableArray(section?.subsections).forEach((_, subIdx) => {
+                    defaultExpandedSections.add(`${idx}-${subIdx}`)
+                  })
+                })
                 setExpandedSections(defaultExpandedSections)
 
                 debugLog('Fetched menu sections with recommended items:', finalMenuSections)
@@ -1187,7 +1195,8 @@ function RestaurantDetailsContent() {
       restaurantId: validRestaurantId, // Use validated restaurantId
       description: item.description,
       originalPrice: item.originalPrice,
-      isVeg: item.isVeg !== false, // Add isVeg property
+      isVeg: item.isVeg !== undefined ? Boolean(item.isVeg) : (String(item.foodType || "").toLowerCase() === "veg"),
+      foodType: item.foodType || (item.isVeg ? "Veg" : "Non-Veg"),
       preparationTime: item.preparationTime // Add preparationTime property
     }
 
@@ -1855,6 +1864,22 @@ function RestaurantDetailsContent() {
 
     setExpandedSections(nextExpanded)
   }, [filteredSections, hasActiveMenuFilters])
+
+  // Ensure all menu sections and subsections are expanded by default on initial load
+  const initialSectionsExpandedRef = useRef(false)
+  useEffect(() => {
+    if (!restaurant?.menuSections?.length || initialSectionsExpandedRef.current) return
+    initialSectionsExpandedRef.current = true
+
+    const allExpanded = new Set()
+    restaurant.menuSections.forEach((section, idx) => {
+      allExpanded.add(idx)
+      toRenderableArray(section?.subsections).forEach((_, subIdx) => {
+        allExpanded.add(`${idx}-${subIdx}`)
+      })
+    })
+    setExpandedSections(allExpanded)
+  }, [restaurant?.menuSections])
 
   useEffect(() => {
     if (!restaurant?.menuSections || !targetDishId) return

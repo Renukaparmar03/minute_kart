@@ -174,39 +174,40 @@ export const PickupActionModal = ({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        onClick={onMinimize}
         className="absolute inset-0 bg-black/40 -z-10"
       />
 
       <motion.div 
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
-        className="w-full max-w-lg bg-white rounded-t-[2rem] shadow-[0_-15px_40px_rgba(0,0,0,0.2)] p-4 pb-8"
+        className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.2)] p-3.5 pb-4 max-h-[82vh] overflow-y-auto"
       >
         {/* Handle / Minimize */}
-        <div className="w-full flex justify-center pb-4 pt-1">
+        <div className="w-full flex justify-center pb-2 pt-0.5">
           <button onClick={onMinimize} className="p-1 hover:bg-gray-100 active:scale-95 transition-all rounded-full flex flex-col items-center">
-             <ChevronDown className="w-6 h-6 text-gray-400 stroke-[3]" />
+             <ChevronDown className="w-5 h-5 text-gray-400 stroke-[2.5]" />
           </button>
         </div>
 
         {/* Restaurant Header */}
-        <div className="flex items-start justify-between mb-4 pb-3 border-b border-gray-50">
-          <div className="flex gap-4">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-black/5 overflow-hidden border border-gray-100">
+        <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xs overflow-hidden border border-gray-100 shrink-0">
               <img src={restaurantLogo} alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <div>
-              <h3 className="text-gray-950 text-xl font-bold">{primaryName}</h3>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-gray-950 text-base font-bold truncate leading-tight">{primaryName}</h3>
               {mixedOrder && (
-                <div className="mt-2 inline-flex items-center rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-600">
+                <div className="mt-0.5 inline-flex items-center rounded-full border border-orange-100 bg-orange-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-orange-600">
                   Mixed Order
                 </div>
               )}
-              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1.5">
+              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
                 {isAtPickup ? (
-                  <span className="text-[#86bf24]">Reached Location √</span>
+                  <span className="text-[#86bf24]">Reached Location ✓</span>
                 ) : (
-                  <span className="text-orange-500">
+                  <span className="text-orange-500 truncate">
                     {(distanceToTarget / 1000).toFixed(1)} km • {eta || '--'} min to {primaryDestinationLabel}
                   </span>
                 )}
@@ -214,25 +215,27 @@ export const PickupActionModal = ({
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 shrink-0 ml-2">
             {primaryPhone && (
               <button
                 onClick={() => window.location.href = `tel:${primaryPhone}`}
-                className="w-10 h-10 rounded-full bg-[#f3f9e8] flex items-center justify-center text-[#86bf24] border border-[#e6f4cf]"
+                className="w-8 h-8 rounded-full bg-[#f3f9e8] flex items-center justify-center text-[#86bf24] border border-[#e6f4cf] active:scale-95 transition-transform"
+                title="Call"
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-4 h-4" />
               </button>
             )}
             <button 
               onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(primaryAddress)}`, '_blank')}
-              className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white shadow-lg"
+              className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white shadow-sm active:scale-95 transition-transform"
+              title="Navigate"
             >
-              <Navigation className="w-5 h-5" />
+              <Navigation className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="mb-4 space-y-2">
+        <div className="mb-2.5 space-y-1.5">
           {pickupStops.map((pickup, index) => {
             const isQuickStore = pickup.pickupType === 'quick';
             const label = isQuickStore ? 'Store Pickup' : 'Restaurant Pickup';
@@ -243,24 +246,28 @@ export const PickupActionModal = ({
             return (
               <div
                 key={pickup.id || `${pickup.pickupType}-${index}`}
-                className="rounded-xl border border-gray-100 bg-gray-50/80 p-3"
+                className="rounded-xl border border-gray-100 bg-gray-50/80 p-2"
               >
-                <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${accentClasses}`}>
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{pickupStops.length > 1 ? `${label} ${index + 1}` : label}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${accentClasses}`}>
+                    <MapPin className="w-3 h-3" />
+                    <span>{pickupStops.length > 1 ? `${label} ${index + 1}` : label}</span>
+                  </div>
+                  {pickupStops.length > 1 && (
+                    <span className="text-[11px] font-bold text-gray-700 truncate">{pickup.sourceName}</span>
+                  )}
                 </div>
-                <p className="mt-3 text-base font-bold text-gray-950">{pickup.sourceName || (isQuickStore ? 'Seller store' : 'Restaurant')}</p>
-                <p className="mt-1 text-sm font-medium leading-relaxed text-gray-500">{pickup.address || 'Address not available'}</p>
+                <p className="mt-1 text-xs font-medium leading-snug text-gray-500 line-clamp-2">{pickup.address || 'Address not available'}</p>
               </div>
             );
           })}
         </div>
 
         {/* Action Sliders */}
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {!isAtPickup ? (
             <div>
-              <p className={`text-center text-[10px] font-bold uppercase tracking-widest mb-3 transition-colors ${
+              <p className={`text-center text-[9px] font-bold uppercase tracking-wider mb-1.5 transition-colors ${
                 isWithinRange ? 'text-[#86bf24]' : 'text-orange-500 animate-pulse'
               }`}>
                 {isWithinRange ? 'Ready - Swipe to confirm arrival' : 'Get closer to pickup point'}
@@ -272,39 +279,40 @@ export const PickupActionModal = ({
                 disabled={!isWithinRange}
                 onConfirm={onReachedPickup}
                 color="bg-[#86bf24]"
+                size="compact"
               />
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex justify-center items-center gap-3 w-full">
+            <div className="space-y-2.5">
+              <div className="flex justify-center items-center gap-2.5 w-full">
                  {!billImageUploaded && !isUploadingBill && (
                    <>
                       <button
                         onClick={handleTakeCameraPhoto}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gray-900 text-white font-bold text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-all"
                       >
-                        <Camera className="w-5 h-5" />
+                        <Camera className="w-4 h-4" />
                         <span>Camera</span>
                       </button>
                       <button
                         onClick={handlePickFromGallery}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-orange-50 text-orange-600 border border-orange-100 font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 font-bold text-xs uppercase tracking-wider active:scale-95 transition-all"
                       >
-                        <ImageIcon className="w-5 h-5" />
+                        <ImageIcon className="w-4 h-4" />
                         <span>Gallery</span>
                       </button>
                    </>
                  )}
 
                  {isUploadingBill && (
-                    <div className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gray-50 text-gray-400 font-bold text-xs uppercase tracking-widest">
+                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-50 text-gray-400 font-bold text-xs uppercase tracking-wider">
                        <Loader2 className="w-4 h-4 animate-spin" />
                        <span>Uploading...</span>
                     </div>
                  )}
 
                  {billImageUploaded && (
-                    <div className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#e6f4cf] text-[#66941a] font-bold text-xs uppercase tracking-widest">
+                    <div className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#e6f4cf] text-[#66941a] font-bold text-xs uppercase tracking-wider">
                        <CheckCircle2 className="w-4 h-4" />
                        <span>Bill Uploaded</span>
                     </div>
@@ -320,7 +328,7 @@ export const PickupActionModal = ({
               </div>
 
               <div>
-                <p className={`text-center text-[10px] font-bold uppercase tracking-widest mb-3 ${billImageUploaded ? 'text-[#86bf24]' : 'text-gray-400'}`}>
+                <p className={`text-center text-[9px] font-bold uppercase tracking-wider mb-1.5 ${billImageUploaded ? 'text-[#86bf24]' : 'text-gray-400'}`}>
                   {billImageUploaded ? "Check the restaurant logo - Swipe to pick up" : "Capture bill to unlock swipe"}
                 </p>
                 <ActionSlider 
@@ -330,6 +338,7 @@ export const PickupActionModal = ({
                   disabled={!billImageUploaded}
                   onConfirm={() => onPickedUp(billImageUrl)}
                   color="bg-orange-500"
+                  size="compact"
                 />
               </div>
             </div>
@@ -337,11 +346,11 @@ export const PickupActionModal = ({
 
           {/* Delivery Instructions (User Note) */}
           {order?.note && (
-            <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex gap-3 items-start">
-              <ChefHat className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1.5">User Instructions</p>
-                <p className="text-sm font-bold text-gray-800 leading-snug">"{order.note}"</p>
+            <div className="bg-orange-50 border border-orange-100 rounded-xl p-2 flex gap-2.5 items-center">
+              <ChefHat className="w-4 h-4 text-orange-500 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <span className="text-[9px] font-bold text-orange-600 uppercase tracking-wider mr-1.5">User Instructions:</span>
+                <span className="text-xs font-bold text-gray-800">"{order.note}"</span>
               </div>
             </div>
           )}
@@ -349,17 +358,17 @@ export const PickupActionModal = ({
           {/* Collapsible Order Summary */}
           <button 
             onClick={() => setShowItems(!showItems)}
-            className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+            className="w-full flex items-center justify-between p-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
           >
-            <div className="flex items-center gap-3 text-gray-900 font-bold text-xs uppercase tracking-widest">
-              <Package className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-2 text-gray-900 font-bold text-xs uppercase tracking-wider">
+              <Package className="w-4 h-4 text-gray-400" />
               <span>Order Details ({items.length || 0})</span>
             </div>
-            {showItems ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            {showItems ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
           </button>
 
           {showItems && (
-            <div className="overflow-hidden space-y-2 px-0.5 pt-2">
+            <div className="max-h-48 overflow-y-auto space-y-1.5 px-0.5 pt-1">
               {items.map((item, idx) => {
                 const itemImg = getItemImage(item);
                 const itemWeight = getItemWeightOrVariant(item);
@@ -370,17 +379,17 @@ export const PickupActionModal = ({
                 return (
                   <div 
                     key={idx} 
-                    className="flex items-center justify-between p-2.5 bg-gray-50/90 rounded-2xl border border-gray-100 hover:bg-gray-100/60 transition-all gap-3"
+                    className="flex items-center justify-between p-2 bg-gray-50/90 rounded-xl border border-gray-100 hover:bg-gray-100/60 transition-all gap-2.5"
                   >
                     {/* Item Image & Details */}
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {/* Image Thumbnail */}
-                      <div className="w-12 h-12 rounded-xl bg-white border border-gray-200/80 overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-xs">
+                      <div className="w-9 h-9 rounded-lg bg-white border border-gray-200/80 overflow-hidden shrink-0 flex items-center justify-center p-0.5">
                         {itemImg ? (
                           <img 
                             src={itemImg} 
                             alt={itemName} 
-                            className="w-full h-full object-contain rounded-lg"
+                            className="w-full h-full object-contain rounded-md"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               if (e.target.nextSibling) {
@@ -390,23 +399,23 @@ export const PickupActionModal = ({
                           />
                         ) : null}
                         <div className={`w-full h-full items-center justify-center text-gray-400 ${itemImg ? 'hidden' : 'flex'}`}>
-                          <Package className="w-5 h-5 text-gray-400 stroke-[1.5]" />
+                          <Package className="w-4 h-4 text-gray-400 stroke-[1.5]" />
                         </div>
                       </div>
 
                       {/* Name, weight/variant & price */}
                       <div className="min-w-0 flex-1">
-                        <p className="text-gray-900 text-xs font-extrabold truncate leading-tight mb-0.5">
+                        <p className="text-gray-900 text-xs font-bold truncate leading-tight">
                           {itemName}
                         </p>
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                           {itemWeight ? (
-                            <span className="text-[10px] font-bold text-gray-600 bg-white border border-gray-200/80 px-1.5 py-0.5 rounded-md leading-none shadow-2xs">
+                            <span className="text-[9px] font-semibold text-gray-600 bg-white border border-gray-200/80 px-1 py-0.2 rounded leading-none">
                               {itemWeight}
                             </span>
                           ) : null}
                           {itemPrice ? (
-                            <span className="text-[10px] font-black text-gray-700">
+                            <span className="text-[10px] font-bold text-gray-700">
                               {itemPrice}
                             </span>
                           ) : null}
@@ -416,7 +425,7 @@ export const PickupActionModal = ({
 
                     {/* Quantity Badge */}
                     <div className="shrink-0">
-                      <span className="text-[#86bf24] font-black bg-[#f3f9e8] border border-[#e6f4cf] px-2.5 py-1 rounded-xl text-xs flex items-center justify-center shadow-2xs">
+                      <span className="text-[#86bf24] font-bold bg-[#f3f9e8] border border-[#e6f4cf] px-2 py-0.5 rounded-lg text-[11px] flex items-center justify-center">
                         x{itemQty}
                       </span>
                     </div>
