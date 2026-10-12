@@ -2811,25 +2811,22 @@ export default function Cart() {
       </div>
 
       {/* Bottom Sticky - Place Order */}
-      <div
-        className="bg-white dark:bg-[#1a1a1a] border-t dark:border-gray-800 shadow-lg z-30 flex-shrink-0 fixed bottom-0 left-0 right-0"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-      >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
-          <div className="w-full max-w-lg mx-auto space-y-3">
+      <div className="bg-white dark:bg-[#1a1a1a] border-t dark:border-gray-800 shadow-lg z-30 flex-shrink-0 fixed bottom-0 left-0 right-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 pt-2 pb-3 md:py-3.5">
+          <div className="w-full max-w-lg mx-auto space-y-2 md:space-y-2.5">
             {/* Pay Using - Slim Pro UI */}
             <div
               className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[#222222] rounded-xl border border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#282828] active:scale-[0.98] transition-all duration-200 shadow-sm"
               onClick={() => setShowPaymentSheet(true)}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-orange-100/80 dark:bg-orange-900/40 flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center gap-2.5 md:gap-3">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-orange-100/80 dark:bg-orange-900/40 flex items-center justify-center flex-shrink-0">
                   {selectedPaymentMethod === "wallet" ? (
-                    <Wallet className="h-5 w-5 text-[#DC021B]" />
+                    <Wallet className="h-4.5 w-4.5 md:h-5 md:w-5 text-[#DC021B]" />
                   ) : selectedPaymentMethod === "razorpay" ? (
-                    <Zap className="h-5 w-5 text-[#DC021B]" />
+                    <Zap className="h-4.5 w-4.5 md:h-5 md:w-5 text-[#DC021B]" />
                   ) : (
-                    <Banknote className="h-5 w-5 text-[#DC021B]" />
+                    <Banknote className="h-4.5 w-4.5 md:h-5 md:w-5 text-[#DC021B]" />
                   )}
                 </div>
                 <div className="leading-tight">
@@ -2837,7 +2834,7 @@ export default function Cart() {
                     PAYING WITH
                   </p>
                   <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                    <p className="text-xs md:text-sm font-bold text-gray-800 dark:text-gray-100">
                       {selectedPaymentLabel}
                     </p>
                     {selectedPaymentMethod === "wallet" && (
@@ -2849,8 +2846,8 @@ export default function Cart() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-0.5 text-[#DC021B] font-bold text-[11px] uppercase tracking-widest bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1 rounded-lg">
-                CHANGE <ChevronRight className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-0.5 text-[#DC021B] font-bold text-[10px] md:text-[11px] uppercase tracking-widest bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1 rounded-lg">
+                CHANGE <ChevronRight className="h-3 w-3 md:h-3.5 md:w-3.5" />
               </div>
             </div>
 
@@ -2858,15 +2855,15 @@ export default function Cart() {
             <button
               onClick={handlePlaceOrder}
               disabled={isPlacingOrder || (selectedPaymentMethod === "wallet" && walletBalance < total)}
-              className="w-full bg-gradient-to-r from-[#DC021B] to-[#E23744] hover:from-[#B30216] hover:to-[#CF2834] text-white px-6 h-12 md:h-14 rounded-2xl font-bold shadow-lg shadow-[#DC021B]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-transform active:scale-[0.98]"
+              className="w-full bg-gradient-to-r from-[#DC021B] to-[#E23744] hover:from-[#B30216] hover:to-[#CF2834] text-white px-5 md:px-6 h-11 md:h-13 rounded-xl md:rounded-2xl font-bold shadow-lg shadow-[#DC021B]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-transform active:scale-[0.98]"
             >
               {(selectedPaymentMethod === "razorpay" || selectedPaymentMethod === "wallet" || selectedPaymentMethod === "cash") && (
-                <div className="text-left flex flex-col justify-center border-r-[1.5px] border-white/20 pr-4">
+                <div className="text-left flex flex-col justify-center border-r-[1.5px] border-white/20 pr-3 md:pr-4">
                   <span className="text-xs md:text-sm font-semibold text-white/90">{RUPEE_SYMBOL}{total.toFixed(2)}</span>
                   <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider text-white/80 mt-[-2px]">Total</span>
                 </div>
               )}
-              <div className="flex items-center gap-1 mx-auto text-sm md:text-lg tracking-wide">
+              <div className="flex items-center gap-1 mx-auto text-sm md:text-base tracking-wide">
                 {isPlacingOrder
                   ? "Processing..."
                   : !hasSavedAddress
