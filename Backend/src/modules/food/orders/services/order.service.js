@@ -671,7 +671,9 @@ export async function populateQuickOrderSellers(orders) {
   const sellerIds = new Set();
   for (const o of quickOrders) {
     if (o.pickupPoints && o.pickupPoints.length > 0) {
-      continue;
+      for (const p of o.pickupPoints) {
+        if (p?.sourceId) sellerIds.add(p.sourceId.toString());
+      }
     }
     if (o.items) {
       for (const item of o.items) {
@@ -690,11 +692,22 @@ export async function populateQuickOrderSellers(orders) {
   }
 
   if (sellerIds.size > 0) {
-    const sellers = await Seller.find({ _id: { $in: Array.from(sellerIds) } }).lean();
+    const sellers = await Seller.find({ _id: { $in: Array.from(sellerIds) } })
+      .select('shopName name phone location profileImage')
+      .lean();
     const sellerMap = new Map(sellers.map(s => [s._id.toString(), s]));
 
     for (const o of quickOrders) {
-      if (!o.pickupPoints || o.pickupPoints.length === 0) {
+      if (o.pickupPoints && o.pickupPoints.length > 0) {
+        for (const p of o.pickupPoints) {
+          if (p?.sourceId && sellerMap.has(p.sourceId.toString())) {
+            const s = sellerMap.get(p.sourceId.toString());
+            if (!p.profileImage && s.profileImage) p.profileImage = s.profileImage;
+            if (!p.image && s.profileImage) p.image = s.profileImage;
+            if (!p.phone && s.phone) p.phone = s.phone;
+          }
+        }
+      } else {
         const points = [];
         if (o.items) {
           const grouped = new Map();
@@ -715,6 +728,8 @@ export async function populateQuickOrderSellers(orders) {
                           ? { type: 'Point', coordinates: [s.location.longitude, s.location.latitude] }
                           : undefined),
                     phone: s.phone || '',
+                    profileImage: s.profileImage || '',
+                    image: s.profileImage || '',
                     itemIds: [],
                   });
                 }
@@ -727,6 +742,15 @@ export async function populateQuickOrderSellers(orders) {
           points.push(...grouped.values());
         }
         o.pickupPoints = points;
+      }
+
+      const firstSellerId = o.pickupPoints?.[0]?.sourceId?.toString();
+      const firstSeller = firstSellerId ? sellerMap.get(firstSellerId) : null;
+      const sellerImg = o.pickupPoints?.[0]?.profileImage || firstSeller?.profileImage || '';
+      if (sellerImg) {
+        o.storeImage = sellerImg;
+        o.sellerImage = sellerImg;
+        o.restaurantImage = sellerImg;
       }
     }
   }
@@ -746,6 +770,15 @@ export async function populateQuickOrderSellers(orders) {
         }
         if (!o.restaurantPhone) {
           o.restaurantPhone = primary.phone || '';
+        }
+        if (!o.storeImage && primary.profileImage) {
+          o.storeImage = primary.profileImage;
+        }
+        if (!o.sellerImage && primary.profileImage) {
+          o.sellerImage = primary.profileImage;
+        }
+        if (!o.restaurantImage && primary.profileImage) {
+          o.restaurantImage = primary.profileImage;
         }
         if (primary.location?.coordinates?.length === 2) {
           o.restaurantLat = primary.location.coordinates[1];
@@ -884,6 +917,9 @@ function buildDeliverySocketPayload(orderDoc, restaurantDoc = null) {
       restaurant?.addressLine1 ||
       "",
     restaurantPhone: restaurant?.phone || "",
+    restaurantImage: restaurant?.profileImage || restaurant?.logo || restaurant?.image || order?.restaurantImage || order?.restaurantId?.profileImage || "",
+    storeImage: restaurant?.profileImage || order?.storeImage || order?.sellerImage || "",
+    sellerImage: restaurant?.profileImage || order?.sellerImage || "",
     restaurantLocation: {
       latitude:
         restaurantLocation?.latitude ||
@@ -2636,6 +2672,9 @@ export async function getOrderById(
     .lean();
   if (!order) throw new NotFoundError("Order not found");
   await populateQuickOrderSellers(order);
+  if (order.restaurantId && !order.restaurantImage) {
+    order.restaurantImage = order.restaurantId.profileImage || order.restaurantId.logo || '';
+  }
 
   if (admin) return normalizeOrderForClient(order);
 

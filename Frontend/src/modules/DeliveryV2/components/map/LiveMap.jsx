@@ -17,6 +17,7 @@ import {
   trimPolylineFromDistanceAlongRoute,
 } from '@food/utils/liveTrackingPolyline';
 import { normalizeLocationPoint, normalizePickupPoints } from '@/modules/DeliveryV2/utils/orderRouting';
+import deliveryIcon from '@/assets/deliveryIcon.png';
 
 const mapContainerStyle = {
   width: '100%',
@@ -208,8 +209,26 @@ export const LiveMap = ({
   }, []);
 
   const restaurantMarkerUrl = useMemo(() => {
-    if (!activeOrder) return 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png';
-    return activeOrder.restaurantImage || activeOrder.restaurant?.logo || activeOrder.restaurant?.profileImage || 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png';
+    if (!activeOrder) return null;
+    const isQuick = String(activeOrder?.orderType || activeOrder?.serviceType || activeOrder?.type || '').trim().toLowerCase() === 'quick';
+    if (isQuick) {
+      return (
+        activeOrder.storeImage ||
+        activeOrder.sellerImage ||
+        activeOrder.seller?.profileImage ||
+        activeOrder.pickupPoints?.[0]?.profileImage ||
+        activeOrder.restaurantImage ||
+        null
+      );
+    }
+    return (
+      activeOrder.restaurantImage ||
+      activeOrder.restaurantId?.profileImage ||
+      activeOrder.restaurantId?.logo ||
+      activeOrder.restaurant?.logo ||
+      activeOrder.restaurant?.profileImage ||
+      null
+    );
   }, [activeOrder]);
 
   const customerMarkerUrl = useMemo(() => {
@@ -356,7 +375,7 @@ export const LiveMap = ({
         {riderMarkerLocation && (
           <OverlayView position={riderMarkerLocation} mapPaneName={OverlayView.MARKER_LAYER}>
             <div style={{ transform: `translate(-50%, -50%) rotate(${riderMarkerLocation.heading || 0}deg)`, transition: 'transform 0.35s linear' }} className="relative w-[72px] h-[72px]">
-              <img src="/MapRider.png" alt="Rider" className="w-full h-full object-contain" />
+              <img src={deliveryIcon || "/MapRider.png"} alt="Rider" className="w-full h-full object-contain" />
             </div>
           </OverlayView>
         )}

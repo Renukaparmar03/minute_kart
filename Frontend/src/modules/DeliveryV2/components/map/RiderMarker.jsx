@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDeliveryStore } from '@/modules/DeliveryV2/store/useDeliveryStore';
-import { RIDER_BIKE_SVG, RESTAURANT_PIN_SVG, CUSTOMER_PIN_SVG } from '@/modules/DeliveryV2/components/map/map.icons';
+import { RESTAURANT_PIN_SVG, CUSTOMER_PIN_SVG } from '@/modules/DeliveryV2/components/map/map.icons';
+import deliveryIcon from '@/assets/deliveryIcon.png';
 
 /**
  * RiderMarker - Professional animated bike marker.
@@ -16,7 +17,7 @@ export const RiderMarker = ({ google, map, position, heading = 0 }) => {
         position,
         map,
         icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RIDER_BIKE_SVG)}`,
+          url: deliveryIcon || '/MapRider.png',
           anchor: new google.maps.Point(30, 30),
           scaledSize: new google.maps.Size(60, 60),
           rotation: heading

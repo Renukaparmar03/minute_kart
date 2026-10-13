@@ -33,7 +33,6 @@ import { sellerApi } from "../services/sellerApi";
 import { useToast } from "@shared/components/ui/Toast";
 import { getLegacyStatusFromOrder } from "@/shared/utils/orderStatus";
 import { Loader2 } from "lucide-react";
-import Pagination from "@shared/components/ui/Pagination";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   joinOrderRoom,
@@ -74,7 +73,7 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const { showToast } = useToast();
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(100);
   const [total, setTotal] = useState(0);
   const hasMountedRef = useRef(false);
   const statusHandlerRef = useRef(null);
@@ -1082,43 +1081,13 @@ const Orders = () => {
                 )}
               </div>
 
-              <div className="p-3 sm:p-4 border-t border-slate-50 bg-slate-50/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-3 sm:px-6 pb-24 md:pb-4">
+              <div className="p-3 sm:p-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between gap-2 px-3 sm:px-6">
                 <p className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-widest text-center sm:text-left">
                   Showing {filteredOrders.length} of {orders.length} Orders
                 </p>
-                <div className="flex gap-1 justify-center sm:justify-end">
-                  <button
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 opacity-50 cursor-not-allowed"
-                    aria-hidden>
-                    <HiOutlineChevronRight className="h-3.5 w-3.5 rotate-180" />
-                  </button>
-                  <button
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 opacity-50 cursor-not-allowed"
-                    aria-hidden>
-                    <HiOutlineChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
               </div>
             </div>
           </BlurFade>
-
-          <div className="mt-3 sm:mt-4 px-2 sm:px-0">
-            <Pagination
-              page={page}
-              totalPages={
-                Math.ceil((total || filteredOrders.length) / pageSize) || 1
-              }
-              total={total || filteredOrders.length}
-              pageSize={pageSize}
-              onPageChange={(p) => setPage(p)}
-              onPageSizeChange={(newSize) => {
-                setPageSize(newSize);
-                setPage(1);
-                fetchOrders(1, false);
-              }}
-              loading={loading}
-            />
-          </div>
 
           {/* Order Details Modal */}
           {/* ... (existing details modal) */}

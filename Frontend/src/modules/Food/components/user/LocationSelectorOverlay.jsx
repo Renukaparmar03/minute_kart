@@ -653,9 +653,9 @@ export default function LocationSelectorOverlay({ isOpen, onClose }) {
                 // Do not auto-update address from map on load when locked
               },
               {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                enableHighAccuracy: false,
+                timeout: 4000,
+                maximumAge: 60000
               }
             )
 
@@ -677,9 +677,9 @@ export default function LocationSelectorOverlay({ isOpen, onClose }) {
                 }
               },
               {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 5000 // Allow 5 second old cached location
+                enableHighAccuracy: false,
+                timeout: 5000,
+                maximumAge: 30000
               }
             )
 
@@ -766,11 +766,10 @@ export default function LocationSelectorOverlay({ isOpen, onClose }) {
       // Clear any cached location first to ensure fresh coordinates
       debugLog("?? Requesting fresh location (clearing cache and forcing fresh GPS)...")
 
-      // Increase timeout to 15 seconds to allow GPS to get accurate fix
-      // The getLocation function already has a 15-second timeout, so we match it
+      // Instant location request with 5s timeout
       const locationPromise = requestLocation()
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Location request is taking longer than expected. Please check your GPS settings.")), 15000)
+        setTimeout(() => reject(new Error("Location request timed out. Please try again.")), 5000)
       )
 
       let locationData

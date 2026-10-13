@@ -346,7 +346,7 @@ export default function AddressSelectorPage() {
       toast.loading("Getting location...", { id: "geo" })
       const loc = await requestLocation(true, true)
       
-      if (loc?.latitude) {
+      if (loc?.latitude && loc?.longitude) {
         // Update state
         const newPos = [loc.latitude, loc.longitude]
         setMapPosition(newPos)
@@ -357,6 +357,7 @@ export default function AddressSelectorPage() {
         try { 
           localStorage.setItem("deliveryAddressMode", "current");
           window.dispatchEvent(new Event("deliveryAddressModeChanged"));
+          window.dispatchEvent(new CustomEvent("userLocationUpdated", { detail: { location: loc } }));
         } catch {}
         
         // Update map
@@ -374,11 +375,14 @@ export default function AddressSelectorPage() {
             state: loc.state || prev.state,
             zipCode: loc.postalCode || prev.zipCode,
           }))
-          toast.success("Location updated", { id: "geo" })
-          // Don't redirect if they are explicitly in the "Add Address" form
-          toast.success("Location updated", { id: "geo" })
-          const from = routerLocation.state?.from || routerLocation.state?.backTo || "/food/user/cart"
-          navigate(from, { replace: true })
+          toast.success("Location filled in form", { id: "geo" })
+        } else {
+          const displayLabel = loc.area || loc.city || "Current Location"
+          toast.success(`Location set: ${displayLabel}`, { id: "geo" })
+          const from = routerLocation.state?.from || routerLocation.state?.backTo || "/food/user/home"
+          setTimeout(() => {
+            navigate(from, { replace: true })
+          }, 350)
         }
       } else {
         toast.error("Could not determine location", { id: "geo" })

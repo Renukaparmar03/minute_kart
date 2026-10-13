@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useState } from 'react'
 import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api'
 import { motion } from 'framer-motion'
+import deliveryIcon from '@/assets/deliveryIcon.png'
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
 const debugError = (...args) => {}
@@ -35,15 +36,8 @@ const debugError = (...args) => {}
  * - The component will automatically calculate and display the driving route polyline
  */
 
-// Use direct public path which is more reliable in this setup
 const getDeliveryIconUrl = () => {
-  try {
-    // Try to use delivery icon from public assets
-    return '/assets/deliveryboy/deliveryIcon.png'
-  } catch {
-    // Fallback to bikelogo if delivery icon not found
-    return '/src/assets/bikelogo.png'
-  }
+  return deliveryIcon || '/MapRider.png'
 }
 
 const mapContainerStyle = {

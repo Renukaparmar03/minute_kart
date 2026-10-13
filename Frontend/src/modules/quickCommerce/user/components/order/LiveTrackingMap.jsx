@@ -124,7 +124,7 @@ const LiveTrackingMap = memo(({
     return {
       url: deliveryIcon,
       scaledSize: new window.google.maps.Size(44, 64),
-      anchor: new window.google.maps.Point(22, 64),
+      anchor: new window.google.maps.Point(22, 32),
     };
   }, [isLoaded]);
 

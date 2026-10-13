@@ -11,6 +11,7 @@ import {
 import io from 'socket.io-client';
 import { API_BASE_URL } from '@food/api/config';
 import bikeLogo from '@food/assets/bikelogo.png';
+import deliveryIcon from '@/assets/deliveryIcon.png';
 import { subscribeOrderTracking } from '@food/realtimeTracking';
 import {
   buildVisibleRouteFromRiderPosition,
@@ -662,11 +663,11 @@ const DeliveryTrackingMap = ({
               className="relative w-16 h-16"
             >
               <img 
-                src="/MapRider.png" 
+                src={deliveryIcon || "/MapRider.png"} 
                 alt="Rider" 
                 className="w-full h-full object-contain drop-shadow-2xl"
                 onError={(e) => {
-                  e.target.src = bikeLogo;
+                  e.target.src = deliveryIcon || bikeLogo;
                 }}
               />
             </div>

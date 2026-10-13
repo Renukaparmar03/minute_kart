@@ -76,6 +76,10 @@ export const geocodeAddress = asyncHandler(async (req, res) => {
   }
 });
 
+// In-memory cache for reverse geocode results (1-hour TTL, ~100m grid)
+const reverseGeocodeCache = new Map();
+const MAX_CACHE_ENTRIES = 1000;
+
 /**
  * @desc    Reverse geocode coordinates to an address
  * @route   GET /api/v1/quick-commerce/location/reverse-geocode
@@ -88,13 +92,32 @@ export const reverseGeocode = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'lat and lng query parameters are required');
   }
 
+  const numLat = Number(lat);
+  const numLng = Number(lng);
+  if (isNaN(numLat) || isNaN(numLng)) {
+    throw new ApiError(400, 'Invalid lat or lng values');
+  }
+
+  const cacheKey = `${numLat.toFixed(3)},${numLng.toFixed(3)}`;
+  const cached = reverseGeocodeCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 3600000) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...cached.data,
+        latitude: numLat,
+        longitude: numLng,
+      },
+    });
+  }
+
   const key = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAP_API_KEY;
   if (!key) {
     throw new ApiError(500, 'Maps API key not configured');
   }
 
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`;
-  const { data } = await axios.get(url);
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${numLat},${numLng}&key=${key}`;
+  const { data } = await axios.get(url, { timeout: 6000 });
 
   if (data.status === 'ZERO_RESULTS') {
     throw new ApiError(404, 'Address not found');
@@ -107,14 +130,23 @@ export const reverseGeocode = asyncHandler(async (req, res) => {
   const first = data.results[0];
   const components = mapAddressComponents(first.address_components || []);
 
+  const responseData = {
+    formattedAddress: first.formatted_address,
+    ...components,
+    latitude: numLat,
+    longitude: numLng,
+    placeId: first.place_id,
+  };
+
+  // Cache result
+  if (reverseGeocodeCache.size >= MAX_CACHE_ENTRIES) {
+    const firstKey = reverseGeocodeCache.keys().next().value;
+    reverseGeocodeCache.delete(firstKey);
+  }
+  reverseGeocodeCache.set(cacheKey, { timestamp: Date.now(), data: responseData });
+
   res.status(200).json({
     success: true,
-    data: {
-      formattedAddress: first.formatted_address,
-      ...components,
-      latitude: Number(lat),
-      longitude: Number(lng),
-      placeId: first.place_id,
-    },
+    data: responseData,
   });
 });

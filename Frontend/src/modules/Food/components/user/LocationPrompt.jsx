@@ -68,13 +68,12 @@ export default function LocationPrompt() {
   }, [location, showPrompt])
 
   const handleAllow = async () => {
-    await requestLocation()
-    // Wait a bit for location to be set
-    setTimeout(() => {
-      setShowPrompt(false)
-      document.body.style.overflow = ""
-      localStorage.setItem("locationPromptDismissed", "true")
-    }, 500)
+    try {
+      await requestLocation()
+    } catch {}
+    setShowPrompt(false)
+    document.body.style.overflow = ""
+    localStorage.setItem("locationPromptDismissed", "true")
   }
 
   const handleDismiss = () => {

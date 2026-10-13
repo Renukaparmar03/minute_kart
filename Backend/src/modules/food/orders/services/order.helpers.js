@@ -228,6 +228,9 @@ export function buildDeliverySocketPayload(orderDoc, restaurantDoc = null) {
       restaurant?.addressLine1 ||
       "",
     restaurantPhone: restaurant?.phone || "",
+    restaurantImage: restaurant?.profileImage || restaurant?.logo || restaurant?.image || order?.restaurantImage || order?.restaurantId?.profileImage || "",
+    storeImage: restaurant?.profileImage || order?.storeImage || order?.sellerImage || "",
+    sellerImage: restaurant?.profileImage || order?.sellerImage || "",
     restaurantLocation: {
       latitude:
         restaurantLocation?.latitude ||

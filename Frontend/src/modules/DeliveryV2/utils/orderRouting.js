@@ -58,6 +58,8 @@ export const normalizePickupPoints = (order) => {
         address: address || formatCoordinateAddress(location),
         phone: String(point?.phone || point?.contactPhone || "").trim(),
         location,
+        image: point?.profileImage || point?.image || point?.logo || "",
+        profileImage: point?.profileImage || point?.image || point?.logo || "",
       };
     })
     .filter(Boolean);
@@ -103,6 +105,8 @@ export const normalizePickupPoints = (order) => {
             "",
         ).trim(),
         location: dispatchLegLocation,
+        image: order?.storeImage || order?.restaurantImage || order?.seller?.profileImage || order?.restaurantId?.profileImage || "",
+        profileImage: order?.storeImage || order?.restaurantImage || order?.seller?.profileImage || order?.restaurantId?.profileImage || "",
       },
     ];
   }
@@ -149,6 +153,12 @@ export const normalizePickupPoints = (order) => {
       address: fallbackAddress || formatCoordinateAddress(restaurantLocation),
       phone: fallbackPhone,
       location: restaurantLocation,
+      image: fallbackPickupType === "quick"
+        ? (order?.storeImage || order?.sellerImage || order?.seller?.profileImage || "")
+        : (order?.restaurantImage || order?.restaurantId?.profileImage || order?.restaurantId?.logo || ""),
+      profileImage: fallbackPickupType === "quick"
+        ? (order?.storeImage || order?.sellerImage || order?.seller?.profileImage || "")
+        : (order?.restaurantImage || order?.restaurantId?.profileImage || order?.restaurantId?.logo || ""),
     },
   ];
 };

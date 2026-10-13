@@ -363,6 +363,9 @@ export const placeOrder = async (req, res) => {
           : (Number.isFinite(seller.location?.latitude) && Number.isFinite(seller.location?.longitude)
               ? { type: 'Point', coordinates: [seller.location.longitude, seller.location.latitude] }
               : undefined),
+        phone: seller.phone || '',
+        profileImage: seller.profileImage || '',
+        image: seller.profileImage || '',
         itemIds: sellerItems.map((item) => String(item.productId)),
       };
     });
@@ -402,6 +405,8 @@ export const placeOrder = async (req, res) => {
         };
       }),
       pickupPoints,
+      storeImage: pickupPoints[0]?.profileImage || sellers[0]?.profileImage || '',
+      restaurantImage: pickupPoints[0]?.profileImage || sellers[0]?.profileImage || '',
       pricing: {
         ...pricing,
         subtotal,
@@ -688,9 +693,16 @@ export const getOrderById = async (req, res) => {
       orderIdentityQuery.unshift({ _id: rawOrderId });
     }
 
+    const sessionId = String(req.headers['x-quick-session'] || req.body?.sessionId || req.query?.sessionId || '').trim();
+    const idFilters = [];
+    if (req.user?.userId) idFilters.push({ userId: req.user.userId });
+    if (sessionId) idFilters.push({ sessionId });
+
+    const ownershipQuery = idFilters.length > 1 ? { $or: idFilters } : (idFilters[0] || idQuery);
+
     const query = {
-      ...idQuery,
-      orderType: 'quick',
+      ...ownershipQuery,
+      orderType: { $in: ['quick', 'QUICK', null, undefined] },
       $or: orderIdentityQuery,
     };
 

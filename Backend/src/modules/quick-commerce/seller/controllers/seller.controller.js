@@ -365,6 +365,7 @@ const serializeSellerProfile = (seller) => ({
   shopName: seller.shopName,
   phone: seller.phoneLast10 || seller.phone || "",
   email: seller.email || "",
+  profileImage: seller.profileImage || "",
   role: "Seller",
   isActive: seller.isActive !== false,
   isVerified: seller.isVerified !== false,
@@ -1247,6 +1248,15 @@ export const updateSellerProfileController = async (req, res) => {
       req.body?.submitForApproval,
       false,
     );
+
+    if (files?.profileImage?.[0]) {
+      seller.profileImage = await uploadImageBuffer(
+        files.profileImage[0].buffer,
+        "seller/profile",
+      );
+    } else if (req.body?.profileImage !== undefined) {
+      seller.profileImage = str(req.body.profileImage, "");
+    }
 
     seller.serviceRadius = Math.max(1, Math.min(100, radius || 5));
     if (Number.isFinite(lat) && Number.isFinite(lng)) {

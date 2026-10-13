@@ -133,7 +133,6 @@ const iconMap = {
   Smartphone,
   Monitor,
   Briefcase,
-  Layout,
 
   X,
   LayoutGrid,

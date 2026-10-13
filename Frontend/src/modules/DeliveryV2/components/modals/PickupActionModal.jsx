@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChefHat, MapPin, Phone, 
   ChevronDown, ChevronUp, Package, 
-  Navigation, CheckCircle2, Camera, Loader2, Image as ImageIcon
+  Navigation, CheckCircle2, Camera, Loader2, Image as ImageIcon,
+  Store
 } from 'lucide-react';
 import { ActionSlider } from '@/modules/DeliveryV2/components/ui/ActionSlider';
 import { uploadAPI } from '@food/api';
@@ -80,7 +81,12 @@ export const PickupActionModal = ({
   const [isUploadingBill, setIsUploadingBill] = useState(false);
   const [billImageUploaded, setBillImageUploaded] = useState(false);
   const [billImageUrl, setBillImageUrl] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const cameraInputRef = useRef(null);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [order?.orderId, order?._id]);
 
   if (!order) return null;
 
@@ -135,6 +141,39 @@ export const PickupActionModal = ({
 
   const isAtPickup = status === 'REACHED_PICKUP';
   const isQuickOrder = String(order?.orderType || order?.serviceType || order?.type || '').trim().toLowerCase() === 'quick';
+  const pickupPoints = normalizePickupPoints(order);
+  const mixedOrder = isMixedOrder(order);
+  const primaryStop = pickupPoints[0] || null;
+  const isPrimaryQuick = primaryStop?.pickupType === 'quick' || isQuickOrder;
+
+  const resolvedProfileImage = useMemo(() => {
+    if (isPrimaryQuick) {
+      return (
+        primaryStop?.profileImage ||
+        primaryStop?.image ||
+        order?.storeImage ||
+        order?.sellerImage ||
+        order?.seller?.profileImage ||
+        order?.seller?.image ||
+        order?.sellerId?.profileImage ||
+        order?.restaurantImage ||
+        null
+      );
+    }
+    return (
+      primaryStop?.profileImage ||
+      primaryStop?.image ||
+      order?.restaurantId?.profileImage ||
+      order?.restaurantId?.logo ||
+      order?.restaurantId?.image ||
+      order?.restaurantImage ||
+      order?.restaurantLogo ||
+      order?.restaurant?.profileImage ||
+      order?.restaurant?.logo ||
+      null
+    );
+  }, [order, primaryStop, isPrimaryQuick]);
+
   const restaurantName = isQuickOrder
     ? order?.storeName || order?.sellerName || order?.seller?.shopName || order?.seller?.name || 'Seller store'
     : order?.restaurantName || order?.restaurant_name || order?.restaurantId?.restaurantName || order?.restaurantId?.name || 'Restaurant';
@@ -145,11 +184,6 @@ export const PickupActionModal = ({
     ? order?.storePhone || order?.sellerPhone || order?.seller?.phone || ''
     : order?.restaurantPhone || order?.restaurant_phone || order?.restaurantId?.phone || '';
   const items = order.items || [];
-  const restaurantLogo = isQuickOrder
-    ? order?.storeImage || order?.seller?.logo || order?.seller?.image || order?.seller?.profileImage || 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png'
-    : order?.restaurantImage || order?.restaurant?.logo || order?.restaurant?.profileImage || 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png';
-  const pickupPoints = normalizePickupPoints(order);
-  const mixedOrder = isMixedOrder(order);
   const pickupStops = pickupPoints.length
     ? pickupPoints
     : [
@@ -159,10 +193,11 @@ export const PickupActionModal = ({
           sourceName: restaurantName,
           address: restaurantAddress,
           phone: restaurantPhone,
+          image: resolvedProfileImage,
+          profileImage: resolvedProfileImage,
         },
       ];
-  const primaryStop = pickupStops[0] || null;
-  const primaryPickupType = primaryStop?.pickupType === 'quick' ? 'quick' : 'food';
+  const primaryPickupType = primaryStop?.pickupType === 'quick' ? 'quick' : (isQuickOrder ? 'quick' : 'food');
   const primaryName = primaryStop?.sourceName || restaurantName;
   const primaryAddress = primaryStop?.address || restaurantAddress;
   const primaryPhone = primaryStop?.phone || restaurantPhone;
@@ -193,8 +228,21 @@ export const PickupActionModal = ({
         {/* Restaurant Header */}
         <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-gray-100">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xs overflow-hidden border border-gray-100 shrink-0">
-              <img src={restaurantLogo} alt="Logo" className="w-full h-full object-cover" />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xs overflow-hidden border shrink-0 ${
+              isPrimaryQuick ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'
+            }`}>
+              {resolvedProfileImage && !imageError ? (
+                <img
+                  src={resolvedProfileImage}
+                  alt={primaryName}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : isPrimaryQuick ? (
+                <Store className="w-5 h-5 text-amber-600" />
+              ) : (
+                <ChefHat className="w-5 h-5 text-emerald-600" />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-gray-950 text-base font-bold truncate leading-tight">{primaryName}</h3>

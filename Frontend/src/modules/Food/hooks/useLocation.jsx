@@ -360,12 +360,49 @@ export function useLocation() {
       return true;
     };
 
-    // 1. Primary API (Backend Google Maps)
+    // 0. Instant Client-Side Google Maps Geocoding if available in browser
+    if (typeof window !== "undefined" && window.google?.maps?.Geocoder) {
+      try {
+        const geocoder = new window.google.maps.Geocoder();
+        const clientResult = await new Promise((resolve) => {
+          geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+            if (status === "OK" && results?.[0]) resolve(results[0]);
+            else resolve(null);
+          });
+        });
+
+        if (clientResult) {
+          const comp = clientResult.address_components || [];
+          const getC = (type) => comp.find((x) => x.types?.includes(type))?.long_name || "";
+          const area = getC("sublocality_level_1") || getC("sublocality") || getC("neighborhood") || "";
+          const city = getC("locality") || getC("administrative_area_level_2") || area || "";
+          const state = getC("administrative_area_level_1") || "";
+          const country = getC("country") || "";
+          const postalCode = getC("postal_code") || "";
+          const formattedAddress = clientResult.formatted_address || "";
+
+          primaryAddr = {
+            city: city || "Current Location",
+            state,
+            country,
+            area: area || city || "",
+            postalCode,
+            address: area || city || formattedAddress,
+            formattedAddress: formattedAddress || `${area}, ${city}`,
+          };
+          debugLog("⚡ Instant Client Geocoder Success:", primaryAddr);
+          return primaryAddr;
+        }
+      } catch (clientErr) {
+        debugWarn("Client geocoder skipped:", clientErr.message);
+      }
+    }
+
+    // 1. Primary API (Backend Google Maps with caching)
     try {
       debugLog("📍 Trying Primary API for:", latitude, longitude);
-      // Timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Primary API timeout")), 2500)
+        setTimeout(() => reject(new Error("Primary API timeout")), 5000)
       );
       const apiPromise = locationAPI.reverseGeocode(latitude, longitude);
       const res = await Promise.race([apiPromise, timeoutPromise]);
@@ -381,6 +418,25 @@ export function useLocation() {
           formattedAddress: data.formattedAddress || "",
         };
         debugLog("✅ Primary API Success:", primaryAddr);
+
+        // Instant area extraction if area wasn't explicitly populated
+        if (!primaryAddr.area && primaryAddr.formattedAddress) {
+          const parts = primaryAddr.formattedAddress.split(',').map(p => p.trim());
+          if (parts.length >= 2) {
+            const potentialArea = parts[0];
+            const potentialAreaLower = potentialArea.toLowerCase();
+            const cityLower = (primaryAddr.city || "").toLowerCase();
+            const stateLower = (primaryAddr.state || "").toLowerCase();
+            if (potentialAreaLower !== cityLower && potentialAreaLower !== stateLower && !potentialAreaLower.match(/^\d+$/)) {
+              primaryAddr.area = potentialArea;
+            }
+          }
+        }
+
+        // Return immediately without waiting for secondary API
+        if (primaryAddr.area || (primaryAddr.city && primaryAddr.city !== "Unknown City") || primaryAddr.formattedAddress) {
+          return primaryAddr;
+        }
       }
     } catch (err) {
       debugWarn("⚠️ Primary API failed:", err.message);
@@ -390,7 +446,7 @@ export function useLocation() {
       return primaryAddr;
     }
 
-    // 2. Fallback API (BigDataCloud)
+    // 2. Fallback API (BigDataCloud) only if primary failed completely
     try {
       debugLog("⚠️ Primary incomplete/failed. Trying Fallback API for:", latitude, longitude);
       fallbackAddr = await reverseGeocodeDirect(latitude, longitude, forceFresh);
@@ -421,7 +477,15 @@ export function useLocation() {
     if (fallbackAddr && fallbackAddr.city && fallbackAddr.city !== "Unknown City") return fallbackAddr;
     if (primaryAddr) return primaryAddr;
 
-    throw new Error("Both geocoding APIs failed to return a valid location");
+    // Graceful fallback: return a usable location instead of throwing
+    return {
+      city: "Current Location",
+      state: "",
+      country: "India",
+      area: "Current Location",
+      address: "Current Location",
+      formattedAddress: "Current Location",
+    };
   }
 
   /* ===================== DB FETCH ===================== */
@@ -519,11 +583,10 @@ export function useLocation() {
         debugLog(`?? Requesting location${isRetry ? ' (retry with lower accuracy)' : ' (high accuracy)'}...`)
         debugLog(`?? Force fresh: ${forceFresh ? 'YES' : 'NO'}, maximumAge: ${options.maximumAge || (forceFresh ? 0 : 60000)}`)
 
-        // Use cached location if available and not too old (faster response)
-        // If forceFresh is true, don't use cache (maximumAge: 0)
+        // Use cached location if available and not too old (Zomato-style instant response)
         const cachedOptions = {
           ...options,
-          maximumAge: forceFresh ? 0 : (options.maximumAge || 60000), // If forceFresh, get fresh location
+          maximumAge: forceFresh ? 15000 : (options.maximumAge || 60000), // Allow 15s recent cache to prevent hardware lock
         }
 
         navigator.geolocation.getCurrentPosition(
@@ -602,16 +665,22 @@ export function useLocation() {
                 latitude,
                 longitude,
                 accuracy: accuracy || null,
-                address: displayAddress, // Locality parts for navbar display
-                formattedAddress: completeFormattedAddress || addr.formattedAddress || displayAddress // Complete detailed address
+                address: displayAddress || addr.area || addr.city || "Current Location",
+                formattedAddress: completeFormattedAddress || addr.formattedAddress || displayAddress || "Current Location"
               }
 
-              // Check if location has placeholder values - don't save placeholders
+              // Check if location has placeholder values - only reject if coordinates are missing
               const hasPlaceholder =
-                finalLoc.city === "Current Location" ||
-                finalLoc.address === "Select location" ||
-                finalLoc.formattedAddress === "Select location" ||
-                (!finalLoc.city && !finalLoc.address && !finalLoc.formattedAddress && !finalLoc.area);
+                !latitude ||
+                !longitude ||
+                (finalLoc.address === "Select location" && !finalLoc.area && !finalLoc.city);
+
+              if (finalLoc.address === "Select location") {
+                finalLoc.address = finalLoc.area || finalLoc.city || "Current Location";
+              }
+              if (finalLoc.formattedAddress === "Select location") {
+                finalLoc.formattedAddress = [finalLoc.area, finalLoc.city, finalLoc.state].filter(Boolean).join(", ") || finalLoc.address || "Current Location";
+              }
 
               // PREVENT OVERWRITING DETAILED ADDRESS WITH INCOMPLETE ONE
               if (!hasPlaceholder) {
@@ -637,9 +706,7 @@ export function useLocation() {
               }
 
               if (hasPlaceholder) {
-                debugWarn("⚠️ Skipping save - location contains placeholder values:", finalLoc)
-                // Don't save placeholder values to localStorage or DB
-                // Just set in state for display but don't persist
+                debugWarn("⚠️ Skipping save - coordinates missing:", finalLoc)
                 const coordOnlyLoc = {
                   latitude,
                   longitude,
@@ -658,6 +725,7 @@ export function useLocation() {
 
               debugLog("?? Saving location:", finalLoc)
               localStorage.setItem("userLocation", JSON.stringify(finalLoc))
+              window.dispatchEvent(new CustomEvent("userLocationUpdated", { detail: { location: finalLoc } }))
               setLocation(finalLoc)
               setPermissionGranted(true)
               if (showLoading) setLoading(false)
@@ -804,13 +872,11 @@ export function useLocation() {
       })
     }
 
-    // Try with high accuracy first
-    // If forceFresh is true, don't use cached location (maximumAge: 0)
-    // Otherwise, allow cached location for faster response
+    // Fast instant location (Zomato-style network/Wi-Fi positioning, no satellite wait)
     return getPositionWithRetry({
-      enableHighAccuracy: true,  // Use GPS for exact location
-      timeout: 6000,             // 6 seconds timeout (fast GPS response)
-      maximumAge: forceFresh ? 5000 : 60000  // Allow 5s recent cache to prevent hardware lock delay
+      enableHighAccuracy: false, // Turn off high accuracy GPS for instant response
+      timeout: 4000,             // 4 seconds timeout max
+      maximumAge: forceFresh ? 15000 : 60000 // Allow recent cache for instant response
     })
   }
 
@@ -1058,15 +1124,14 @@ export function useLocation() {
               watchIdRef.current = null
             }
 
-            // Retry with HIGH ACCURACY GPS (don't use network-based location)
-            // Network-based location is less accurate and won't give exact landmarks
+            // Retry with network-based location
             setTimeout(() => {
               startWatch({
-                enableHighAccuracy: true,   // Keep using GPS (not network-based)
-                timeout: 20000,              // 20 seconds timeout (give GPS more time)
-                maximumAge: 0                // Always get fresh GPS location
+                enableHighAccuracy: false,   // Fast network-based location
+                timeout: 5000,               // 5 seconds timeout
+                maximumAge: 30000            // Allow 30s cache
               })
-            }, 3000) // 3 second delay before retry
+            }, 1000)
             return
           }
 
@@ -1079,24 +1144,19 @@ export function useLocation() {
           }
 
           // Don't clear the watch - let it keep trying in background
-          // The user might move to a location with better GPS signal
         },
         options
       )
     }
 
-    // Start with HIGH ACCURACY GPS for live location tracking
-    // CRITICAL: enableHighAccuracy: true forces GPS (not network-based) for accurate location
-    // Network-based location won't give exact landmarks like "Mama Loca Cafe"
+    // Start with fast network/Wi-Fi positioning for instant updates
     startWatch({
-      enableHighAccuracy: true,   // CRITICAL: Use GPS (not network-based) for accurate location
-      timeout: 15000,             // 15 seconds timeout (gives GPS more time to get accurate fix)
-      maximumAge: 0               // Always get fresh GPS location (no cache for live tracking)
+      enableHighAccuracy: false,   // Fast network-based location
+      timeout: 5000,               // 5 seconds timeout
+      maximumAge: 30000            // 30s cache
     })
 
-    debugLog("??? GPS High Accuracy enabled for live location tracking")
-    debugLog("? GPS will provide accurate coordinates for reverse geocoding")
-    debugLog("? Network-based location disabled (less accurate)")
+    debugLog("⚡ Fast network positioning enabled for live location tracking")
   }
 
   const stopWatchingLocation = () => {
@@ -1334,10 +1394,6 @@ export function useLocation() {
     setError(null)
 
     try {
-      // Clear cached location to force fresh fetch
-      localStorage.removeItem("userLocation")
-      debugLog("??? Cleared cached location from localStorage")
-
       // Clear global reverse geocode cache so we get a truly fresh address
       globalReverseGeocodeLastSuccess = null
       globalReverseGeocodeLastStartAt = 0

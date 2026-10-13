@@ -36,7 +36,6 @@ import {
 import { Textarea } from "@food/components/ui/textarea"
 import { useOptionalOrders } from "@food/context/OrdersContext"
 import { useProfile } from "@food/context/ProfileContext"
-import { useLocation as useUserLocation } from "@food/hooks/useLocation"
 import DeliveryTrackingMap from "@food/components/user/DeliveryTrackingMap"
 import { orderAPI, restaurantAPI } from "@food/api"
 import { useCompanyName } from "@food/hooks/useCompanyName"
@@ -822,25 +821,39 @@ export default function OrderTracking() {
   const ordersContext = useOptionalOrders()
   const getOrderById = ordersContext?.getOrderById || (() => null)
   const { profile, getDefaultAddress } = useProfile()
-  const { location: userLiveLocation } = useUserLocation()
 
   const { isConnected: isSocketConnected } = useUserNotifications()
   
-  // State for order data
-  const [order, setOrder] = useState(() =>
-    prefetchedOrder
-      ? transformOrderForTracking(
-          isQuickOrder ? normalizeQuickOrderForTracking(prefetchedOrder) : prefetchedOrder,
-        )
-      : null,
-  )
-  const [loading, setLoading] = useState(() => !prefetchedOrder)
+  // Instant Order Cache: Check prefetched state, router state, or sessionStorage
+  const getInitialOrder = () => {
+    if (prefetchedOrder) {
+      return transformOrderForTracking(
+        isQuickOrder ? normalizeQuickOrderForTracking(prefetchedOrder) : prefetchedOrder
+      )
+    }
+    if (orderId) {
+      try {
+        const cached = sessionStorage.getItem(`order_cache_${orderId}`)
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          return transformOrderForTracking(
+            isQuickOrder ? normalizeQuickOrderForTracking(parsed) : parsed
+          )
+        }
+      } catch {}
+    }
+    return null
+  }
+
+  const initialOrder = getInitialOrder()
+  const [order, setOrder] = useState(initialOrder)
+  const [loading, setLoading] = useState(() => !initialOrder)
   const [error, setError] = useState(null)
 
-  const [showConfirmation, setShowConfirmation] = useState(confirmed)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const [orderStatus, setOrderStatus] = useState(() => 
-    prefetchedOrder 
-      ? mapOrderToTrackingUiStatus(isQuickOrder ? normalizeQuickOrderForTracking(prefetchedOrder) : prefetchedOrder) 
+    initialOrder 
+      ? mapOrderToTrackingUiStatus(initialOrder) 
       : 'placed'
   )
   const [estimatedTime, setEstimatedTime] = useState(29)
@@ -996,71 +1009,67 @@ export default function OrderTracking() {
       if (!needle) return null
       if (isQuickOrder) {
         try {
-          const listResponse = await customerApi.getMyOrders({ page: 1, limit: 25 })
-          const orders = listResponse?.data?.data?.orders || listResponse?.data?.orders || []
-          return (orders || []).find((o) => {
-            const candidates = [o?._id, o?.id, o?.orderId, o?.mongoId].map(normalizeLookupId)
-            return candidates.includes(needle)
-          }) || null
+          const listResponse = await customerApi.getMyOrders({}, { forceRefresh: true })
+          const rawList =
+            listResponse?.data?.result ||
+            listResponse?.data?.results ||
+            listResponse?.data?.data?.orders ||
+            listResponse?.data?.data?.data ||
+            listResponse?.data?.orders ||
+            []
+          return (
+            (rawList || []).find((o) => {
+              const candidates = [o?._id, o?.id, o?.orderId, o?.mongoId].map(normalizeLookupId)
+              return candidates.includes(needle)
+            }) || null
+          )
         } catch {
           return null
         }
       }
-      const maxPages = 2
-      const limit = 25
-
-      for (let page = 1; page <= maxPages; page += 1) {
-        const listResponse = await orderAPI.getOrders({ page, limit })
-        let orders = []
-        if (listResponse?.data?.success && listResponse?.data?.data?.orders) {
-          orders = listResponse.data.data.orders || []
-        } else if (listResponse?.data?.orders) {
-          orders = listResponse.data.orders || []
-        } else if (Array.isArray(listResponse?.data?.data?.data)) {
-          orders = listResponse.data.data.data || []
-        } else if (Array.isArray(listResponse?.data?.data)) {
-          orders = listResponse.data.data || []
-        }
-
-        const matched = (orders || []).find((o) => {
-          const candidates = [o?._id, o?.id, o?.orderId, o?.mongoId].map(normalizeLookupId)
-          return candidates.includes(needle)
-        })
-        if (matched) return matched
-        const totalPages = Number(listResponse?.data?.data?.pagination?.pages) || Number(listResponse?.data?.data?.totalPages) || 1
-        if (page >= totalPages) break
+      try {
+        const listResponse = await orderAPI.getOrders({ page: 1, limit: 25 })
+        const orders =
+          listResponse?.data?.data?.orders ||
+          listResponse?.data?.orders ||
+          listResponse?.data?.result ||
+          listResponse?.data?.results ||
+          []
+        return (
+          (orders || []).find((o) => {
+            const candidates = [o?._id, o?.id, o?.orderId, o?.mongoId].map(normalizeLookupId)
+            return candidates.includes(needle)
+          }) || null
+        )
+      } catch {
+        return null
       }
-      return null
     },
     fetchOrderDetailsWithFallback: async (options = {}) => {
       const lookupIds = lookupIdsRef.current
-      if (lookupIds.length === 0) throw new Error("Order id required")
-      let lastError = null
-      for (const id of lookupIds) {
-        try {
-          if (isQuickOrder) {
-            return await customerApi.getOrderDetails(id, options)
-          }
-          return await orderAPI.getOrderDetails(id, options)
-        } catch (err) {
-          lastError = err
-          if (err?.response?.status === 400 || err?.response?.status === 404) {
-            // Immediate cross-module fallback if order might belong to the other service
-            try {
-              if (isQuickOrder) {
-                return await orderAPI.getOrderDetails(id, options)
-              } else {
-                return await customerApi.getOrderDetails(id, options)
-              }
-            } catch (crossErr) {
-              lastError = crossErr
-            }
-            continue
-          }
-          throw err
+      const primaryId = lookupIds[0] || orderId
+      if (!primaryId) throw new Error("Order id required")
+
+      try {
+        if (isQuickOrder) {
+          return await customerApi.getOrderDetails(primaryId, options)
         }
+        return await orderAPI.getOrderDetails(primaryId, options)
+      } catch (err) {
+        // Immediate cross-module fallback if order belongs to the other service (food vs quick)
+        if (err?.response?.status === 400 || err?.response?.status === 404) {
+          try {
+            if (isQuickOrder) {
+              return await orderAPI.getOrderDetails(primaryId, options)
+            } else {
+              return await customerApi.getOrderDetails(primaryId, options)
+            }
+          } catch (crossErr) {
+            throw crossErr
+          }
+        }
+        throw err
       }
-      throw lastError || new Error("Failed to fetch order details")
     }
   });
 
@@ -1111,27 +1120,31 @@ export default function OrderTracking() {
       }
     }
 
-    const liveLat = Number(userLiveLocation?.latitude)
-    const liveLng = Number(userLiveLocation?.longitude)
-    if (Number.isFinite(liveLat) && Number.isFinite(liveLng)) {
-      return { lat: liveLat, lng: liveLng }
-    }
+    try {
+      const cached = JSON.parse(localStorage.getItem('userLocation') || '{}')
+      const liveLat = Number(cached?.latitude)
+      const liveLng = Number(cached?.longitude)
+      if (Number.isFinite(liveLat) && Number.isFinite(liveLng)) {
+        return { lat: liveLat, lng: liveLng }
+      }
+    } catch {}
 
     return null
   }, [
     order?.address?.coordinates,
     order?.address?.location?.coordinates,
-    defaultAddress?.location?.coordinates,
-    userLiveLocation?.latitude,
-    userLiveLocation?.longitude
+    defaultAddress?.location?.coordinates
   ])
 
   const userLiveCoords = useMemo(() => {
-    const lat = Number(userLiveLocation?.latitude)
-    const lng = Number(userLiveLocation?.longitude)
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-    return { lat, lng }
-  }, [userLiveLocation?.latitude, userLiveLocation?.longitude])
+    try {
+      const cached = JSON.parse(localStorage.getItem('userLocation') || '{}')
+      const lat = Number(cached?.latitude)
+      const lng = Number(cached?.longitude)
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng }
+    } catch {}
+    return null
+  }, [])
 
   const isAdminAccepted = useMemo(() => {
     const status = order?.status
@@ -1333,11 +1346,19 @@ export default function OrderTracking() {
       if (isInitial && now - lastPollExecutionRef.current < 1000) return;
       if (isInitial) lastPollExecutionRef.current = now;
 
-      // Check context immediately to avoid loaders if data exists locally
-      if (isInitial) {
-        const rawContext = isQuickOrder ? null : getOrderById(orderId);
+      // Check context or sessionStorage immediately to avoid loaders if data exists locally
+      if (isInitial && !order) {
+        let rawContext = isQuickOrder ? null : getOrderById(orderId);
+        if (!rawContext && orderId) {
+          try {
+            const cached = sessionStorage.getItem(`order_cache_${orderId}`);
+            if (cached) rawContext = JSON.parse(cached);
+          } catch {}
+        }
         if (rawContext) {
-          setOrder(transformOrderForTracking(rawContext));
+          setOrder(transformOrderForTracking(
+            isQuickOrder ? normalizeQuickOrderForTracking(rawContext) : rawContext
+          ));
           setLoading(false);
         }
       }
@@ -1365,6 +1386,11 @@ export default function OrderTracking() {
         }
 
         if (finalOrderData) {
+          if (orderId) {
+            try {
+              sessionStorage.setItem(`order_cache_${orderId}`, JSON.stringify(finalOrderData));
+            } catch {}
+          }
           setOrder(prev => {
             const transformedOrder = transformOrderForTracking(
               isQuickOrder ? normalizeQuickOrderForTracking(finalOrderData) : finalOrderData,
@@ -1441,28 +1467,6 @@ export default function OrderTracking() {
     terminalPollStopRef.current = ui === 'delivered' || ui === 'cancelled'
   }, [order])
 
-  // Post-checkout splash only — real status comes from API / poll / socket.
-  useEffect(() => {
-    if (!confirmed) return
-    confirmationShownAtRef.current = Date.now()
-    setShowConfirmation(true)
-  }, [confirmed, orderId])
-
-  useEffect(() => {
-    if (!showConfirmation) return
-
-    const elapsed = Date.now() - confirmationShownAtRef.current
-    const minVisibleMs = 250
-    const maxVisibleMs = 700
-    const hasResolvedData = Boolean(order) || Boolean(error) || !loading
-    const remaining = hasResolvedData
-      ? Math.max(0, minVisibleMs - elapsed)
-      : Math.max(0, maxVisibleMs - elapsed)
-
-    const timer1 = setTimeout(() => setShowConfirmation(false), remaining)
-    return () => clearTimeout(timer1)
-  }, [showConfirmation, order, error, loading])
-
   // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1471,9 +1475,9 @@ export default function OrderTracking() {
     return () => clearInterval(timer)
   }, [])
 
-  // Auto-show rating popup when order is delivered
+  // Auto-show rating popup when order is delivered (for Food orders; Quick orders handled by DeliveredOrderReviewPopup)
   useEffect(() => {
-    if (orderStatus !== 'delivered' || !order || ratingModal.open) return;
+    if (isQuickOrder || orderStatus !== 'delivered' || !order || ratingModal.open) return;
 
     const orderIdToRate = order.orderId || order.mongoId || order._id || orderId;
     if (!orderIdToRate) return;
@@ -1508,16 +1512,11 @@ export default function OrderTracking() {
         localStorage.setItem('quickReviewShownOrders', JSON.stringify(Array.from(globalShown)));
       } catch {}
 
-      // Show after a short delay for better UX
-      const timer = setTimeout(() => {
-        setRatingModal({ open: true, order: order });
-        setSelectedRestaurantRating(null);
-        setSelectedDeliveryRating(null);
-        setRestaurantFeedbackText("");
-        setDeliveryFeedbackText("");
-      }, 1500);
-      
-      return () => clearTimeout(timer);
+      setRatingModal({ open: true, order: order });
+      setSelectedRestaurantRating(null);
+      setSelectedDeliveryRating(null);
+      setRestaurantFeedbackText("");
+      setDeliveryFeedbackText("");
     }
   }, [orderStatus, order, shownRatingForOrders, ratingModal.open, orderId]);
 
@@ -2270,7 +2269,7 @@ export default function OrderTracking() {
             isVisible={order !== null}
             fallbackCustomerCoords={fallbackCustomerCoords}
             userLiveCoords={userLiveCoords}
-            userLocationAccuracy={userLiveLocation?.accuracy ?? null}
+            userLocationAccuracy={null}
             onEtaUpdate={handleEtaUpdate}
           />
           {!hasActiveDeliveryTracking && (

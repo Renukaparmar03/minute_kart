@@ -24,6 +24,8 @@ import {
   HiOutlinePhone,
   HiOutlineBanknotes,
   HiOutlineChevronDown,
+  HiOutlineCalendarDays,
+  HiOutlineClock,
 } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -208,18 +210,40 @@ const Dashboard = () => {
     }
   };
 
+  const resolveSellerReceivable = (order) => {
+    const receivable = Number(order?.pricing?.receivable);
+    if (Number.isFinite(receivable)) return receivable;
+
+    const subtotal = Number(order?.pricing?.subtotal);
+    const commission = Number(order?.pricing?.commission);
+    if (Number.isFinite(subtotal) && Number.isFinite(commission)) {
+      return Math.max(0, subtotal - commission);
+    }
+
+    const fallback = Number(order?.pricing?.total ?? order?.total);
+    return Number.isFinite(fallback) ? fallback : 0;
+  };
+
+  const formatMoney = (value) =>
+    `Rs ${Number(value || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
   const normalizeOrderForModal = (order) => {
     if (!order) return null;
     const addr = order.address;
-    const addressStr = [
-      addr?.line1,
-      addr?.line2,
-      addr?.city,
-      addr?.state,
-      addr?.pincode,
-    ]
-      .filter(Boolean)
-      .join(", ");
+    const addressStr = order.address?.address
+      ? `${order.address.address}, ${order.address.city || ""}`.trim()
+      : [
+          addr?.line1,
+          addr?.line2,
+          addr?.city,
+          addr?.state,
+          addr?.pincode,
+        ]
+          .filter(Boolean)
+          .join(", ");
     const items = (order.items || []).map((item) => ({
       name: item.name || item.productName || "Item",
       price:
@@ -232,18 +256,51 @@ const Dashboard = () => {
     }));
     return {
       id: order.orderId,
+      orderId: order.orderId,
       customer: {
         name: order.customer?.name || "Customer",
         phone: order.customer?.phone || "",
       },
       address: addressStr || "—",
       items,
-      total: Number(order.pricing?.total ?? 0),
+      total: resolveSellerReceivable(order),
+      pricing: {
+        subtotal: Number(order.pricing?.subtotal || 0),
+        commission: Number(order.pricing?.commission || 0),
+        total: Number(order.pricing?.total || 0),
+        receivable: resolveSellerReceivable(order),
+        deliveryFee: Number(order.pricing?.deliveryFee || 0),
+        handlingFee: Number(order.pricing?.handlingFee || 0),
+        platformFee: Number(order.pricing?.platformFee || 0),
+        gstAmount: Number(order.pricing?.gstAmount || order.pricing?.gst || 0),
+      },
       status: order.status || "pending",
       payment:
         order.payment?.method === "cash" || order.payment?.method === "cod"
           ? "Cash on Delivery"
           : "Online Paid",
+      date: order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "",
+      time: order.createdAt
+        ? new Date(order.createdAt).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "",
+      dispatchStatus: String(order.dispatchStatus || "unassigned").toLowerCase(),
+      deliveryPartner: order.deliveryPartner
+        ? {
+            name: order.deliveryPartner.name || "Delivery Partner",
+            phone: order.deliveryPartner.phone || "",
+            vehicleType: order.deliveryPartner.vehicleType || "",
+            vehicleNumber: order.deliveryPartner.vehicleNumber || "",
+          }
+        : null,
     };
   };
 
@@ -611,10 +668,23 @@ const Dashboard = () => {
                         className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0">
                         {selectedOrder.status}
                       </Badge>
-                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                      <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
                         #{selectedOrder.id}
                       </span>
                     </div>
+                    {(selectedOrder.date || selectedOrder.time) && (
+                      <p className="text-[11px] font-bold text-slate-500 mt-1.5 flex items-center gap-1.5">
+                        <HiOutlineCalendarDays className="h-3.5 w-3.5" />
+                        {selectedOrder.date}
+                        {selectedOrder.time && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <HiOutlineClock className="h-3.5 w-3.5" />
+                            {selectedOrder.time}
+                          </>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <button
@@ -650,36 +720,117 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
+                    <div>
+                      <h4 className="text-xs font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <HiOutlineTruck className="h-3.5 w-3.5 text-blue-500" />{" "}
+                        Delivery Partner
+                      </h4>
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 shadow-sm">
+                        {selectedOrder.deliveryPartner ? (
+                          <>
+                            <p className="text-xs font-bold text-slate-800">
+                              {selectedOrder.deliveryPartner.name}
+                            </p>
+                            {selectedOrder.deliveryPartner.phone && (
+                              <p className="text-[11px] font-semibold text-slate-600 mt-0.5">
+                                {selectedOrder.deliveryPartner.phone}
+                              </p>
+                            )}
+                            {selectedOrder.deliveryPartner.vehicleType && (
+                              <p className="text-[11px] font-semibold text-slate-500 mt-1">
+                                {selectedOrder.deliveryPartner.vehicleType}{" "}
+                                {selectedOrder.deliveryPartner.vehicleNumber
+                                  ? `• ${selectedOrder.deliveryPartner.vehicleNumber}`
+                                  : ""}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-xs font-bold text-slate-600">
+                            {selectedOrder.dispatchStatus === "assigned"
+                              ? "Closest rider notified. Waiting for acceptance."
+                              : "No rider has accepted yet."}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-3 sm:space-y-4">
                     <div className="bg-primary/5 p-3 sm:p-4 rounded-3xl border border-primary/10">
-                      <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">
+                      <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-3">
                         Order Summary
                       </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs">
                           <span className="font-bold text-slate-600">
-                            Subtotal
+                            Items subtotal
                           </span>
                           <span className="font-black text-slate-900">
-                            ₹{(selectedOrder.total - 10).toFixed(2)}
+                            {formatMoney(selectedOrder.pricing?.subtotal)}
                           </span>
                         </div>
                         <div className="flex justify-between text-xs">
                           <span className="font-bold text-slate-600">
-                            Delivery Fee
+                            Delivery fee
                           </span>
-                          <span className="font-black text-emerald-600">
-                            ₹10.00
+                          <span className="font-black text-slate-900">
+                            {formatMoney(selectedOrder.pricing?.deliveryFee)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-slate-600">
+                            Handling charge
+                          </span>
+                          <span className="font-black text-slate-900">
+                            {formatMoney(selectedOrder.pricing?.handlingFee)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-slate-600">
+                            Platform fee
+                          </span>
+                          <span className="font-black text-slate-900">
+                            {formatMoney(selectedOrder.pricing?.platformFee)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-slate-600">
+                            GST
+                          </span>
+                          <span className="font-black text-slate-900">
+                            {formatMoney(selectedOrder.pricing?.gstAmount)}
+                          </span>
+                        </div>
+                        <div className="h-px bg-primary/10 my-2" />
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-slate-900">
+                            Customer paid
+                          </span>
+                          <span className="font-black text-slate-900">
+                            {formatMoney(
+                              (selectedOrder.pricing?.subtotal || 0) +
+                              (selectedOrder.pricing?.deliveryFee || 0) +
+                              (selectedOrder.pricing?.handlingFee || 0) +
+                              (selectedOrder.pricing?.platformFee || 0) +
+                              (selectedOrder.pricing?.gstAmount || 0)
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-slate-600">
+                            Commission
+                          </span>
+                          <span className="font-black text-rose-600">
+                            -{formatMoney(selectedOrder.pricing?.commission)}
                           </span>
                         </div>
                         <div className="h-px bg-primary/10 my-2" />
                         <div className="flex justify-between text-sm">
                           <span className="font-black text-slate-900">
-                            Total
+                            Seller Receivable
                           </span>
                           <span className="font-black text-primary">
-                            ₹{selectedOrder.total.toFixed(2)}
+                            {formatMoney(selectedOrder.total)}
                           </span>
                         </div>
                       </div>

@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Settings,
   Building2,
+  Camera,
 } from "lucide-react";
 import { authAPI } from "../../../services/api";
 import { sellerApi } from "../services/sellerApi";
@@ -32,7 +33,9 @@ import Button from "@shared/components/ui/Button";
 import MapPicker from "../../../shared/components/MapPicker";
 
 const SellerProfile = () => {
-  const { logout } = useAuth();
+  const { logout, refreshUser } = useAuth();
+  const fileInputRef = React.useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profile, setProfile] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -250,6 +253,51 @@ const SellerProfile = () => {
     }
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file (PNG, JPG, WEBP, etc.)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should not exceed 5MB.");
+      return;
+    }
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("profileImage", file);
+
+    const toastId = toast.loading("Uploading profile image...");
+    setIsUploadingImage(true);
+    try {
+      const response = await sellerApi.updateProfile(uploadFormData);
+      const updated = response?.data?.result || response?.data?.data;
+      if (updated?.profileImage) {
+        setProfile((prev) => ({ ...prev, profileImage: updated.profileImage }));
+      } else {
+        await fetchProfile();
+      }
+      if (refreshUser) {
+        await refreshUser();
+      }
+      toast.success("Profile image updated successfully!", { id: toastId });
+    } catch (error) {
+      console.error("Profile image upload failed:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to upload profile image",
+        { id: toastId },
+      );
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -260,17 +308,49 @@ const SellerProfile = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-8 font-['Outfit']">
-      
+      {/* Hidden file input for profile image */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        className="hidden"
+      />
+
       {/* --- MOBILE VIEW --- */}
       <div className="block md:hidden bg-slate-50 min-h-screen -mx-4 -mt-4 relative">
         {!isEditing ? (
           <div className="bg-white rounded-t-[32px] px-4 pt-8 pb-20 mt-2 shadow-sm min-h-[calc(100vh-64px)]">
             {/* Avatar & Store Info */}
             <div className="flex items-center gap-5 mb-8 px-2">
-              <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md overflow-hidden shrink-0">
-                 <span className="text-4xl font-black text-slate-700">
-                   {profile?.name?.charAt(0)}
-                 </span>
+              <div className="relative group shrink-0">
+                <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md overflow-hidden relative">
+                  {profile?.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt={profile?.name || "Profile"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl font-black text-slate-700">
+                      {profile?.name?.charAt(0)}
+                    </span>
+                  )}
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="absolute -bottom-1 -right-1 p-2 bg-emerald-600 hover:bg-emerald-700 active:scale-90 text-white rounded-full shadow-lg transition-all border-2 border-white cursor-pointer"
+                  title="Change profile picture"
+                >
+                  <Camera size={16} />
+                </button>
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-2xl font-black text-slate-800 truncate">{profile?.shopName || profile?.name}</h2>
@@ -318,10 +398,51 @@ const SellerProfile = () => {
           </div>
         ) : (
           <div className="bg-white rounded-t-[32px] px-5 pt-6 pb-24 shadow-sm mt-2 min-h-[calc(100vh-64px)]">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-black text-slate-800">Setting and Edit Profile</h2>
               <button onClick={() => setIsEditing(false)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-full">
                 <X size={20} />
+              </button>
+            </div>
+
+            {/* Avatar Upload in Edit Mode */}
+            <div className="flex flex-col items-center justify-center mb-6">
+              <div className="relative group">
+                <div className="h-24 w-24 rounded-full bg-slate-100 flex items-center justify-center border-4 border-slate-200 shadow-md overflow-hidden relative">
+                  {profile?.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt={profile?.name || "Profile"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl font-black text-slate-700">
+                      {profile?.name?.charAt(0)}
+                    </span>
+                  )}
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="absolute -bottom-1 -right-1 p-2 bg-emerald-600 hover:bg-emerald-700 active:scale-90 text-white rounded-full shadow-lg transition-all border-2 border-white cursor-pointer"
+                  title="Change profile picture"
+                >
+                  <Camera size={16} />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5"
+              >
+                <Camera size={14} /> Change Photo
               </button>
             </div>
             
@@ -567,12 +688,37 @@ const SellerProfile = () => {
           {/* Profile Info Row */}
           <div className="absolute bottom-8 left-4 right-4 md:left-12 md:right-12 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-10">
             {/* Avatar Container */}
-            <div className="h-32 w-32 md:h-44 md:w-44 rounded-full bg-white p-2 shadow-[0_30px_70px_rgba(0,0,0,0.15)] flex-shrink-0">
-              <div className="h-full w-full rounded-full bg-slate-50 flex items-center justify-center border-4 border-slate-50">
-                <span className="text-5xl md:text-7xl font-black text-slate-900">
-                  {profile?.name?.charAt(0)}
-                </span>
+            <div className="relative group shrink-0">
+              <div className="h-32 w-32 md:h-44 md:w-44 rounded-full bg-white p-2 shadow-[0_30px_70px_rgba(0,0,0,0.15)] flex-shrink-0">
+                <div className="h-full w-full rounded-full bg-slate-50 flex items-center justify-center border-4 border-slate-50 overflow-hidden relative">
+                  {profile?.profileImage ? (
+                    <img
+                      src={profile.profileImage}
+                      alt={profile?.name || "Profile"}
+                      className="h-full w-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-5xl md:text-7xl font-black text-slate-900">
+                      {profile?.name?.charAt(0)}
+                    </span>
+                  )}
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center rounded-full text-white backdrop-blur-[2px]">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mb-1" />
+                      <span className="text-[10px] font-bold">Uploading...</span>
+                    </div>
+                  )}
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-full shadow-xl transition-all border-2 md:border-4 border-white cursor-pointer hover:scale-110 flex items-center justify-center"
+                title="Change profile picture"
+              >
+                <Camera size={20} className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
             </div>
 
             {/* Info Block */}

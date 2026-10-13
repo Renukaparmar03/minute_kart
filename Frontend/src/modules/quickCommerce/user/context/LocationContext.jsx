@@ -396,9 +396,9 @@ export const LocationProvider = ({ children }) => {
           resolve({ ok: false, error: message });
         },
         {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 0,
+          enableHighAccuracy: false,
+          timeout: 4000,
+          maximumAge: 60000,
         },
       );
     });

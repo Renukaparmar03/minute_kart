@@ -164,7 +164,7 @@ export const updateSellerOrderStatus = async (sellerOrderId, sellerId, nextStatu
       if (nextStatus === 'ready_for_pickup') {
         const assignedId = parentOrder.dispatch?.deliveryPartnerId;
         if (assignedId) {
-          const seller = await Seller.findById(sellerId).select('shopName').lean();
+          const seller = await Seller.findById(sellerId).select('shopName name profileImage location phone').lean();
           const io = getIO();
           const payload = buildDeliverySocketPayload(parentOrder, seller);
           io.to(rooms.delivery(assignedId)).emit('order_ready', payload);

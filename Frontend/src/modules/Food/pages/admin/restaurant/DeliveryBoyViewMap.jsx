@@ -6,6 +6,7 @@ import { getGoogleMapsApiKey } from "@food/utils/googleMapsApiKey"
 import { Loader } from "@googlemaps/js-api-loader"
 import { subscribeAllDeliveryLocations } from "@food/realtimeTracking"
 import bikeLogo from "@food/assets/bikelogo.png"
+import deliveryIcon from "@/assets/deliveryIcon.png"
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
 const debugError = (...args) => {}
@@ -394,14 +395,14 @@ export default function DeliveryBoyViewMap() {
         } catch (error) {
           debugWarn('?? Error rotating bike icon:', error)
           // Fallback to original image if rotation fails
-          resolve(bikeLogo)
+          resolve(deliveryIcon || bikeLogo)
         }
       }
       img.onerror = () => {
         // Fallback to original image if loading fails
-        resolve(bikeLogo)
+        resolve(deliveryIcon || bikeLogo)
       }
-      img.src = bikeLogo
+      img.src = deliveryIcon || bikeLogo
     })
   }
 

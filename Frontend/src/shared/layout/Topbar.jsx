@@ -300,8 +300,12 @@ const Topbar = ({ onMenuClick }) => {
                     }}
                     className="flex items-center space-x-2.5 p-1 pr-3 hover:bg-gray-50 rounded-xl transition-all duration-300 group ring-1 ring-transparent hover:ring-gray-100 shadow-sm hover:shadow-md"
                 >
-                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg group-hover:scale-105 transition-transform bg-gradient-to-br from-primary to-indigo-600 shadow-primary/20">
-                        {user?.name?.[0] || 'A'}
+                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg group-hover:scale-105 transition-transform bg-gradient-to-br from-primary to-indigo-600 shadow-primary/20 overflow-hidden">
+                        {user?.profileImage ? (
+                            <img src={user.profileImage} alt={user?.name || 'User'} className="h-full w-full object-cover" />
+                        ) : (
+                            user?.name?.[0] || 'A'
+                        )}
                     </div>
                     <div className="hidden md:block">
                         <p className="text-xs font-bold leading-tight text-gray-900">{user?.name || 'Demo User'}</p>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Star, X, Check, Loader2 } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { customerApi } from "../../services/customerApi";
@@ -19,12 +19,44 @@ const getShownOrderIds = () => {
   }
 };
 
-const markOrderAsShown = (orderId) => {
+const markOrderAsShown = (orderOrId) => {
+  if (!orderOrId) return;
   try {
     const shown = getShownOrderIds();
-    shown.add(String(orderId));
+    if (typeof orderOrId === "object") {
+      if (orderOrId._id) shown.add(String(orderOrId._id));
+      if (orderOrId.orderId) shown.add(String(orderOrId.orderId));
+      if (orderOrId.id) shown.add(String(orderOrId.id));
+      if (orderOrId.customOrderId) shown.add(String(orderOrId.customOrderId));
+    } else {
+      shown.add(String(orderOrId));
+    }
     localStorage.setItem(REVIEW_SHOWN_KEY, JSON.stringify(Array.from(shown)));
-  } catch {}
+  } catch (err) {
+    console.error("[ReviewPopup] Failed to mark order as shown:", err);
+  }
+};
+
+const isOrderDismissed = (order, shownIds) => {
+  if (!order) return true;
+  const idsToCheck = [
+    order._id && String(order._id),
+    order.orderId && String(order.orderId),
+    order.id && String(order.id),
+    order.customOrderId && String(order.customOrderId),
+  ].filter(Boolean);
+
+  return idsToCheck.some((id) => shownIds.has(id));
+};
+
+const isExcludedPath = (pathname) => {
+  const p = (pathname || "").toLowerCase();
+  return (
+    p.includes("/cart") ||
+    p.includes("/checkout") ||
+    p.includes("/payment") ||
+    p.includes("/order-success")
+  );
 };
 
 export default function DeliveredOrderReviewPopup() {
@@ -35,10 +67,30 @@ export default function DeliveredOrderReviewPopup() {
   const [productComments, setProductComments] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const location = useLocation();
-  const lastCheckedRef = useRef(0);
+  const openRef = useRef(false);
 
-  const checkForDeliveredOrders = useCallback(async (force = false) => {
-    // Check if token exists before calling API to avoid errors
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  const handleClose = useCallback(() => {
+    if (order) {
+      markOrderAsShown(order);
+    }
+    setOpen(false);
+    setOrder(null);
+    setProductRatings({});
+    setProductComments({});
+  }, [order]);
+
+  const checkForDeliveredOrders = useCallback(async (targetOrderId = null) => {
+    // If popup is already open or user is currently in cart/checkout, skip
+    if (openRef.current) return;
+    if (isExcludedPath(window.location.pathname)) {
+      console.log("[ReviewPopup] In checkout/cart path, skipping review check");
+      return;
+    }
+
     const token =
       localStorage.getItem("auth_customer") ||
       localStorage.getItem("user_accessToken") ||
@@ -47,113 +99,132 @@ export default function DeliveredOrderReviewPopup() {
       "";
     if (!token) return;
 
-    // Avoid double fetching too close together (throttle to 5 seconds unless forced)
-    const now = Date.now();
-    if (!force && now - lastCheckedRef.current < 5000) return;
-    lastCheckedRef.current = now;
-
     try {
-      console.log("[ReviewPopup] Fetching orders...");
+      console.log("[ReviewPopup] Checking delivered orders...", { targetOrderId });
       const res = await customerApi.getMyOrders({}, { forceRefresh: true });
-      
-      // Match the exact response format used in OrdersPage.jsx
-      const rawList = res?.data?.result || res?.data?.results || res?.data?.data?.orders || res?.data?.data?.data || res?.data?.data || [];
-      
-      // Filter to quick commerce orders only
-      const orders = Array.isArray(rawList) ? rawList.filter(order => {
-        const type = order.orderType || order.module || 'quick';
-        const oid = String(order.orderId || order.id || order._id || '');
-        return type === 'quick' || oid.startsWith('QC') || (!oid.startsWith('FOD') && !oid.startsWith('ORD') && type !== 'food');
-      }) : [];
 
-      console.log("[ReviewPopup] Found", orders.length, "quick orders");
+      const rawList =
+        res?.data?.result ||
+        res?.data?.results ||
+        res?.data?.data?.orders ||
+        res?.data?.data?.data ||
+        res?.data?.data ||
+        [];
+
+      const orders = Array.isArray(rawList)
+        ? rawList.filter((order) => {
+            const type = order.orderType || order.module || "quick";
+            const oid = String(order.orderId || order.id || order._id || "");
+            return (
+              type === "quick" ||
+              oid.startsWith("QC") ||
+              (!oid.startsWith("FOD") && !oid.startsWith("ORD") && type !== "food")
+            );
+          })
+        : [];
 
       if (orders.length === 0) return;
 
       const shownIds = getShownOrderIds();
+      const now = Date.now();
+      const FIFTEEN_MINUTES = 15 * 60 * 1000;
 
-      // Find first delivered order that hasn't been shown and hasn't been rated
-      const unratedOrder = orders.find((o) => {
-        const status = (
-          o.orderStatus ||
-          o.status ||
-          ""
-        ).toLowerCase();
-        const isDelivered =
-          status === "delivered" || status === "completed";
-        
-        const id = String(o._id || o.orderId || "");
-        
-        if (!isDelivered) return false;
-        if (!id || shownIds.has(id)) return false;
+      // Filter to delivered quick orders
+      const deliveredOrders = orders.filter((o) => {
+        const status = (o.orderStatus || o.status || "").toLowerCase();
+        return status === "delivered" || status === "completed";
+      });
 
-        // Check if already rated
+      // Auto-suppress any older delivered orders (>15 mins ago) so historical orders never pop up
+      let updatedShown = false;
+      deliveredOrders.forEach((o) => {
+        const deliveredTimeStr =
+          o.deliveredAt || o.deliveryTime || o.updatedAt || o.createdAt;
+        const deliveredTime = deliveredTimeStr ? new Date(deliveredTimeStr).getTime() : 0;
+        const isAncient = deliveredTime > 0 && now - deliveredTime > FIFTEEN_MINUTES;
+
+        if (isAncient && !isOrderDismissed(o, shownIds)) {
+          markOrderAsShown(o);
+          updatedShown = true;
+        }
+      });
+
+      const currentShownIds = updatedShown ? getShownOrderIds() : shownIds;
+
+      // Find the unrated delivered order:
+      // If targetOrderId is specified (socket notification), prioritize that exact order.
+      // Otherwise, pick the most recent order delivered within the last 15 minutes.
+      const candidateOrder = deliveredOrders.find((o) => {
+        if (isOrderDismissed(o, currentShownIds)) return false;
+
         const hasRating = o.ratings?.restaurant?.rating != null;
         if (hasRating) return false;
 
-        return true;
+        if (targetOrderId) {
+          const tid = String(targetOrderId).toLowerCase();
+          return (
+            String(o._id || "").toLowerCase() === tid ||
+            String(o.orderId || "").toLowerCase() === tid ||
+            String(o.id || "").toLowerCase() === tid
+          );
+        }
+
+        // On mount: only trigger if delivered recently (within 15 minutes)
+        const deliveredTimeStr =
+          o.deliveredAt || o.deliveryTime || o.updatedAt || o.createdAt;
+        const deliveredTime = deliveredTimeStr ? new Date(deliveredTimeStr).getTime() : 0;
+        return deliveredTime > 0 && now - deliveredTime <= FIFTEEN_MINUTES;
       });
 
-      if (unratedOrder) {
-        console.log("[ReviewPopup] Found unrated delivered order:", unratedOrder._id || unratedOrder.orderId);
-        // Delay popup for better UX
+      if (candidateOrder) {
+        console.log(
+          "[ReviewPopup] Found unrated delivered order to show review:",
+          candidateOrder._id || candidateOrder.orderId
+        );
+        // Pre-emptively record as shown so repeated triggers do not occur
+        markOrderAsShown(candidateOrder);
+
         setTimeout(() => {
-          setOrder(unratedOrder);
-          setOpen(true);
-          markOrderAsShown(
-            String(unratedOrder._id || unratedOrder.orderId)
-          );
-        }, 1500);
+          if (!isExcludedPath(window.location.pathname)) {
+            setOrder(candidateOrder);
+            setOpen(true);
+          }
+        }, 1200);
       } else {
-        console.log("[ReviewPopup] No unrated delivered orders found");
+        console.log("[ReviewPopup] No eligible delivered orders requiring review popup");
       }
     } catch (err) {
       console.error("[ReviewPopup] Check failed:", err);
     }
   }, []);
 
-  // Trigger check on mount
+  // Trigger check ONCE on initial mount (only if not on excluded checkout/cart path)
   useEffect(() => {
-    checkForDeliveredOrders();
-  }, [checkForDeliveredOrders]);
+    if (!isExcludedPath(location.pathname)) {
+      checkForDeliveredOrders();
+    }
+  }, []); // Runs once on initial mount
 
-  // Trigger check on page navigation
-  useEffect(() => {
-    checkForDeliveredOrders();
-  }, [location.pathname, checkForDeliveredOrders]);
-
-  // Trigger check on real-time order status notification socket events
+  // Trigger check on real-time order status notification socket events (when delivered)
   useEffect(() => {
     const handleOrderStatusNotification = (event) => {
       const payload = event?.detail || {};
       const status = (payload.status || payload.orderStatus || "").toLowerCase();
       console.log("[ReviewPopup] Socket event received:", payload);
       if (status === "delivered" || status === "completed") {
-        console.log("[ReviewPopup] Order completed in real-time. Triggering review check!");
-        checkForDeliveredOrders(true);
+        console.log(
+          "[ReviewPopup] Order delivered in real-time. Triggering review popup check!"
+        );
+        const targetId = payload.orderMongoId || payload.orderId;
+        checkForDeliveredOrders(targetId);
       }
     };
 
-    window.addEventListener('orderStatusNotification', handleOrderStatusNotification);
+    window.addEventListener("orderStatusNotification", handleOrderStatusNotification);
     return () => {
-      window.removeEventListener('orderStatusNotification', handleOrderStatusNotification);
+      window.removeEventListener("orderStatusNotification", handleOrderStatusNotification);
     };
   }, [checkForDeliveredOrders]);
-
-  // Trigger check periodically in background (every 15 seconds)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkForDeliveredOrders();
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [checkForDeliveredOrders]);
-
-  const handleClose = useCallback(() => {
-    setOpen(false);
-    setOrder(null);
-    setProductRatings({});
-    setProductComments({});
-  }, []);
 
   const handleSubmit = useCallback(async () => {
     const ratedProductIds = Object.keys(productRatings);
@@ -164,6 +235,9 @@ export default function DeliveredOrderReviewPopup() {
 
     try {
       setSubmitting(true);
+      if (order) {
+        markOrderAsShown(order);
+      }
 
       // 1. Submit product reviews concurrently
       const productReviewPromises = Object.entries(productRatings).map(
@@ -182,7 +256,7 @@ export default function DeliveredOrderReviewPopup() {
         const targetId = order._id || order.orderId;
         await orderAPI.submitOrderRatings(targetId, {
           restaurantRating: 5,
-          restaurantComment: "Product reviews submitted"
+          restaurantComment: "Product reviews submitted",
         });
       } catch (err) {
         console.debug("Silent order rating submit failed:", err);
@@ -199,29 +273,20 @@ export default function DeliveredOrderReviewPopup() {
     } finally {
       setSubmitting(false);
     }
-  }, [
-    order,
-    productRatings,
-    productComments,
-    handleClose,
-  ]);
+  }, [order, productRatings, productComments, handleClose]);
 
   if (!open || !order) return null;
 
   const items = order.items || [];
-  const storeName =
-    order.restaurantName ||
-    order.restaurant ||
-    order.pickupPoints?.[0]?.sourceName ||
-    "Store";
-  const hasDeliveryPartner = !!(
-    order.deliveryPartnerId || order.dispatch?.deliveryPartnerId
-  );
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div
+        onClick={handleClose}
+        className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+      >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -248,7 +313,7 @@ export default function DeliveredOrderReviewPopup() {
           </div>
 
           {/* Scrollable body */}
-          <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+          <div className="px-6 py-6 space-y-5 overflow-y-auto flex-1">
             {/* Product reviews list */}
             {items.length > 0 ? (
               <div className="space-y-4">
@@ -318,15 +383,25 @@ export default function DeliveredOrderReviewPopup() {
               </p>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="button"
-              disabled={submitting || Object.keys(productRatings).length === 0}
-              onClick={handleSubmit}
-              className="h-14 w-full rounded-2xl bg-foreground font-black text-background shadow-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submitting ? "SUBMITTING..." : "SUBMIT REVIEW"}
-            </button>
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                disabled={submitting || Object.keys(productRatings).length === 0}
+                onClick={handleSubmit}
+                className="h-14 w-full rounded-2xl bg-foreground font-black text-background shadow-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submitting ? "SUBMITTING..." : "SUBMIT REVIEW"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="h-11 w-full rounded-2xl bg-muted/60 hover:bg-muted font-bold text-xs text-muted-foreground hover:text-foreground transition-all active:scale-95 flex items-center justify-center"
+              >
+                Not now, thanks
+              </button>
+            </div>
 
             {Object.keys(productRatings).length === 0 && (
               <p className="text-[10px] text-center font-bold uppercase tracking-widest text-slate-400">

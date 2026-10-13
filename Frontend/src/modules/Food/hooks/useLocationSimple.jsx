@@ -181,9 +181,9 @@ export function useLocationSimple() {
       }
 
       const options = {
-        enableHighAccuracy: true, // Use GPS for accurate location
-        timeout: 10000, // 10 seconds timeout
-        maximumAge: forceFresh ? 0 : 300000, // Allow 5-minute cache if not forcing fresh
+        enableHighAccuracy: false, // Instant network/Wi-Fi positioning
+        timeout: 4000, // 4 seconds timeout
+        maximumAge: forceFresh ? 15000 : 300000, // Allow recent cache
       }
 
       navigator.geolocation.getCurrentPosition(

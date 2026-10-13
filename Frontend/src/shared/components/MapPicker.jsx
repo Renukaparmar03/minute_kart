@@ -163,9 +163,9 @@ const MapPicker = ({
         alert("Unable to retrieve your current location. Please allow location access and try again.");
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        enableHighAccuracy: false,
+        timeout: 4000,
+        maximumAge: 60000,
       },
     );
   };
