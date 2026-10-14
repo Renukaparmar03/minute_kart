@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { customerApi } from "../services/customerApi";
+import { customerApi, setActiveQuickLocation } from "../services/customerApi";
 import { useAuth } from "@core/context/AuthContext";
 import { userAPI } from "@food/api";
 
@@ -166,6 +166,10 @@ export const LocationProvider = ({ children }) => {
     }
     return defaultLoc;
   });
+
+  // Keep catalog API calls scoped to the location shown in the UI. Set during
+  // render (not in an effect) so children's first fetch already sees it.
+  setActiveQuickLocation(currentLocation);
 
   // Address list for drawer UI – will be hydrated from profile API.
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -459,6 +463,30 @@ export const LocationProvider = ({ children }) => {
     if (typeof window === "undefined") return;
 
     try {
+      // `userLocation` is the cross-module source of truth (Food, GPS bootstrap and
+      // this context all write it); location_v2 can be stale if Food changed it.
+      const shared = JSON.parse(window.localStorage.getItem("userLocation") || "null");
+      if (
+        shared &&
+        Number.isFinite(Number(shared.latitude)) &&
+        Number.isFinite(Number(shared.longitude)) &&
+        (shared.formattedAddress || shared.address)
+      ) {
+        updateLocation(
+          {
+            name: shared.formattedAddress || shared.address,
+            time: "12-15 mins",
+            city: shared.city || "",
+            state: shared.state || "",
+            pincode: shared.postalCode || shared.zipCode || "",
+            latitude: Number(shared.latitude),
+            longitude: Number(shared.longitude),
+          },
+          { persist: false, updateSavedHome: false },
+        );
+        return;
+      }
+
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
@@ -487,7 +515,7 @@ export const LocationProvider = ({ children }) => {
     } catch {
       // ignore parse errors
     }
-    // Live fetch happens only when user taps location pill or "Use current location"
+    // Live GPS fetch on app open is handled by useBootstrapCurrentLocation (user layouts)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -498,15 +526,33 @@ export const LocationProvider = ({ children }) => {
     const handleUserLocationUpdated = (event) => {
       const loc = event.detail?.location;
       if (loc && loc.latitude && loc.longitude) {
-        setCurrentLocation({
+        const nextLocation = {
           name: loc.formattedAddress || loc.address,
           time: "12-15 mins",
           city: loc.city || "",
           state: loc.state || "",
           pincode: loc.postalCode || loc.zipCode || "",
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-        });
+          latitude: Number(loc.latitude),
+          longitude: Number(loc.longitude),
+        };
+        setCurrentLocation(nextLocation);
+        // Keep our own cache in step so a remount doesn't restore the old spot
+        try {
+          window.localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              address: nextLocation.name,
+              city: nextLocation.city,
+              state: nextLocation.state,
+              pincode: nextLocation.pincode,
+              latitude: nextLocation.latitude,
+              longitude: nextLocation.longitude,
+              time: nextLocation.time,
+            }),
+          );
+        } catch {
+          // ignore storage errors
+        }
       }
     };
 

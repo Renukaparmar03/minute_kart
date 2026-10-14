@@ -16,6 +16,7 @@ import { useCartAnimation } from '../context/CartAnimationContext';
 import { resolveQuickImageUrl } from '../utils/image';
 import { useHeroTransition } from '../context/HeroTransitionContext';
 import { useCarouselSwipe } from '../components/shared/ProductCard';
+import VariantSelectorSheet, { hasProductVariants } from '../components/shared/VariantSelectorSheet';
 
 const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
@@ -38,6 +39,8 @@ const CategoryProductCard = ({ product }) => {
     const navigate = useNavigate();
     const imageRef = React.useRef(null);
     const cardRef = React.useRef(null);
+    const [showVariantsModal, setShowVariantsModal] = useState(false);
+    const hasVariants = hasProductVariants(product);
 
     // Intercept card tap: capture rect, trigger hero expand, then navigate
     const handleCardTap = (e) => {
@@ -217,6 +220,11 @@ const CategoryProductCard = ({ product }) => {
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    // Variant products pick a variant from the bottom sheet first
+                                    if (hasVariants) {
+                                        setShowVariantsModal(true);
+                                        return;
+                                    }
                                     addToCart(product);
                                     if (imageRef.current) {
                                         const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
@@ -232,6 +240,10 @@ const CategoryProductCard = ({ product }) => {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        if (hasVariants) {
+                                            setShowVariantsModal(true);
+                                            return;
+                                        }
                                         if (imageRef.current) {
                                             const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
                                             animateRemoveFromCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
@@ -249,6 +261,10 @@ const CategoryProductCard = ({ product }) => {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        if (hasVariants) {
+                                            setShowVariantsModal(true);
+                                            return;
+                                        }
                                         if (imageRef.current) {
                                             const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
                                             animateAddToCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
@@ -265,6 +281,12 @@ const CategoryProductCard = ({ product }) => {
                     </div>
                 </div>
             </div>
+
+            <VariantSelectorSheet
+                product={product}
+                isOpen={showVariantsModal}
+                onClose={() => setShowVariantsModal(false)}
+            />
         </div>
     );
 };

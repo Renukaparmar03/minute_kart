@@ -71,6 +71,83 @@ const approvedOrLegacyFilter = {
   ],
 };
 
+/**
+ * Admin-curated sections pin specific products, which may belong to sellers
+ * outside the user's zone and get dropped by the zone filter (leaving the
+ * section empty). This resolves in-zone stand-ins for those products, matched
+ * by SKU, then name, then subcategory, then category.
+ *
+ * @param {Array<string>} curatedIds every product id pinned across the sections
+ * @param {Map<string, object>} inZoneById curated products that passed the zone filter
+ * @param {Array<string>|null} matchingSellerIds zone sellers (null = no zone scoping)
+ * @returns {Promise<(ids: Array, used: Set<string>) => Array<object>>} per-section resolver
+ */
+const buildZoneSubstituteResolver = async (curatedIds, inZoneById, matchingSellerIds) => {
+  const passthrough = (ids) => ids.map((id) => inZoneById.get(toIdString(id))).filter(Boolean);
+  if (!Array.isArray(matchingSellerIds)) return passthrough;
+
+  const missingIds = [...new Set(curatedIds.map(toIdString).filter((id) => id && !inZoneById.has(id)))];
+  if (!missingIds.length) return passthrough;
+
+  const originals = await QuickProduct.find({ _id: { $in: missingIds.map(toId) } })
+    .select('_id name sku categoryId subcategoryId')
+    .lean();
+  if (!originals.length) return passthrough;
+  const originalById = new Map(originals.map((p) => [String(p._id), p]));
+
+  const skus = [...new Set(originals.map((p) => p.sku).filter(Boolean))];
+  const names = [...new Set(originals.map((p) => p.name).filter(Boolean))];
+  const catIds = [...new Set(originals.flatMap((p) => [p.categoryId, p.subcategoryId]).filter(Boolean).map(String))];
+
+  const candidateFilter = {
+    $and: [
+      {
+        $or: [
+          ...(skus.length ? [{ sku: { $in: skus } }] : []),
+          ...(names.length ? [{ name: { $in: names } }] : []),
+          ...(catIds.length ? [{ subcategoryId: { $in: catIds.map(toId) } }, { categoryId: { $in: catIds.map(toId) } }] : []),
+        ],
+      },
+      approvedOrLegacyFilter,
+      { isActive: { $ne: false } },
+      buildZoneProductFilter(matchingSellerIds, mongoose),
+    ],
+  };
+  const candidates = candidateFilter.$and[0].$or.length
+    ? await QuickProduct.find(candidateFilter).sort({ createdAt: -1 }).limit(500).lean()
+    : [];
+
+  const normalizeName = (name) => String(name || '').trim().toLowerCase();
+  const pick = (used, predicate) => candidates.find((c) => !used.has(String(c._id)) && predicate(c));
+
+  return (ids, used = new Set()) => {
+    const result = [];
+    ids.forEach((rawId) => {
+      const id = toIdString(rawId);
+      const inZone = inZoneById.get(id);
+      if (inZone) {
+        if (!used.has(String(inZone._id))) {
+          used.add(String(inZone._id));
+          result.push(inZone);
+        }
+        return;
+      }
+      const original = originalById.get(id);
+      if (!original) return;
+      const substitute =
+        (original.sku && pick(used, (c) => c.sku === original.sku)) ||
+        pick(used, (c) => normalizeName(c.name) === normalizeName(original.name)) ||
+        (original.subcategoryId && pick(used, (c) => String(c.subcategoryId) === String(original.subcategoryId))) ||
+        (original.categoryId && pick(used, (c) => String(c.categoryId) === String(original.categoryId)));
+      if (substitute) {
+        used.add(String(substitute._id));
+        result.push(substitute);
+      }
+    });
+    return result;
+  };
+};
+
 export const getQuickSettings = async () => {
   if (cache.settings.data && !isExpired(cache.settings.expiry)) {
     return cache.settings.data;
@@ -250,6 +327,11 @@ export const hydrateSectionsList = async (sections = [], { matchingSellerIds = n
 
   const productsById = new Map(products.map((p) => [String(p._id), p]));
   const categoriesById = new Map(categories.map((c) => [String(c._id), c]));
+  const resolveCuratedProducts = await buildZoneSubstituteResolver(
+    Array.from(productIds),
+    productsById,
+    matchingSellerIds,
+  );
 
   const finalSections = sections.map((section) => {
     const { config = {} } = section;
@@ -276,9 +358,7 @@ export const hydrateSectionsList = async (sections = [], { matchingSellerIds = n
 
     if (section.displayType === 'products') {
       const target = config.products ? { ...config.products } : { ...config };
-      const explicitItems = (target.productIds || [])
-          .map(id => productsById.get(toIdString(id)))
-          .filter(Boolean);
+      const explicitItems = resolveCuratedProducts(target.productIds || [], new Set());
       
       if (explicitItems.length > 0) {
         target.items = explicitItems;
@@ -466,6 +546,11 @@ export const getQuickOfferSections = async (query = {}, { matchingSellerIds = nu
 
   const productsById = new Map(products.map((product) => [String(product._id), product]));
   const categoriesById = new Map(categories.map((category) => [String(category._id), category]));
+  const resolveCuratedProducts = await buildZoneSubstituteResolver(
+    Array.from(productIds),
+    productsById,
+    matchingSellerIds,
+  );
 
   const finalOfferSections = sections.map((section) => {
     const hydratedCategoryIds = (Array.isArray(section.categoryIds) ? section.categoryIds : [])
@@ -474,9 +559,10 @@ export const getQuickOfferSections = async (query = {}, { matchingSellerIds = nu
     const hydratedCategory =
       categoriesById.get(toIdString(section.categoryId)) || section.categoryId || null;
 
-    const hydratedProducts = (Array.isArray(section.productIds) ? section.productIds : [])
-      .map((id) => productsById.get(toIdString(id)))
-      .filter(Boolean);
+    const hydratedProducts = resolveCuratedProducts(
+      Array.isArray(section.productIds) ? section.productIds : [],
+      new Set(),
+    );
 
     return {
       ...section,

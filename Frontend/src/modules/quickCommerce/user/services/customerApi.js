@@ -17,6 +17,39 @@ const withQuickSession = (config = {}) => ({
 const quickGetWithDedupe = (url, params = {}, options = {}) =>
   getWithDedupe(url, params, withQuickSession(options));
 
+// Active delivery location, kept in sync by LocationContext. Catalog calls are
+// always scoped to it so the backend only returns sellers serving that zone.
+let activeQuickLocation = null;
+
+export const setActiveQuickLocation = (location) => {
+  const lat = Number(location?.latitude);
+  const lng = Number(location?.longitude);
+  activeQuickLocation = Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+};
+
+const getStoredQuickLocation = () => {
+  if (activeQuickLocation) return activeQuickLocation;
+  try {
+    const raw = window.localStorage.getItem("userLocation") || window.localStorage.getItem("location_v2");
+    const parsed = raw ? JSON.parse(raw) : null;
+    const lat = Number(parsed?.latitude);
+    const lng = Number(parsed?.longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  } catch {
+    return null;
+  }
+};
+
+// Adds lat/lng unless the caller already scoped the request (explicit lat/lng or zoneId)
+const withLocation = (params = {}) => {
+  const hasExplicitLocation =
+    (params.lat !== undefined && params.lat !== null && params.lng !== undefined && params.lng !== null) ||
+    Boolean(params.zoneId);
+  if (hasExplicitLocation) return params;
+  const location = getStoredQuickLocation();
+  return location ? { ...params, lat: location.lat, lng: location.lng } : params;
+};
+
 export const customerApi = {
   getProfile: () =>
     axiosInstance.get("/auth/me", withQuickSession()).then((res) => {
@@ -67,11 +100,11 @@ export const customerApi = {
   createSupportTicket: (data) => axiosInstance.post("/quick-commerce/support/ticket", data, withQuickSession()),
   getSupportTickets: (params = {}) => quickGetWithDedupe("/quick-commerce/support/my-tickets", params),
 
-  getProducts: (params) => quickGetWithDedupe("/quick-commerce/products", params),
-  searchProducts: (params) => quickGetWithDedupe("/quick-commerce/products", params),
+  getProducts: (params) => quickGetWithDedupe("/quick-commerce/products", withLocation(params)),
+  searchProducts: (params) => quickGetWithDedupe("/quick-commerce/products", withLocation(params)),
   getCategories: (params = {}) => quickGetWithDedupe("/quick-commerce/categories", params),
   getCategoryProducts: (categoryId, params) =>
-    quickGetWithDedupe("/quick-commerce/products", { categoryId, ...params }),
+    quickGetWithDedupe("/quick-commerce/products", withLocation({ categoryId, ...params })),
   getProductDetails: (productId) => quickGetWithDedupe(`/quick-commerce/products/${productId}`, {}),
 
   getAddresses: () => axiosInstance.get("/quick-commerce/addresses", withQuickSession()),
@@ -79,7 +112,7 @@ export const customerApi = {
   updateAddress: (id, data) => axiosInstance.patch(`/quick-commerce/addresses/${id}`, data, withQuickSession()),
   deleteAddress: (id) => axiosInstance.delete(`/quick-commerce/addresses/${id}`, withQuickSession()),
 
-  getStores: (params) => quickGetWithDedupe("/quick-commerce/stores", params),
+  getStores: (params) => quickGetWithDedupe("/quick-commerce/stores", withLocation(params)),
   getStoreDetails: (storeId) => quickGetWithDedupe(`/quick-commerce/stores/${storeId}`, {}),
 
   getProductReviews: async (productId) => {
@@ -94,11 +127,11 @@ export const customerApi = {
   },
   submitReview: (data) => axiosInstance.post("/quick-commerce/products/reviews", data, withQuickSession()),
 
-  getExperienceSections: (params) => quickGetWithDedupe("/quick-commerce/experience", params),
+  getExperienceSections: (params) => quickGetWithDedupe("/quick-commerce/experience", withLocation(params)),
   getHeroConfig: (params) => quickGetWithDedupe("/quick-commerce/experience/hero", params),
-  getOfferSections: (params) => quickGetWithDedupe("/quick-commerce/offer-sections", params),
-  getBestSellerSections: (params) => quickGetWithDedupe("/quick-commerce/best-seller-sections", params),
-  getHomeData: () => quickGetWithDedupe("/quick-commerce/home", {}),
+  getOfferSections: (params) => quickGetWithDedupe("/quick-commerce/offer-sections", withLocation(params)),
+  getBestSellerSections: (params) => quickGetWithDedupe("/quick-commerce/best-seller-sections", withLocation(params)),
+  getHomeData: () => quickGetWithDedupe("/quick-commerce/home", withLocation({})),
 
   getCoupons: () => quickGetWithDedupe("/quick-commerce/coupons", {}),
   getActiveCoupons: () => quickGetWithDedupe("/quick-commerce/coupons", {}),

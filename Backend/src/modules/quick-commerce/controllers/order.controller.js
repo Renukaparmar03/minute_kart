@@ -715,7 +715,7 @@ export const getOrderById = async (req, res) => {
     const sellerOrder = await SellerOrder.findOne({ orderId: order.orderId }).lean();
     const seller =
       sellerOrder?.sellerId
-        ? await Seller.findById(sellerOrder.sellerId).select('_id name shopName location fcId').lean()
+        ? await Seller.findById(sellerOrder.sellerId).select('_id name shopName location fcId profileImage').lean()
         : null;
 
     const deliveryAddress = order.deliveryAddress || {};
@@ -752,6 +752,7 @@ export const getOrderById = async (req, res) => {
               name: brandedName,
               shopName: brandedName,
               location: seller.location || null,
+              profileImage: seller.profileImage || '',
             }
           : null,
         sellerOrder: sellerOrder

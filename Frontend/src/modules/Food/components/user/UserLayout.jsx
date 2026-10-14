@@ -17,6 +17,7 @@ import { useUserNotifications } from "../../hooks/useUserNotifications"
 import { useServiceability } from "@/modules/common/hooks/useServiceability"
 import { useZone } from "@food/hooks/useZone"
 import { useLocation as useAppLocation } from "@food/hooks/useLocation"
+import { useBootstrapCurrentLocation } from "@shared/utils/currentLocationBootstrap"
 
 // Create SearchOverlay context with default value
 const SearchOverlayContext = createContext({
@@ -118,6 +119,8 @@ export default function UserLayout({ children }) {
   }, [location.pathname, location.search, location.hash])
 
   useUserNotifications()
+  // Pick up the user's live location on app open so items match where they are
+  useBootstrapCurrentLocation()
 
   // Note: Authentication checks and redirects are handled by ProtectedRoute components
   // UserLayout should not interfere with authentication redirects

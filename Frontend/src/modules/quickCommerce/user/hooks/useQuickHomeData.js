@@ -215,11 +215,11 @@ export const useQuickHomeData = ({ currentLocation }) => {
       let pendingTasks = 6;
       const checkDone = () => {
         pendingTasks--;
-        if (pendingTasks <= 0) {
+        if (pendingTasks <= 0 && seq === fetchDataSeqRef.current) {
           globalQuickHomeCache.data = newDataCache;
           globalQuickHomeCache.locationKey = currentLocationKey;
           globalQuickHomeCache.lastFetched = Date.now();
-          if (seq === fetchDataSeqRef.current) setIsLoading(false);
+          setIsLoading(false);
         }
       };
 
@@ -361,37 +361,44 @@ export const useQuickHomeData = ({ currentLocation }) => {
     }
 
     const headerId = activeCategory._id;
+    let cancelled = false;
+
+    // Location-aware cache keys so switching zones busts the cache
+    const hasValidLocation =
+      Number.isFinite(currentLocation?.latitude) &&
+      Number.isFinite(currentLocation?.longitude);
+    const locationKey = hasValidLocation
+      ? `${currentLocation.latitude}_${currentLocation.longitude}_${currentLocation?.zoneId || ""}`
+      : "no_loc";
+    const cacheKey = `${headerId}__${locationKey}`;
 
     const fetchHeader = async () => {
-      if (globalQuickHomeCache.headerSections.has(headerId)) {
-        setHeaderSections(globalQuickHomeCache.headerSections.get(headerId));
+      if (globalQuickHomeCache.headerSections.has(cacheKey)) {
+        setHeaderSections(globalQuickHomeCache.headerSections.get(cacheKey));
       } else {
         setLoadingHeaderSections(true);
         try {
-          const res = await customerApi.getExperienceSections({ pageType: "header", headerId });
+          const res = await customerApi.getExperienceSections({
+            pageType: "header",
+            headerId,
+            ...(hasValidLocation ? { lat: currentLocation.latitude, lng: currentLocation.longitude } : {}),
+          });
+          if (cancelled) return;
           if (res.data.success) {
             const raw = res.data.result || res.data.results || res.data;
             const sections = Array.isArray(raw) ? raw : [];
             setHeaderSections(sections);
-            globalQuickHomeCache.headerSections.set(headerId, sections);
+            globalQuickHomeCache.headerSections.set(cacheKey, sections);
           }
         } catch (e) {
           console.error("Error fetching header sections:", e);
         } finally {
-          setLoadingHeaderSections(false);
+          if (!cancelled) setLoadingHeaderSections(false);
         }
       }
     };
 
     const fetchCategoryProducts = async () => {
-      // Build a location-aware cache key so switching zones busts the cache
-      const hasValidLocation =
-        Number.isFinite(currentLocation?.latitude) &&
-        Number.isFinite(currentLocation?.longitude);
-      const locationKey = hasValidLocation
-        ? `${currentLocation.latitude}_${currentLocation.longitude}_${currentLocation?.zoneId || ""}`
-        : "no_loc";
-      const cacheKey = `${headerId}__${locationKey}`;
 
       if (globalQuickHomeCache.categoryProducts.has(cacheKey)) {
         setCategoryProducts(globalQuickHomeCache.categoryProducts.get(cacheKey));
@@ -411,6 +418,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
       try {
         const res = await customerApi.getProducts(params);
+        if (cancelled) return;
         if (res?.data?.success) {
           const rawResult = res.data.result;
           const dbProds = Array.isArray(res.data.results)
@@ -439,6 +447,9 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
     fetchHeader();
     fetchCategoryProducts();
+    return () => {
+      cancelled = true;
+    };
   }, [activeCategory, currentLocation]);
 
   return {

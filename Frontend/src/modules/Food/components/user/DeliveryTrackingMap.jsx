@@ -69,6 +69,29 @@ function generateCurvedAirPath(p1, p2, numPoints = 50) {
 
 const debugLog = (...args) => console.log('[DeliveryTrackingMap]', ...args);
 
+const getStoreImage = (order) =>
+  order?.restaurantImage ||
+  order?.restaurantLogo ||
+  order?.restaurantId?.profileImage ||
+  order?.restaurantId?.logo ||
+  '';
+
+// Restaurant (food) / seller (quick) profile pic, falling back to the given icon/svg when missing or broken
+const StoreAvatar = ({ src, fallback }) => {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+
+  if (!src || failed) return fallback;
+  return (
+    <img
+      src={src}
+      alt="Store"
+      className="w-full h-full object-cover rounded-full bg-gray-50"
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 const DeliveryTrackingMap = ({
   orderId,
   orderTrackingIds = [],
@@ -582,8 +605,11 @@ const DeliveryTrackingMap = ({
         >
           {!isAccepted ? (
             <div className="relative -translate-x-1/2 -translate-y-1/2 group z-20">
-              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-2xl border-2 border-white">
-                <Utensils className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-2xl border-2 border-white overflow-hidden">
+                <StoreAvatar
+                  src={getStoreImage(order)}
+                  fallback={<Utensils className="w-5 h-5 text-white" />}
+                />
               </div>
             </div>
           ) : (
@@ -599,11 +625,15 @@ const DeliveryTrackingMap = ({
                  </div>
                )}
                <div className="relative w-11 h-11 rounded-full p-1 bg-white shadow-xl border-2 border-orange-500 overflow-hidden group-hover:scale-110 transition-transform">
-                  <img 
-                    src={order?.restaurantLogo || order?.restaurantId?.logo || order?.restaurantId?.profileImage || `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`}
-                    alt="Restaurant"
-                    className="w-full h-full object-contain rounded-full bg-gray-50"
-                    onError={(e) => { e.target.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`; }}
+                  <StoreAvatar
+                    src={getStoreImage(order)}
+                    fallback={
+                      <img
+                        src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(RESTAURANT_PIN_SVG)}`}
+                        alt="Restaurant"
+                        className="w-full h-full object-contain rounded-full bg-gray-50"
+                      />
+                    }
                   />
                </div>
                {/* Pin Tip */}

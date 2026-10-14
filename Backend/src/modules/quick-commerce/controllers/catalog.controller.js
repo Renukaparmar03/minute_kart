@@ -564,11 +564,22 @@ export const submitProductReview = async (req, res) => {
 };
 
 export const getStores = async (req, res) => {
-  setPublicCache(res, 300); // 5 minutes cache
-  
+  const { lat, lng, zoneId } = req.query;
+  const isLocationScoped = Boolean(zoneId || (lat && lng));
+  // Location-scoped lists must not be shared-cached across users in different zones
+  if (isLocationScoped) setNoCache(res);
+  else setPublicCache(res, 300); // 5 minutes cache
+
   try {
     // Find distinct sellers who have products in Quick Commerce
-    const sellerIds = await QuickProduct.distinct('sellerId', publicProductFilter);
+    let sellerIds = await QuickProduct.distinct('sellerId', publicProductFilter);
+
+    // Only stores serving the user's zone
+    const matchingSellerIds = await getMatchingSellerIdsForLocation({ lat, lng, zoneId }, { QuickZone, Seller, mongoose });
+    if (Array.isArray(matchingSellerIds)) {
+      const allowed = new Set(matchingSellerIds.map(String));
+      sellerIds = sellerIds.filter((id) => id && allowed.has(String(id)));
+    }
     const stores = await Seller.find({ _id: { $in: sellerIds } }).lean();
 
     // Attach sample product images

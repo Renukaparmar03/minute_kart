@@ -122,12 +122,36 @@ const ProductDetailSheet = () => {
     };
 
     const getComparableProductId = (value) => String(value ?? "").split("::")[0];
+
+    // Same cart line shape as ProductCard's variant sheet: `${productId}::${variantKey}`
+    const variantCartProduct = useMemo(() => {
+        if (!selectedProduct || !selectedVariant) return selectedProduct;
+        const v = selectedVariant;
+        const variantId = `${selectedProduct.id}::${v._id || v.id || v.sku || v.name}`;
+        const vPrice = v.salePrice > 0 ? v.salePrice : v.price;
+        const vOriginalPrice = Math.max(vPrice, v.price);
+        return {
+            ...selectedProduct,
+            id: variantId,
+            _id: variantId,
+            productId: variantId,
+            itemId: variantId,
+            name: `${selectedProduct.name} (${v.name})`,
+            price: vPrice,
+            originalPrice: vOriginalPrice,
+            mrp: vOriginalPrice,
+            weight: v.name,
+            stock: v.stock,
+            sku: v.sku,
+        };
+    }, [selectedProduct, selectedVariant]);
+
     const cartItem = selectedProduct
-        ? cart.find(
-            (item) =>
-                getComparableProductId(item.productId || item.itemId || item.id || item._id) ===
-                getComparableProductId(selectedProduct.id || selectedProduct._id),
-          )
+        ? cart.find((item) => {
+            const itemId = item.productId || item.itemId || item.id || item._id;
+            if (selectedVariant) return String(itemId) === String(variantCartProduct.id);
+            return getComparableProductId(itemId) === getComparableProductId(selectedProduct.id || selectedProduct._id);
+          })
         : null;
     const quantity = cartItem ? cartItem.quantity : 0;
     const isWishlisted = selectedProduct
@@ -181,23 +205,38 @@ const ProductDetailSheet = () => {
     };
  
     const handleAddToCart = async () => {
-        const result = await addToCart(selectedProduct);
+        if (Number(variantCartProduct.stock ?? Infinity) <= 0) {
+            showToast("This product is out of stock", "error");
+            return;
+        }
+        const result = await addToCart(variantCartProduct);
         if (result?.ok === false) {
             if (!result?.silent) {
                 showToast(result.error || "Cannot add item to cart", "error");
             }
             return;
         }
-        showToast(`${selectedProduct.name} added to cart`, 'success');
+        showToast(`${variantCartProduct.name} added to cart`, 'success');
     };
 
-    const handleIncrement = () => updateQuantity(selectedProduct.id || selectedProduct._id, 1);
+    const cartLineId = cartItem
+        ? (cartItem.productId || cartItem.itemId || cartItem.id || cartItem._id)
+        : (variantCartProduct?.id || variantCartProduct?._id);
+
+    const handleIncrement = () => {
+        const stock = Number(variantCartProduct.stock ?? Infinity);
+        if (quantity >= stock) {
+            showToast(`Only ${stock} in stock`, "error");
+            return;
+        }
+        updateQuantity(cartLineId, 1);
+    };
 
     const handleDecrement = () => {
         if (quantity === 1) {
-            removeFromCart(selectedProduct.id || selectedProduct._id);
+            removeFromCart(cartLineId);
         } else {
-            updateQuantity(selectedProduct.id || selectedProduct._id, -1);
+            updateQuantity(cartLineId, -1);
         }
     };
 

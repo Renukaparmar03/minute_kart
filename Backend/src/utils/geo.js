@@ -50,16 +50,18 @@ export const isPointInPolygon = (lat, lng, polygon) => {
  * Resolves active seller IDs matching a given user location or zone ID.
  * @param {Object} param0 { lat, lng, zoneId }
  * @param {Object} models { QuickZone, Seller }
- * @returns {Promise<Array<string>|null>} Array of seller ID strings if location/zone specified, null if no filter criteria provided.
+ * @returns {Promise<Array<string>|null>} Array of seller ID strings if location/zone specified (empty when the location is outside every active zone), null if no filter criteria provided.
  */
 export const getMatchingSellerIdsForLocation = async ({ lat, lng, zoneId }, { QuickZone, Seller, mongoose }) => {
   let targetZoneId = zoneId ? String(zoneId) : null;
   let activeZoneCoords = null;
+  let hasValidCoords = false;
 
-  if (!targetZoneId && lat !== undefined && lng !== undefined && lat !== null && lng !== null) {
+  if (!targetZoneId && lat !== undefined && lng !== undefined && lat !== null && lng !== null && lat !== '' && lng !== '') {
     const latNum = Number(lat);
     const lngNum = Number(lng);
     if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+      hasValidCoords = true;
       const allActiveZones = await QuickZone.find({ isActive: true }).lean();
       const matchedZone = allActiveZones.find(z => isPointInPolygon(latNum, lngNum, z.coordinates));
       if (matchedZone) {
@@ -70,7 +72,9 @@ export const getMatchingSellerIdsForLocation = async ({ lat, lng, zoneId }, { Qu
   }
 
   if (!targetZoneId && !activeZoneCoords) {
-    return null;
+    // Location given but outside every active zone: no seller serves it.
+    // Returning null here would mean "no filter" and leak other zones' products.
+    return hasValidCoords ? [] : null;
   }
 
   const sellerQuery = { isActive: true };

@@ -323,6 +323,10 @@ const buildPickupSources = (apiOrder, previousOrder = null, restaurantAddress = 
               : apiOrder?.restaurantName || previousOrder?.restaurant || "Restaurant"),
         ).trim(),
         address: buildAddressFromPickupPoint(point) || fallbackAddress || "Address not available",
+        avatar:
+          pickupType === "quick"
+            ? point?.profileImage || point?.image || ""
+            : apiOrder?.restaurantImage || apiOrder?.restaurantId?.profileImage || "",
         phone:
           pickupType === "food"
             ? String(
@@ -526,6 +530,14 @@ const transformOrderForTracking = (apiOrder, previousOrder = null, explicitResta
       previousOrder?.restaurantPhone ||
       '',
     restaurantAddress,
+    // Pickup-point avatar for the map: restaurant profile pic (food) or seller profile pic (quick)
+    restaurantImage:
+      apiOrder?.restaurantImage ||
+      apiOrder?.restaurantId?.profileImage ||
+      apiOrder?.seller?.profileImage ||
+      pickupSources.find((source) => source.avatar)?.avatar ||
+      previousOrder?.restaurantImage ||
+      '',
     restaurantId: apiOrder?.restaurantId || previousOrder?.restaurantId || null,
     userId: apiOrder?.userId || previousOrder?.userId || null,
     userName: apiOrder?.userName || apiOrder?.userId?.name || apiOrder?.userId?.fullName || previousOrder?.userName || '',
