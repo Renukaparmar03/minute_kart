@@ -97,7 +97,8 @@ export default function OffersAndCoupons() {
         discountValue: Number(formData.discountValue),
         minOrderValue: Number(formData.minOrderValue || 0),
         maxDiscount: formData.maxDiscount ? Number(formData.maxDiscount) : undefined,
-        validTill: formData.validTill ? new Date(formData.validTill) : undefined,
+        // Send the plain date; backend treats it as valid through the end of that day.
+        validTill: formData.validTill || undefined,
         description: formData.description.trim() || `Min. Order ₹${formData.minOrderValue || 0}`,
       };
 
@@ -258,7 +259,7 @@ export default function OffersAndCoupons() {
                           : "bg-slate-300 text-slate-600"
                       }`}
                     >
-                      {coupon.isActive !== false ? "Apply" : "Inactive"}
+                      {coupon.isActive !== false ? "Pause" : "Activate"}
                     </button>
                     <button
                       onClick={() => handleDelete(coupon._id)}
@@ -370,6 +371,7 @@ export default function OffersAndCoupons() {
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Valid Till Date</label>
                 <input
                   type="date"
+                  min={new Date().toLocaleDateString("en-CA")}
                   value={formData.validTill}
                   onChange={(e) => setFormData({ ...formData, validTill: e.target.value })}
                   className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none focus:border-[#16a34a]"

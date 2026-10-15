@@ -2454,58 +2454,7 @@ export const getSellerCouponsController = async (req, res) => {
       ],
     };
 
-    let coupons = await collection.find(query).sort({ createdAt: -1 }).toArray();
-
-    // Default sample coupons if seller has no coupons yet
-    if (coupons.length === 0) {
-      const defaultSamples = [
-        {
-          _id: new mongoose.Types.ObjectId(),
-          sellerId: new mongoose.Types.ObjectId(sellerId),
-          title: "Flat ₹20 Off",
-          code: "FLAT20",
-          description: "Min. Order ₹199",
-          discountType: "flat",
-          discountValue: 20,
-          minOrderValue: 199,
-          validFrom: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          isActive: true,
-          createdAt: new Date(),
-        },
-        {
-          _id: new mongoose.Types.ObjectId(),
-          sellerId: new mongoose.Types.ObjectId(sellerId),
-          title: "Buy 1 Get 1 Free",
-          code: "BOGO",
-          description: "Selected Items",
-          discountType: "flat",
-          discountValue: 50,
-          minOrderValue: 299,
-          validFrom: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          validTill: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-          isActive: true,
-          createdAt: new Date(),
-        },
-        {
-          _id: new mongoose.Types.ObjectId(),
-          sellerId: new mongoose.Types.ObjectId(sellerId),
-          title: "10% Off",
-          code: "SAVE10",
-          description: "Min. Order ₹299",
-          discountType: "percentage",
-          discountValue: 10,
-          minOrderValue: 299,
-          validFrom: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          validTill: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-          isActive: true,
-          createdAt: new Date(),
-        },
-      ];
-      await collection.insertMany(defaultSamples).catch(() => {});
-      coupons = defaultSamples;
-    }
-
+    const coupons = await collection.find(query).sort({ createdAt: -1 }).toArray();
     let result = coupons;
     const now = new Date();
 
@@ -2546,10 +2495,39 @@ export const createSellerCouponController = async (req, res) => {
     const title = str(req.body.title) || `Flat ₹${req.body.discountValue || 0} Off`;
     const discountType = req.body.discountType === "percentage" ? "percentage" : "flat";
     const discountValue = num(req.body.discountValue, 0);
-    const minOrderValue = num(req.body.minOrderValue, 0);
+    const minOrderValue = Math.max(0, num(req.body.minOrderValue, 0));
     const maxDiscount = req.body.maxDiscount ? num(req.body.maxDiscount, 0) : null;
-    const validFrom = req.body.validFrom ? new Date(req.body.validFrom) : new Date();
-    const validTill = req.body.validTill ? new Date(req.body.validTill) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    if (discountValue <= 0) {
+      return sendError(res, 400, "Discount value must be greater than 0");
+    }
+    if (discountType === "percentage" && discountValue > 100) {
+      return sendError(res, 400, "Percentage discount cannot exceed 100");
+    }
+
+    const validFrom = optionalDate(req.body.validFrom) || new Date();
+    // A date-only value (YYYY-MM-DD) means "valid through that whole day" in IST,
+    // otherwise a coupon created for today would already be expired.
+    const rawValidTill = str(req.body.validTill);
+    const validTill = /^\d{4}-\d{2}-\d{2}$/.test(rawValidTill)
+      ? new Date(`${rawValidTill}T23:59:59.999+05:30`)
+      : optionalDate(req.body.validTill) || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    if (validTill < new Date()) {
+      return sendError(res, 400, "Valid till date cannot be in the past");
+    }
+    if (validTill < validFrom) {
+      return sendError(res, 400, "Valid till date must be after start date");
+    }
+
+    const duplicate = await collection.findOne({
+      code,
+      isActive: { $ne: false },
+      $or: [{ validTill: { $exists: false } }, { validTill: null }, { validTill: { $gte: new Date() } }],
+    });
+    if (duplicate) {
+      return sendError(res, 409, `Coupon code ${code} is already in use. Please choose another code.`);
+    }
 
     const payload = {
       sellerId: new mongoose.Types.ObjectId(sellerId),
@@ -2587,8 +2565,10 @@ export const toggleSellerCouponController = async (req, res) => {
       return sendError(res, 400, "Invalid coupon ID");
     }
 
+    const sellerId = sellerScope(req);
     const existing = await collection.findOne({
       _id: new mongoose.Types.ObjectId(couponId),
+      sellerId: { $in: [new mongoose.Types.ObjectId(sellerId), String(sellerId)] },
     });
 
     if (!existing) {
@@ -2620,7 +2600,14 @@ export const deleteSellerCouponController = async (req, res) => {
       return sendError(res, 400, "Invalid coupon ID");
     }
 
-    await collection.deleteOne({ _id: new mongoose.Types.ObjectId(couponId) });
+    const sellerId = sellerScope(req);
+    const deleted = await collection.deleteOne({
+      _id: new mongoose.Types.ObjectId(couponId),
+      sellerId: { $in: [new mongoose.Types.ObjectId(sellerId), String(sellerId)] },
+    });
+    if (!deleted.deletedCount) {
+      return sendError(res, 404, "Coupon not found");
+    }
     return res.json({ success: true, message: "Coupon deleted successfully" });
   } catch (error) {
     return sendError(res, 400, error.message || "Failed to delete coupon");
