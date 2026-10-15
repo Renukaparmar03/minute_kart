@@ -267,40 +267,90 @@ export const getHomeData = async (req, res) => {
 };
 
 
+// Coupons store their window as validFrom/validTill (seller/admin) or startDate/expiryDate (legacy).
+const isCouponUsableNow = (coupon, now = new Date()) => {
+  if (!coupon || coupon.isActive === false) return false;
+  if (coupon.status && String(coupon.status).toLowerCase() !== 'active') return false;
+  const from = coupon.validFrom || coupon.startDate;
+  const till = coupon.validTill || coupon.expiryDate;
+  if (from && new Date(from) > now) return false;
+  if (till && new Date(till) < now) return false;
+  return true;
+};
+
 export const getCoupons = async (_req, res) => {
   setNoCache(res);
-  const coupons = await getQuickCoupons();
+  const now = new Date();
+  const coupons = (await getQuickCoupons()).filter((c) => isCouponUsableNow(c, now));
   return res.json({ success: true, results: coupons });
 };
 
 export const applyCoupon = async (req, res) => {
   setNoCache(res);
-  const { code, cartTotal } = req.body;
+  const { code, cartTotal, items } = req.body;
 
   if (!code) {
     return res.status(400).json({ success: false, message: 'Coupon code is required' });
   }
 
-  const coupons = await getQuickCoupons();
-  const coupon = coupons.find(
-    (c) => String(c.code || '').toUpperCase() === String(code).toUpperCase()
+  const normalizedCode = String(code).trim().toUpperCase();
+  const matches = (await getQuickCoupons()).filter(
+    (c) => String(c.code || '').toUpperCase() === normalizedCode
   );
 
-  if (!coupon) {
+  if (!matches.length) {
     return res.status(404).json({ success: false, message: 'Coupon not found or expired' });
   }
 
   const now = new Date();
-  if (coupon.expiryDate && new Date(coupon.expiryDate) < now) {
-    return res.status(400).json({ success: false, message: 'This coupon has expired' });
+  const usable = matches.filter((c) => isCouponUsableNow(c, now));
+  if (!usable.length) {
+    const notStarted = matches.some((c) => {
+      const from = c.validFrom || c.startDate;
+      return c.isActive !== false && from && new Date(from) > now;
+    });
+    return res.status(400).json({
+      success: false,
+      message: notStarted ? 'This coupon is not active yet' : 'This coupon has expired',
+    });
   }
 
-  if (coupon.startDate && new Date(coupon.startDate) > now) {
-    return res.status(400).json({ success: false, message: 'This coupon is not active yet' });
+  // Resolve cart products server-side so seller coupons only apply to that seller's items.
+  const cartItems = Array.isArray(items) ? items : [];
+  const cartProductIds = cartItems
+    .map((item) => String(item?.productId || item?.id || item?._id || '').split('::')[0])
+    .filter((id) => mongoose.Types.ObjectId.isValid(id));
+  const cartProducts = cartProductIds.length
+    ? await QuickProduct.find({ _id: { $in: cartProductIds } }).select('sellerId price salePrice').lean()
+    : [];
+  const productById = new Map(cartProducts.map((p) => [String(p._id), p]));
+
+  const sellerSubtotal = (sellerId) =>
+    cartItems.reduce((sum, item) => {
+      const id = String(item?.productId || item?.id || item?._id || '').split('::')[0];
+      const product = productById.get(id);
+      if (!product || String(product.sellerId) !== String(sellerId)) return sum;
+      const unitPrice = Number(item?.price) > 0
+        ? Number(item.price)
+        : Number(product.salePrice) > 0 ? Number(product.salePrice) : Number(product.price || 0);
+      return sum + unitPrice * Math.max(1, Number(item?.quantity || 1));
+    }, 0);
+
+  // Prefer a platform-wide coupon, otherwise the seller coupon whose seller is in the cart.
+  let coupon = usable.find((c) => !c.sellerId);
+  let total = Number(cartTotal || 0);
+  if (!coupon) {
+    coupon = usable.find((c) => sellerSubtotal(c.sellerId) > 0);
+    if (!coupon) {
+      return res.status(400).json({
+        success: false,
+        message: 'This coupon is not valid for the items in your cart',
+      });
+    }
+    total = Math.min(total || Infinity, sellerSubtotal(coupon.sellerId));
   }
 
   const minOrder = Number(coupon.minOrderValue || coupon.minOrder || 0);
-  const total = Number(cartTotal || 0);
   if (minOrder > 0 && total < minOrder) {
     return res.status(400).json({
       success: false,
