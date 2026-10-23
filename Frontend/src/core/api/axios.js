@@ -66,8 +66,8 @@ const redirectToLogin = (module) => {
 axiosInstance.interceptors.request.use(
     (config) => {
         let token = null;
-        const url = config.url;
-        const pagePath = window.location.pathname;
+        const url = config.url || '';
+        const pagePath = getCurrentAppPath();
 
         // Determination strategy: 
         // 1. If we are on a module-specific page (e.g. /seller/dashboard), prioritize that module's token
@@ -84,9 +84,9 @@ axiosInstance.interceptors.request.use(
 
         // 2. Fallback to URL-based detection
         if (!token) {
-            if (url.startsWith('/seller')) token = localStorage.getItem('auth_seller');
-            else if (url.startsWith('/admin')) token = localStorage.getItem('auth_admin');
-            else if (url.startsWith('/delivery')) token = localStorage.getItem('auth_delivery');
+            if (url.startsWith('/seller') || url.includes('/seller/')) token = localStorage.getItem('auth_seller');
+            else if (url.startsWith('/admin') || url.includes('/admin/')) token = localStorage.getItem('auth_admin');
+            else if (url.startsWith('/delivery') || url.includes('/delivery/')) token = localStorage.getItem('auth_delivery');
             else if (url.startsWith('/customer') || url.startsWith('/cart') || url.startsWith('/wishlist') || url.startsWith('/categories') || url.startsWith('/products')) {
                 token = getCustomerToken();
             }
@@ -132,11 +132,11 @@ axiosInstance.interceptors.response.use(
                     : path.startsWith('/delivery')
                         ? 'delivery'
                         : 'customer';
-            const requestModule = requestUrl.startsWith('/seller')
+            const requestModule = (requestUrl.startsWith('/seller') || requestUrl.includes('/seller/'))
                 ? 'seller'
-                : requestUrl.startsWith('/admin')
+                : (requestUrl.startsWith('/admin') || requestUrl.includes('/admin/'))
                     ? 'admin'
-                    : requestUrl.startsWith('/delivery')
+                    : (requestUrl.startsWith('/delivery') || requestUrl.includes('/delivery/'))
                         ? 'delivery'
                         : requestUrl.startsWith('/user') || requestUrl.startsWith('/customer') || requestUrl.startsWith('/auth')
                             ? 'customer'
