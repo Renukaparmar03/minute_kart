@@ -36,7 +36,7 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
 
     return (
         <div className="quick-theme-scope min-h-screen bg-background flex flex-col font-sans">
-            <main className={cn("flex-1 md:pb-0", !fullHeight && "pb-16")}>
+            <main className={cn("flex-1 md:pb-0", !fullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16", isOrdersPage && "md:pb-0")}>
                 {children}
             </main>
 

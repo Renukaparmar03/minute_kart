@@ -8,7 +8,7 @@ const MobileFooterMessage = ({ compact = false }) => {
     if (compact) {
         // Just the bag, right under the page content - no brand text and no extra spacing
         return (
-            <div className="md:hidden w-full flex justify-center px-6 pt-2 pb-0 bg-transparent overflow-hidden">
+            <div className="md:hidden w-full flex justify-center px-6 pt-1 pb-20 bg-transparent overflow-hidden">
                 <img src={bagImage} alt="Delivery Bag" className="w-28 h-28 object-contain drop-shadow-lg" />
             </div>
         );
