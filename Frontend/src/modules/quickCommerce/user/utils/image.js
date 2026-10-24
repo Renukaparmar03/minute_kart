@@ -1,9 +1,8 @@
 import { optimizeCloudinaryUrl } from "@/shared/utils/cloudinaryUtils";
-import fallbackLogo from "@/assets/Logo.png";
 
 // Shown whenever a product / category has no image (or its image fails to load).
 // Never use stock/static photos as a stand-in - the app logo is the only fallback.
-export const QUICK_IMAGE_FALLBACK = fallbackLogo;
+export const QUICK_IMAGE_FALLBACK = "/assets/minute%20kart%20logo%20.jpg.jpeg";
 
 // Swap a broken <img> for the fallback logo (once, to avoid an onError loop).
 export const handleQuickImageError = (event) => {
