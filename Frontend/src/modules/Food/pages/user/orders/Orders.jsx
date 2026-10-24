@@ -453,7 +453,6 @@ export default function Orders() {
     }
 
     replaceCart(reorderItems)
-    toast.success("Items added to cart")
     navigate(`/food/user/restaurants/${restaurantTarget}`)
   }
 

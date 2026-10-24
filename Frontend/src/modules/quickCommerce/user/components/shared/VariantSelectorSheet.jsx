@@ -58,7 +58,6 @@ const VariantSelectorSheet = ({ product, isOpen, onClose }) => {
       }
       return;
     }
-    showToast(`${variantProduct.name} added to cart`, "success");
   };
 
   const handleIncrement = (e, variant) => {

@@ -217,7 +217,6 @@ const ProductDetailSheet = () => {
             }
             return;
         }
-        showToast(`${variantCartProduct.name} added to cart`, 'success');
     };
 
     const cartLineId = cartItem

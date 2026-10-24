@@ -520,7 +520,6 @@ const ProductDetailPage = () => {
       }
       return;
     }
-    showToast(`${variantProduct.name} added to cart`, "success");
   };
 
   const matchedCartItemId = useMemo(() => {
