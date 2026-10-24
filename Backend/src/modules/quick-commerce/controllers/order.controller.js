@@ -5,6 +5,7 @@ import { logger } from '../../../utils/logger.js';
 import { QuickOrder } from '../models/order.model.js';
 import { QuickCart } from '../models/cart.model.js';
 import { QuickProduct } from '../models/product.model.js';
+import { reserveQuickStock, releaseQuickStock } from '../services/quickStock.service.js';
 import { Seller } from '../seller/models/seller.model.js';
 import { SellerOrder } from '../seller/models/sellerOrder.model.js';
 import { QuickZone } from '../models/quick_zone.model.js';
@@ -385,7 +386,20 @@ export const placeOrder = async (req, res) => {
     // Calculate rider earning
     const riderEarning = await getQuickRiderEarning(Math.max(0.1, actualDistanceKm));
 
-    const order = await QuickOrder.create({
+    // Take the stock now (atomically) so the same units can't be ordered twice
+    const stockReservation = await reserveQuickStock(items);
+    if (!stockReservation.ok) {
+      const failedName = stockReservation.failed?.name || 'An item';
+      return res.status(409).json({
+        success: false,
+        outOfStock: true,
+        message: `${failedName} is out of stock or doesn't have enough quantity left. Please update your cart.`,
+      });
+    }
+
+    let order;
+    try {
+      order = await QuickOrder.create({
       orderType: 'quick',
       orderId: orderNumber,
       sessionId: idQuery.sessionId || '',
@@ -395,6 +409,7 @@ export const placeOrder = async (req, res) => {
         const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
         return {
           itemId: String(item.productId),
+          variantSku: item.variantSku || '',
           name: item.name,
           image: item.image,
           price: item.price,
@@ -433,7 +448,11 @@ export const placeOrder = async (req, res) => {
           note: 'Quick commerce order placed',
         },
       ],
-    });
+      });
+    } catch (createError) {
+      await releaseQuickStock(stockReservation.reserved);
+      throw createError;
+    }
 
     const sellerBuckets = new Map();
     items.forEach((item) => {

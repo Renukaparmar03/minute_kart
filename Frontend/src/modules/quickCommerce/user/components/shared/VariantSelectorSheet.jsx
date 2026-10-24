@@ -4,7 +4,7 @@ import { Plus, Minus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../../context/CartContext";
 import { useToast } from "@shared/components/ui/Toast";
-import { resolveQuickImageUrl } from "../../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../../utils/image";
 
 export const hasProductVariants = (product) =>
   Array.isArray(product?.variants) && product.variants.length > 0;
@@ -155,7 +155,7 @@ const VariantSelectorSheet = ({ product, isOpen, onClose }) => {
                           className="w-full h-full object-contain"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";
+                            e.target.src = QUICK_IMAGE_FALLBACK;
                           }}
                         />
                       </div>

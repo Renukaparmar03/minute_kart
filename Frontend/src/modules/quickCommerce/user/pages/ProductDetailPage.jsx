@@ -20,7 +20,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useToast } from "@shared/components/ui/Toast";
 import { customerApi } from "../services/customerApi";
-import { resolveQuickImageUrl } from "../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../utils/image";
 import ProductCard from "../components/shared/ProductCard";
 import MiniCart from "../components/shared/MiniCart";
 
@@ -89,7 +89,7 @@ const normalizeProduct = (product = {}, fallback = {}) => {
     images:
       images.length > 0
         ? images
-        : ["https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1200&auto=format&fit=crop"],
+        : [QUICK_IMAGE_FALLBACK],
     details: [
       {
         label: "Unit",
@@ -380,7 +380,7 @@ const ProductDetailPage = () => {
           const formattedProds = dbProds.map(p => ({
             ...p,
             id: p._id || p.id,
-            image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
             price: p.salePrice || p.price,
             originalPrice: p.price,
             weight: p.weight || p.unit || "1 unit",

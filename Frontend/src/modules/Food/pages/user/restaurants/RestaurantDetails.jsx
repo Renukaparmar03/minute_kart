@@ -552,6 +552,8 @@ function RestaurantDetailsContent() {
             customOrdersEnabled: Boolean(actualRestaurant?.customOrdersEnabled || apiRestaurant?.customOrdersEnabled),
             // Menu sections for display (will be populated from menu API)
             menuSections: [],
+            fssaiLicense: actualRestaurant?.fssaiNumber || apiRestaurant?.fssaiNumber || actualRestaurant?.onboarding?.step3?.fssai?.registrationNumber || apiRestaurant?.onboarding?.step3?.fssai?.registrationNumber || "",
+            fssaiExpiry: actualRestaurant?.fssaiExpiry || apiRestaurant?.fssaiExpiry || actualRestaurant?.onboarding?.step3?.fssai?.expiryDate || apiRestaurant?.onboarding?.step3?.fssai?.expiryDate || "",
             // Onboarding data including FSSAI license
             onboarding: actualRestaurant?.onboarding || apiRestaurant?.onboarding || null,
             // Availability fields for grayscale styling
@@ -2091,15 +2093,17 @@ function RestaurantDetailsContent() {
             {/* Top Row: Name & Rating */}
             <div className="flex justify-between items-start">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  {restaurant?.name || "Unknown Restaurant"}
-                </h1>
-                <Info 
-                  className="h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" 
-                  onClick={() => setShowInfoModal(true)} 
-                />
-              </div>
+              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1 leading-tight">
+                <span>{restaurant?.name || "Unknown Restaurant"}</span>
+                <button
+                  type="button"
+                  aria-label="Restaurant details"
+                  onClick={() => setShowInfoModal(true)}
+                  className="inline-flex align-middle ml-1.5 p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Info className="h-5 w-5" />
+                </button>
+              </h1>
               <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                 <Utensils className="h-4 w-4" />
                 <span>{restaurant?.topCategory || restaurant?.cuisine || "Multi-cuisine"}</span>
@@ -2198,16 +2202,6 @@ function RestaurantDetailsContent() {
                   {(restaurant.reviews || 0).toLocaleString()}+ ratings
                 </span>
              </div>
-           </div>
-
-           {/* Pagination Dots */}
-           <div className="flex items-center gap-1 mt-3 px-1">
-              {highlightOffers.slice(0, 2).map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`h-1.5 w-1.5 rounded-full transition-colors ${i === highlightIndex % 2 ? 'bg-[#DC021B]' : 'bg-gray-200'}`} 
-                />
-              ))}
            </div>
         </div>
         )}
@@ -2324,7 +2318,7 @@ function RestaurantDetailsContent() {
 
         {/* Menu Items Section */}
         {restaurant?.menuSections && Array.isArray(restaurant.menuSections) && restaurant.menuSections.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6 sm:py-8 md:py-10 lg:py-12 space-y-6 md:space-y-8 lg:space-y-10">
+          <div className="max-w-7xl mx-auto px-1 sm:px-3 md:px-6 lg:px-10 xl:px-12 py-4 sm:py-8 md:py-10 lg:py-12 space-y-6 md:space-y-8 lg:space-y-10">
             {filteredSections.length === 0 && hasActiveMenuFilters && (
               <div className="rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1a1a1a] px-5 py-8 text-center">
                 <p className="text-sm md:text-base font-medium text-gray-700 dark:text-gray-300">
@@ -2455,7 +2449,7 @@ function RestaurantDetailsContent() {
                                 delete dishCardRefs.current[item.id]
                               }
                             }}
-                            className={`flex gap-4 p-4 border-b border-gray-100 last:border-none relative cursor-pointer transition-all duration-300 ${highlightedDishId === item.id ? "bg-red-50 ring-2 ring-[#DC021B] ring-inset dark:bg-orange-950/20" : ""}`}
+                            className={`flex gap-3 px-2 py-3 border-b border-gray-100 last:border-none relative cursor-pointer transition-all duration-300 ${highlightedDishId === item.id ? "bg-red-50 ring-2 ring-[#DC021B] ring-inset dark:bg-orange-950/20" : ""}`}
                             onClick={() => handleItemClick(item)}
                           >
                             {/* Left Side - Details */}
@@ -2497,10 +2491,6 @@ function RestaurantDetailsContent() {
                                 )}
                               </div>
 
-                              {/* Description - Show if available */}
-                              {item.description && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{item.description}</p>
-                              )}
 
                               {/* Mobile-only action buttons */}
                               <div className="flex gap-4 mt-3 md:hidden">
@@ -2536,7 +2526,7 @@ function RestaurantDetailsContent() {
                             </div>
 
                             {/* Right Side - Image and Add Button */}
-                            <div className="relative w-32 h-32 flex-shrink-0">
+                            <div className="relative w-36 h-36 flex-shrink-0">
                               {item.image ? (
                                 <img
                                   src={item.image}
@@ -2684,7 +2674,7 @@ function RestaurantDetailsContent() {
                                           delete dishCardRefs.current[item.id]
                                         }
                                       }}
-                                      className={`flex gap-4 p-4 border-b border-gray-100 last:border-none relative cursor-pointer transition-all duration-300 ${highlightedDishId === item.id ? "bg-red-50 ring-2 ring-[#DC021B] ring-inset dark:bg-orange-950/20" : ""}`}
+                                      className={`flex gap-3 px-2 py-3 border-b border-gray-100 last:border-none relative cursor-pointer transition-all duration-300 ${highlightedDishId === item.id ? "bg-red-50 ring-2 ring-[#DC021B] ring-inset dark:bg-orange-950/20" : ""}`}
                                       onClick={() => handleItemClick(item)}
                                     >
                                       {/* Left Side - Details */}
@@ -2726,10 +2716,6 @@ function RestaurantDetailsContent() {
                                           )}
                                         </div>
 
-                                        {/* Description - Show if available */}
-                                        {item.description && (
-                                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{item.description}</p>
-                                        )}
 
                                         {/* Mobile-only action buttons */}
                                         <div className="flex gap-4 mt-3 md:hidden">
@@ -2765,7 +2751,7 @@ function RestaurantDetailsContent() {
                                       </div>
 
                                       {/* Right Side - Image and Add Button */}
-                                      <div className="relative w-32 h-32 flex-shrink-0">
+                                      <div className="relative w-36 h-36 flex-shrink-0">
                                         {item.image ? (
                                           <img
                                             src={item.image}
@@ -4124,15 +4110,60 @@ function RestaurantDetailsContent() {
                       </div>
                     </div>
 
+                    {/* More details */}
+                    <div className="bg-gray-50 dark:bg-[#222] rounded-2xl p-4 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Star className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Rating</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {restaurant?.rating || 0} ({(restaurant?.reviews || 0).toLocaleString()}+ ratings)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Delivery time</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{restaurant?.deliveryTime || "25-30 mins"}</p>
+                        </div>
+                      </div>
+                      {Array.isArray(restaurant?.cuisines) && restaurant.cuisines.length > 0 && (
+                        <div className="flex items-start gap-3">
+                          <Utensils className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Cuisines</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {restaurant.cuisines.map((c) => (typeof c === "string" ? c : c?.name || c?.label)).filter(Boolean).join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {Array.isArray(restaurant?.openDays) && restaurant.openDays.length > 0 && (
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-5 w-5 text-gray-400 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Open days</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{restaurant.openDays.join(", ")}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/* FSSAI License */}
                     {restaurant?.fssaiLicense && (
                       <div className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-[#1a1a1a]">
-                        <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0">
-                          <img src={fssaiLogo} alt="FSSAI" className="w-7 h-7 object-contain opacity-80" />
+                        <div className="w-12 h-10 bg-white rounded-lg flex items-center justify-center shrink-0 border border-gray-100">
+                          <img src={fssaiLogo} alt="FSSAI" className="w-9 h-7 object-contain" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">FSSAI License</p>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{restaurant.fssaiLicense}</p>
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">FSSAI License No.</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white font-mono">{restaurant.fssaiLicense}</p>
+                          {restaurant?.fssaiExpiry && !Number.isNaN(new Date(restaurant.fssaiExpiry).getTime()) && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Valid till {new Date(restaurant.fssaiExpiry).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}

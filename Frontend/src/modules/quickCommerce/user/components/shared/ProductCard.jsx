@@ -1,3 +1,4 @@
+import { isQuickProductOutOfStock } from '../../utils/stock';
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Plus, Minus, Clock } from "lucide-react";
@@ -613,6 +614,15 @@ const ProductCard = React.memo(
                         <Plus size={12} strokeWidth={3} />
                       </button>
                     </div>
+                  ) : isQuickProductOutOfStock(product) ? (
+                    <button
+                      type="button"
+                      disabled
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center justify-center w-full h-8 rounded-[8px] border border-slate-200 bg-slate-100 text-slate-400 text-[9px] font-black uppercase tracking-tight leading-none cursor-not-allowed"
+                    >
+                      Out of stock
+                    </button>
                   ) : (
                     <button
                       onClick={handleAddToCart}
@@ -825,6 +835,15 @@ const ProductCard = React.memo(
                       <Plus size={10} strokeWidth={4} />
                     </button>
                   </div>
+                ) : isQuickProductOutOfStock(product) ? (
+                  <button
+                      type="button"
+                      disabled
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center justify-center w-full h-8 rounded-[8px] border border-slate-200 bg-slate-100 text-slate-400 text-[9px] font-black uppercase tracking-tight leading-none cursor-not-allowed"
+                    >
+                      Out of stock
+                    </button>
                 ) : (
                   <button
                     onClick={handleAddToCart}

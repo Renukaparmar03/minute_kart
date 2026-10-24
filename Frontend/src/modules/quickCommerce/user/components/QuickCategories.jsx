@@ -1,7 +1,7 @@
 import quickBg from '../assets/Catagorysection_bg.png';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { resolveQuickImageUrl } from '../utils/image';
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK } from '../utils/image';
 import { useState } from 'react';
 import { getQuickProductsPath } from '../utils/routes';
 
@@ -28,9 +28,11 @@ function CategoryTileImage({ name, image }) {
 
   if (showFallback) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-[32px] bg-white/40 text-xl font-black uppercase text-slate-300">
-        {(name || '?').charAt(0)}
-      </div>
+      <img
+        src={QUICK_IMAGE_FALLBACK}
+        alt={name}
+        className="h-full w-full object-contain p-2"
+      />
     );
   }
 

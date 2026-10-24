@@ -1,9 +1,24 @@
 import { optimizeCloudinaryUrl } from "@/shared/utils/cloudinaryUtils";
+import fallbackLogo from "@/assets/Logo.png";
+
+// Shown whenever a product / category has no image (or its image fails to load).
+// Never use stock/static photos as a stand-in - the app logo is the only fallback.
+export const QUICK_IMAGE_FALLBACK = fallbackLogo;
+
+// Swap a broken <img> for the fallback logo (once, to avoid an onError loop).
+export const handleQuickImageError = (event) => {
+  const img = event?.currentTarget || event?.target;
+  if (!img || img.dataset.fallbackApplied === "1") return;
+  img.dataset.fallbackApplied = "1";
+  img.src = QUICK_IMAGE_FALLBACK;
+};
 
 const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/api\/v1\/?$/, "");
 
 export const resolveQuickImageUrl = (value) => {
   if (!value) return null;
+
+  if (value === QUICK_IMAGE_FALLBACK) return value;
 
   const raw = String(value).trim();
   if (!raw || raw === "null" || raw === "undefined") return null;

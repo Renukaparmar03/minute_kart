@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ProductCard from "../shared/ProductCard";
 import { cn } from "@/lib/utils";
 import ExperienceBannerCarousel from "./ExperienceBannerCarousel";
-import { resolveQuickImageUrl } from "../../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../../utils/image";
 import { getCloudinarySrcSet } from "@/shared/utils/cloudinaryUtils";
 import { motion } from "framer-motion";
 import { getQuickCategoryPath } from "../../utils/routes";
@@ -202,7 +202,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
           const allProducts = hydratedItems.map(p => ({
             ...p,
             id: p._id || p.id,
-            image: resolveQuickImageUrl(p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2"),
+            image: resolveQuickImageUrl(p.mainImage || p.image || QUICK_IMAGE_FALLBACK),
             price: Number(p.price || p.salePrice || 0),
             originalPrice: Number(p.originalPrice || p.mrp || p.price || p.salePrice || 0)
           }));

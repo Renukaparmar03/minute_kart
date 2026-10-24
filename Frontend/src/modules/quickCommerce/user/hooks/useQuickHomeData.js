@@ -26,7 +26,7 @@ import ColorLensIcon from "@mui/icons-material/ColorLens";
 import BuildIcon from "@mui/icons-material/Build";
 import LuggageIcon from "@mui/icons-material/Luggage";
 
-import { resolveQuickImageUrl } from "../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../utils/image";
 
 // --- Constants ---
 const DEFAULT_CATEGORY_THEME = {
@@ -173,7 +173,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
   const getQuickCategoryImage = useCallback((category = {}) => {
     const candidate = category?.image || category?.icon || category?.thumbnail || category?.imageUrl || category?.iconUrl || category?.media?.image || category?.media?.url || "";
-    return resolveQuickImageUrl(candidate) || "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";
+    return resolveQuickImageUrl(candidate) || QUICK_IMAGE_FALLBACK;
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -290,7 +290,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
           const rawResult = prodRes.data.result;
           const dbProds = Array.isArray(prodRes.data.results) ? prodRes.data.results : (Array.isArray(rawResult?.items) ? rawResult.items : (Array.isArray(rawResult) ? rawResult : []));
           const formattedProds = dbProds.map((p) => ({
-            ...p, id: p._id, image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            ...p, id: p._id, image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
             price: Number(p.salePrice || 0) > 0 ? Number(p.salePrice) : Number(p.price || 0),
             originalPrice: Number(p.originalPrice || p.mrp || p.price || p.salePrice || 0),
             weight: p.weight || "1 unit", deliveryTime: "8-15 mins"
@@ -431,7 +431,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
           const formatted = dbProds.map((p) => ({
             ...p,
             id: p._id,
-            image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
             price: Number(p.salePrice || 0) > 0 ? Number(p.salePrice) : Number(p.price || 0),
             originalPrice: Number(p.originalPrice || p.mrp || p.price || p.salePrice || 0),
             weight: p.weight || "1 unit",

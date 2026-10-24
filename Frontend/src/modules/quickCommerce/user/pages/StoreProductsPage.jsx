@@ -10,6 +10,7 @@ import { useProductDetail } from '../context/ProductDetailContext';
 import { customerApi } from '../services/customerApi';
 import MiniCart from '../components/shared/MiniCart';
 import { useLocation as useAppLocation } from '../context/LocationContext';
+import { QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../utils/image';
 
 const StoreProductsPage = () => {
     const { storeId } = useParams();
@@ -47,7 +48,7 @@ const StoreProductsPage = () => {
                 const formattedProds = dbProds.map(p => ({
                     ...p,
                     id: p._id,
-                    image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+                    image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
                     price: p.salePrice || p.price,
                     originalPrice: p.price,
                     weight: p.weight || "1 unit",

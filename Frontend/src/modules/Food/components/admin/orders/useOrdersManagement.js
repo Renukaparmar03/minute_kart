@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { pdfSafe } from "@food/utils/invoiceUtils"
 import { exportToCSV, exportToExcel, exportToPDF, exportToJSON } from "./ordersExportUtils"
 
 import { getCachedSettings, loadBusinessSettings } from "@common/utils/businessSettings"
@@ -13,7 +14,7 @@ const toNumber = (value) => {
 const formatMoney = (value) => `INR ${toNumber(value).toFixed(2)}`
 const formatDisplayText = (value, fallback = "N/A") => {
   if (value === null || value === undefined) return fallback
-  const normalized = String(value).trim()
+  const normalized = pdfSafe(value)
   return normalized || fallback
 }
 
@@ -537,16 +538,19 @@ export function useOrdersManagement(orders, statusKey, title) {
       const summaryStartY = (doc.lastAutoTable?.finalY || 130) + 10
       doc.setDrawColor(226, 232, 240)
       doc.setFillColor(248, 250, 252)
-      doc.roundedRect(pageWidth - 92, summaryStartY - 5, 78, 35, 2, 2, "FD")
+      const otherFees = Math.round((totalAmount - (subtotal + deliveryFee + taxAmount - discountAmount)) * 100) / 100
+      const summaryBody = [
+        ["Subtotal", formatMoney(subtotal)],
+        ["Delivery Fee", formatMoney(deliveryFee)],
+        ["Tax", formatMoney(taxAmount)],
+        ...(otherFees > 0.01 ? [["Platform & Other Fees", formatMoney(otherFees)]] : []),
+        ["Discount", `- ${formatMoney(discountAmount)}`],
+        ["Grand Total", formatMoney(totalAmount)],
+      ]
+      doc.roundedRect(pageWidth - 92, summaryStartY - 5, 78, 7 + summaryBody.length * 5.6, 2, 2, "FD")
       autoTable(doc, {
         startY: summaryStartY,
-        body: [
-          ["Subtotal", formatMoney(subtotal)],
-          ["Delivery Fee", formatMoney(deliveryFee)],
-          ["Tax", formatMoney(taxAmount)],
-          ["Discount", `- ${formatMoney(discountAmount)}`],
-          ["Grand Total", formatMoney(totalAmount)],
-        ],
+        body: summaryBody,
         theme: "plain",
         styles: {
           fontSize: 10,
@@ -554,12 +558,12 @@ export function useOrdersManagement(orders, statusKey, title) {
           cellPadding: 1.8,
         },
         columnStyles: {
-          0: { cellWidth: 34, fontStyle: "bold" },
-          1: { cellWidth: 40, halign: "right" },
+          0: { cellWidth: 38, fontStyle: "bold" },
+          1: { cellWidth: 36, halign: "right" },
         },
         margin: { left: pageWidth - 88 },
         didParseCell: (hookData) => {
-          if (hookData.row.index === 4) {
+          if (hookData.row.index === summaryBody.length - 1) {
             hookData.cell.styles.fontStyle = "bold"
             hookData.cell.styles.fontSize = 11
             hookData.cell.styles.textColor = [15, 118, 110]

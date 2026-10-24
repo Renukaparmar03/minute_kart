@@ -8,6 +8,7 @@ import { useSettings } from '@core/context/SettingsContext';
 import { cn } from '@/lib/utils';
 import { useLocation as useAppLocation } from '../context/LocationContext';
 import MiniCart from '../components/shared/MiniCart';
+import { QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../utils/image';
 
 const SearchPage = () => {
     const navigate = useNavigate();
@@ -43,7 +44,7 @@ const SearchPage = () => {
         products.map((p) => ({
             ...p,
             id: p._id,
-            image: p.mainImage || p.image || 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2',
+            image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
             price: p.salePrice || p.price,
             originalPrice: p.price,
             weight: p.weight || '1 unit',

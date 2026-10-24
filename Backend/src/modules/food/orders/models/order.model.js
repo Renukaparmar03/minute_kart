@@ -328,6 +328,8 @@ const orderSchema = new mongoose.Schema(
             type: paymentSchema,
             required: true
         },
+        // Quick-commerce stock has been returned to inventory (cancelled orders) - guards against double restore
+        stockReleased: { type: Boolean, default: false },
         orderStatus: {
             type: String,
             enum: [
@@ -409,6 +411,14 @@ orderSchema.index({ 'dispatch.deliveryPartnerId': 1, orderStatus: 1 });
 orderSchema.index({ 'dispatch.status': 1, orderStatus: 1 });
 orderSchema.index({ 'payment.status': 1, createdAt: -1 });
 orderSchema.index({ 'payment.method': 1, createdAt: -1 });
+
+orderSchema.post('save', function releaseQuickStockOnCancel(doc) {
+    if (doc?.stockReleased || !String(doc?.orderStatus || '').startsWith('cancelled')) return;
+    if (!['quick', 'mixed'].includes(doc?.orderType)) return;
+    import('../../../quick-commerce/services/quickStock.service.js')
+        .then((mod) => mod.releaseStockForCancelledOrder(doc))
+        .catch(() => {});
+});
 
 export const FoodOrder = mongoose.model('FoodOrder', orderSchema, 'food_orders');
 

@@ -7,6 +7,7 @@ import {
   getSideImageByKey,
   getBackgroundColorByValue,
 } from "@/shared/constants/offerSectionOptions";
+import { QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../utils/image';
 
 const mapProduct = (p) => ({
   id: p._id,
@@ -15,7 +16,7 @@ const mapProduct = (p) => ({
   image:
     p.mainImage ||
     p.image ||
-    "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+    QUICK_IMAGE_FALLBACK,
   price: p.salePrice ?? p.price,
   originalPrice: p.price,
   weight: p.weight || "1 unit",

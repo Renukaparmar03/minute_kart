@@ -1,8 +1,9 @@
+import { isQuickProductOutOfStock } from '../utils/stock';
 import React, { memo } from "react";
 import { Clock, Plus, Minus, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { resolveQuickImageUrl } from "../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../utils/image";
 
 const ProductCard = memo(({ product, quantity, onAdd, onIncrement, onDecrement, compact = false }) => {
   const money = (val) => `₹${Number(val || 0).toLocaleString("en-IN")}`;
@@ -35,12 +36,12 @@ const ProductCard = memo(({ product, quantity, onAdd, onIncrement, onDecrement, 
             compact ? "bg-[#f8f9f8]" : "bg-white group-hover:bg-[#f7fbf7]"
           )}>
             <img
-              src={resolveQuickImageUrl(product.image || product.mainImage)}
+              src={resolveQuickImageUrl(product.image || product.mainImage) || QUICK_IMAGE_FALLBACK}
               alt={product.name}
               className="h-full w-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-110"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";
+                e.target.src = QUICK_IMAGE_FALLBACK;
               }}
             />
           </div>
@@ -85,6 +86,15 @@ const ProductCard = memo(({ product, quantity, onAdd, onIncrement, onDecrement, 
                     <Plus className="h-3.5 w-3.5 stroke-[3.5px]" />
                   </button>
                 </div>
+              ) : isQuickProductOutOfStock(product) ? (
+                <button
+                  type="button"
+                  disabled
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-100 w-[72px] h-[32px] text-[9px] font-black uppercase leading-none text-slate-400 cursor-not-allowed"
+                >
+                  Out of stock
+                </button>
               ) : (
                 <motion.button
                   whileTap={{ scale: 0.94 }}

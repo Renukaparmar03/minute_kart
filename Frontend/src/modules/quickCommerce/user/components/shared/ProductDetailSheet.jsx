@@ -12,6 +12,7 @@ import { customerApi } from '../../services/customerApi';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getQuickCartPath, getQuickCheckoutPath } from '../../utils/routes';
+import { QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../../utils/image';
 
 const ProductDetailSheet = () => {
     const { selectedProduct, isOpen, closeProduct } = useProductDetail();
@@ -47,7 +48,7 @@ const ProductDetailSheet = () => {
         if (selectedProduct.galleryImages && Array.isArray(selectedProduct.galleryImages)) {
             images.push(...selectedProduct.galleryImages);
         }
-        return images.length > 0 ? images : ["https://images.unsplash.com/photo-1550989460-0adf9ea622e2"];
+        return images.length > 0 ? images : [QUICK_IMAGE_FALLBACK];
     }, [selectedProduct]);
 
     // Update variant when product changes

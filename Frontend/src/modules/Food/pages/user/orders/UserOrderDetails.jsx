@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { pdfSafe, buildInvoiceBreakdown } from "@food/utils/invoiceUtils"
 import { useNavigate, useParams } from "react-router-dom"
 import useAppBackNavigation from "@food/hooks/useAppBackNavigation"
 import {
@@ -293,12 +294,12 @@ export default function UserOrderDetails() {
       // Title
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text(`${companyName} Order: Summary and Receipt`, 105, 20, { align: 'center' })
+      doc.text(pdfSafe(`${companyName} Order: Summary and Receipt`), 105, 20, { align: 'center' })
       
       // Store/Restaurant Name (Subtitle)
       doc.setFontSize(12)
       doc.setFont('helvetica', 'italic')
-      doc.text(restaurantName || '', 105, 28, { align: 'center' })
+      doc.text(pdfSafe(restaurantName || ''), 105, 28, { align: 'center' })
 
       // Order details section
       let yPos = 40
@@ -316,7 +317,7 @@ export default function UserOrderDetails() {
       doc.setFont('helvetica', 'bold')
       doc.text('Order Time:', 20, yPos)
       doc.setFont('helvetica', 'normal')
-      const orderTimeLines = doc.splitTextToSize(paymentDate || 'N/A', 130)
+      const orderTimeLines = doc.splitTextToSize(pdfSafe(paymentDate) || 'N/A', 130)
       doc.text(orderTimeLines, 60, yPos)
       yPos += orderTimeLines.length * 7
 
@@ -324,14 +325,14 @@ export default function UserOrderDetails() {
       doc.setFont('helvetica', 'bold')
       doc.text('Customer Name:', 20, yPos)
       doc.setFont('helvetica', 'normal')
-      doc.text(userName || 'Customer', 60, yPos)
+      doc.text(pdfSafe(userName) || 'Customer', 60, yPos)
       yPos += 7
 
       // Delivery Address
       doc.setFont('helvetica', 'bold')
       doc.text('Delivery Address:', 20, yPos)
       doc.setFont('helvetica', 'normal')
-      const addressLines = doc.splitTextToSize(addressText || 'N/A', 130)
+      const addressLines = doc.splitTextToSize(pdfSafe(addressText) || 'N/A', 130)
       doc.text(addressLines, 60, yPos)
       yPos += addressLines.length * 7
 
@@ -340,13 +341,13 @@ export default function UserOrderDetails() {
       doc.setFont('helvetica', 'bold')
       doc.text(isQuick ? 'Seller Address:' : 'Restaurant Address:', 20, yPos)
       doc.setFont('helvetica', 'normal')
-      const restaurantAddressLines = doc.splitTextToSize(restaurantLocation || 'N/A', 130)
+      const restaurantAddressLines = doc.splitTextToSize(pdfSafe(restaurantLocation) || 'N/A', 130)
       doc.text(restaurantAddressLines, 60, yPos)
       yPos += restaurantAddressLines.length * 7 + 5
 
       // Items table
       const tableData = items.map(item => [
-        item.variantName ? `${item.name || 'Item'} (${item.variantName})` : (item.name || 'Item'),
+        pdfSafe(item.variantName ? `${item.name || 'Item'} (${item.variantName})` : (item.name || 'Item')) || 'Item',
         String(item.quantity || item.qty || 1),
         `Rs. ${Number(item.price || 0).toFixed(2)}`,
         `Rs. ${Number((item.price || 0) * (item.quantity || item.qty || 1)).toFixed(2)}`
@@ -358,7 +359,7 @@ export default function UserOrderDetails() {
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [0, 0, 0], textColor: 255, fontStyle: 'bold', fontSize: 10 },
-        styles: { fontSize: 9 },
+        styles: { fontSize: 9, overflow: 'linebreak' },
         columnStyles: {
           0: { cellWidth: 80 },
           1: { cellWidth: 30, halign: 'center' },
@@ -370,12 +371,26 @@ export default function UserOrderDetails() {
       // Get final Y position after table (autoTable adds lastAutoTable property)
       const finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY : yPos + (tableData.length * 8) + 20
 
-      // Total
+      // Bill breakdown + total
+      const { rows: billRows, discount: billDiscount, grandTotal } = buildInvoiceBreakdown(order)
+      const summaryRows = [...billRows, ...(billDiscount > 0 ? [['Discount', -billDiscount]] : [])]
+      const pdfMoney = (v) => `${v < 0 ? '- ' : ''}Rs. ${Math.abs(v).toFixed(2)}`
+      let summaryY = finalY + 10
+      if (summaryY + summaryRows.length * 7 + 20 > 280) {
+        doc.addPage()
+        summaryY = 20
+      }
+      doc.setFontSize(10)
+      summaryRows.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'normal')
+        doc.text(`${label}:`, 135, summaryY, { align: 'right' })
+        doc.text(pdfMoney(value), 190, summaryY, { align: 'right' })
+        summaryY += 7
+      })
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
-      doc.text('Total:', 135, finalY + 10, { align: 'right' })
-      const finalAmount = pricing.total || order.payment?.amountDue || order.payableAmount || order.totalAmount || 0
-      doc.text(`Rs. ${Number(finalAmount).toFixed(2)}`, 190, finalY + 10, { align: 'right' })
+      doc.text('Total:', 135, summaryY + 3, { align: 'right' })
+      doc.text(pdfMoney(grandTotal), 190, summaryY + 3, { align: 'right' })
 
       // Save PDF instantly
       const fileName = `Order_Summary_${orderIdDisplay}_${Date.now()}.pdf`

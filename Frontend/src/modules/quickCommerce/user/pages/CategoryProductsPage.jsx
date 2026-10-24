@@ -13,7 +13,8 @@ import MiniCart from '../components/shared/MiniCart';
 import SectionRenderer from "../components/experience/SectionRenderer";
 import { useLocation as useAppLocation } from '../context/LocationContext';
 import { useCartAnimation } from '../context/CartAnimationContext';
-import { resolveQuickImageUrl } from '../utils/image';
+import { isQuickProductOutOfStock } from '../utils/stock';
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../utils/image';
 import { useHeroTransition } from '../context/HeroTransitionContext';
 import { useCarouselSwipe } from '../components/shared/ProductCard';
 import VariantSelectorSheet, { hasProductVariants } from '../components/shared/VariantSelectorSheet';
@@ -41,6 +42,7 @@ const CategoryProductCard = ({ product }) => {
     const cardRef = React.useRef(null);
     const [showVariantsModal, setShowVariantsModal] = useState(false);
     const hasVariants = hasProductVariants(product);
+    const outOfStock = isQuickProductOutOfStock(product);
 
     // Intercept card tap: capture rect, trigger hero expand, then navigate
     const handleCardTap = (e) => {
@@ -150,7 +152,8 @@ const CategoryProductCard = ({ product }) => {
                                     className="w-full h-full flex-shrink-0 flex items-center justify-center p-0"
                                 >
                                     <img
-                                        src={resolveQuickImageUrl(imgUrl) || imgUrl}
+                                        src={resolveQuickImageUrl(imgUrl) || imgUrl || QUICK_IMAGE_FALLBACK}
+                                        onError={handleQuickImageError}
                                         alt={`${product.name} - ${imgIdx + 1}`}
                                         className="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal transform group-hover:scale-105 transition-transform duration-300"
                                     />
@@ -175,7 +178,8 @@ const CategoryProductCard = ({ product }) => {
                     </div>
                 ) : (
                     <img
-                        src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
+                        src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage || QUICK_IMAGE_FALLBACK}
+                        onError={handleQuickImageError}
                         alt={product.name}
                         className="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal transform group-hover:scale-105 transition-transform duration-300"
                     />
@@ -216,7 +220,16 @@ const CategoryProductCard = ({ product }) => {
 
                     {/* ADD Button or Quantity Counter */}
                     <div className="mt-1">
-                        {quantity === 0 ? (
+                        {quantity === 0 && outOfStock ? (
+                            <button
+                                type="button"
+                                disabled
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-400 font-black text-[10px] h-[26px] rounded-[8px] cursor-not-allowed flex items-center justify-center uppercase"
+                            >
+                                Out of stock
+                            </button>
+                        ) : quantity === 0 ? (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -318,7 +331,8 @@ const TransitionBanner = ({ direction, name, icon, arrowRef }) => {
 
             <div className="w-16 h-16 rounded-full bg-white dark:bg-neutral-800 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center p-3 shadow-md">
                 <img 
-                    src={icon || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png'} 
+                    src={resolveQuickImageUrl(icon) || QUICK_IMAGE_FALLBACK} 
+                    onError={handleQuickImageError}
                     alt="Category Icon" 
                     className="w-full h-full object-contain" 
                 />
@@ -343,7 +357,7 @@ const CategoryProductsPage = () => {
     // Core Layout States
     const [selectedSubCategory, setSelectedSubCategory] = useState(initialSubcategoryId);
     const [category, setCategory] = useState(null);
-    const [subCategories, setSubCategories] = useState([{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }]);
+    const [subCategories, setSubCategories] = useState([{ id: 'all', name: 'All', icon: QUICK_IMAGE_FALLBACK }]);
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [headerTheme, setHeaderTheme] = useState(FALLBACK_HEADER_COLOR);
@@ -474,7 +488,7 @@ const CategoryProductsPage = () => {
         if (!categoryCacheRef.current[normId]) {
             categoryCacheRef.current[normId] = {
                 products: [],
-                subCategories: [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }],
+                subCategories: [{ id: 'all', name: 'All', icon: QUICK_IMAGE_FALLBACK }],
                 category: null,
                 experienceSections: [],
                 heroConfig: null,
@@ -518,7 +532,7 @@ const CategoryProductsPage = () => {
                     productsList = dbProds.map(p => ({
                         ...p,
                         id: p._id,
-                        image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+                        image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
                         price: p.salePrice || p.price,
                         originalPrice: p.price,
                         weight: p.weight || "1 unit",
@@ -527,7 +541,7 @@ const CategoryProductsPage = () => {
                 }
 
                 let targetCategory = null;
-                let subCategoriesList = [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }];
+                let subCategoriesList = [{ id: 'all', name: 'All', icon: QUICK_IMAGE_FALLBACK }];
 
                 if (allCats && allCats.length > 0) {
                     const fullMap = buildCategoryMap(allCats);
@@ -549,11 +563,11 @@ const CategoryProductsPage = () => {
                         const formattedSubs = subs.map(s => ({
                             id: normalizeId(s._id || s.id),
                             name: s.name,
-                            icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
+                            icon: s.image || QUICK_IMAGE_FALLBACK,
                             banner: s.banner || '',
                             sortOrder: Number(s.sortOrder || 0),
                         })).sort((a, b) => a.sortOrder - b.sortOrder);
-                        subCategoriesList = [{ id: 'all', name: 'All', icon: targetCategory.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
+                        subCategoriesList = [{ id: 'all', name: 'All', icon: targetCategory.image || QUICK_IMAGE_FALLBACK }, ...formattedSubs];
                     }
                 }
 
@@ -573,7 +587,7 @@ const CategoryProductsPage = () => {
                 console.error("Error preloading category details:", err);
                 const errorData = {
                     products: [],
-                    subCategories: [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }],
+                    subCategories: [{ id: 'all', name: 'All', icon: QUICK_IMAGE_FALLBACK }],
                     category: null,
                     experienceSections: [],
                     heroConfig: null,
@@ -681,12 +695,12 @@ const CategoryProductsPage = () => {
         const formattedSubs = subs.map(s => ({
             id: normalizeId(s._id || s.id),
             name: s.name,
-            icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
+            icon: s.image || QUICK_IMAGE_FALLBACK,
             banner: s.banner || '',
             sortOrder: Number(s.sortOrder || 0),
         })).sort((a, b) => a.sortOrder - b.sortOrder);
         
-        return [{ id: 'all', name: 'All', icon: cat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
+        return [{ id: 'all', name: 'All', icon: cat.image || QUICK_IMAGE_FALLBACK }, ...formattedSubs];
     };
 
     // Calculate panel data for render
@@ -878,7 +892,7 @@ const CategoryProductsPage = () => {
                 const mapped = results.map(p => ({
                         ...p,
                         id: p._id,
-                        image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+                        image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
                         price: p.salePrice || p.price,
                         originalPrice: p.price,
                         weight: p.unit || p.weight || "1 unit",
@@ -1576,7 +1590,7 @@ const CategoryProductsPage = () => {
                                         ? "bg-[#E8F5E9] dark:bg-emerald-950/40" 
                                         : "bg-[#F3F4F6] dark:bg-neutral-800"
                                 )}>
-                                    <img src={cat.icon} alt={cat.name} className={cn(
+                                    <img src={resolveQuickImageUrl(cat.icon) || QUICK_IMAGE_FALLBACK} onError={handleQuickImageError} alt={cat.name} className={cn(
                                         "w-full h-full object-contain object-center mix-blend-multiply dark:mix-blend-normal transition-transform duration-300",
                                         selectedSubCategory === cat.id ? "scale-110" : "scale-100"
                                     )} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { pdfSafe, buildInvoiceBreakdown } from "@food/utils/invoiceUtils"
 import { useParams, Link, useSearchParams, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
@@ -585,7 +586,8 @@ const transformOrderForTracking = (apiOrder, previousOrder = null, explicitResta
     createdAt: apiOrder?.createdAt || previousOrder?.createdAt || null,
     totalAmount: apiOrder?.payment?.amountDue || apiOrder?.payableAmount || apiOrder?.totalAmount || apiOrder?.pricing?.total || previousOrder?.totalAmount || 0,
     deliveryFee: apiOrder?.pricing?.deliveryFee || apiOrder?.deliveryFee || previousOrder?.deliveryFee || 0,
-    gst: apiOrder?.pricing?.tax || apiOrder?.pricing?.gst || apiOrder?.gst || apiOrder?.tax || previousOrder?.gst || 0,
+    gst: apiOrder?.pricing?.tax || apiOrder?.pricing?.gstAmount || apiOrder?.pricing?.gst || apiOrder?.gst || apiOrder?.tax || previousOrder?.gst || 0,
+    deliveryTip: apiOrder?.pricing?.deliveryTip || apiOrder?.deliveryTip || previousOrder?.deliveryTip || 0,
     packagingFee: apiOrder?.pricing?.packagingFee || apiOrder?.packagingFee || 0,
     platformFee: apiOrder?.pricing?.platformFee || apiOrder?.platformFee || 0,
     handlingFee: apiOrder?.pricing?.handlingFee || apiOrder?.handlingFee || previousOrder?.handlingFee || 0,
@@ -1851,25 +1853,33 @@ export default function OrderTracking() {
       const margin = 40
       let y = 54
 
-      const paymentMethodLabel = String(order?.paymentMethod || order?.payment?.method || "N/A")
+      const paymentMethodLabel = pdfSafe(String(order?.paymentMethod || order?.payment?.method || "N/A")
         .replace(/_/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase())
-      const paymentStatusLabel = String(order?.payment?.status || "N/A")
+        .replace(/\b\w/g, (char) => char.toUpperCase()))
+      const paymentStatusLabel = pdfSafe(String(order?.payment?.status || "N/A")
         .replace(/_/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase())
-      const customerName = String(order?.userName || profile?.name || "Customer").trim()
-      const customerPhone = String(order?.userPhone || profile?.phone || "").trim()
+        .replace(/\b\w/g, (char) => char.toUpperCase()))
+      const customerName = pdfSafe(order?.userName || profile?.name || "Customer") || "Customer"
+      const customerPhone = pdfSafe(order?.userPhone || profile?.phone || "")
       const pickupSourceList = Array.isArray(order?.pickupSources) ? order.pickupSources : []
-      const deliveryAddress = String(
+      const deliveryAddress = pdfSafe(
         order?.address?.formattedAddress ||
         [order?.address?.street, order?.address?.additionalDetails, order?.address?.city, order?.address?.state, order?.address?.zipCode]
           .filter(Boolean)
           .join(", ")
-      ).trim() || "Address not available"
+      ) || "Address not available"
 
       const pickupSummary = pickupSourceList.map((source, index) => (
-        `${pickupSourceList.length > 1 ? `${source.label || "Pickup"} ${index + 1}` : (source.label || "Pickup")}: ${source.name || "Source"}${source.address ? `, ${source.address}` : ""}`
+        pdfSafe(`${pickupSourceList.length > 1 ? `${source.label || "Pickup"} ${index + 1}` : (source.label || "Pickup")}: ${source.name || "Source"}${source.address ? `, ${source.address}` : ""}`)
       ))
+
+      const ensureSpace = (needed) => {
+        if (y + needed > pageHeight - 96) {
+          doc.addPage()
+          y = margin
+          doc.setTextColor(17, 24, 39)
+        }
+      }
 
       doc.setFillColor(18, 18, 18)
       doc.rect(0, 0, pageWidth, 116, "F")
@@ -1881,15 +1891,18 @@ export default function OrderTracking() {
       doc.setFont("helvetica", "normal")
       doc.text("Tax Invoice", margin, 72)
       doc.text(`Order Invoice`, pageWidth - margin, 52, { align: "right" })
-      doc.text(`Invoice Ref: INV-${order?.orderId || order?.id || "N/A"}`, pageWidth - margin, 72, { align: "right" })
-      doc.text(`Issued: ${formatInvoiceDateTime(order?.createdAt)}`, pageWidth - margin, 90, { align: "right" })
+      doc.text(pdfSafe(`Invoice Ref: INV-${order?.orderId || order?.id || "N/A"}`), pageWidth - margin, 72, { align: "right" })
+      doc.text(pdfSafe(`Issued: ${formatInvoiceDateTime(order?.createdAt)}`), pageWidth - margin, 90, { align: "right" })
 
       y = 148
+      const colGap = 24
+      const colWidth = (pageWidth - margin * 2 - colGap) / 2
+      const rightColX = margin + colWidth + colGap
       doc.setTextColor(17, 24, 39)
       doc.setFont("helvetica", "bold")
       doc.setFontSize(11)
       doc.text("Billed To", margin, y)
-      doc.text("Order Snapshot", pageWidth / 2 + 10, y)
+      doc.text("Order Snapshot", rightColX, y)
 
       doc.setFont("helvetica", "normal")
       doc.setFontSize(10)
@@ -1904,19 +1917,20 @@ export default function OrderTracking() {
         `Status: ${String(order?.status || orderStatus || "created").replace(/_/g, " ")}`,
         `Payment Method: ${paymentMethodLabel}`,
         `Payment Status: ${paymentStatusLabel}`,
-      ]
+      ].map(pdfSafe)
 
       let billedY = y + 18
       billedToLines.forEach((line) => {
-        const lines = doc.splitTextToSize(line, pageWidth / 2 - 60)
+        const lines = doc.splitTextToSize(line, colWidth)
         doc.text(lines, margin, billedY)
         billedY += lines.length * 14
       })
 
       let snapshotY = y + 18
       snapshotLines.forEach((line) => {
-        doc.text(line, pageWidth / 2 + 10, snapshotY)
-        snapshotY += 14
+        const lines = doc.splitTextToSize(line, colWidth)
+        doc.text(lines, rightColX, snapshotY)
+        snapshotY += lines.length * 14
       })
 
       y = Math.max(billedY, snapshotY) + 18
@@ -1932,7 +1946,7 @@ export default function OrderTracking() {
       y += 16
 
       const pickupLines = pickupSummary.length > 0 ? pickupSummary : [
-        `${order?.restaurant || "Restaurant"}${order?.restaurantAddress ? `, ${order.restaurantAddress}` : ""}`,
+        pdfSafe(`${order?.restaurant || "Restaurant"}${order?.restaurantAddress ? `, ${order.restaurantAddress}` : ""}`),
       ]
       pickupLines.forEach((line) => {
         const wrapped = doc.splitTextToSize(line, pageWidth - margin * 2)
@@ -1944,11 +1958,11 @@ export default function OrderTracking() {
       autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
+        tableWidth: pageWidth - margin * 2,
         head: [["Item", "Qty", "Unit Price", "Line Total"]],
         body: (order?.items || []).map((item) => {
-          const name = item?.variantName
-            ? `${item.name || item.foodName || item.productId?.name || "Item"} (${item.variantName})`
-            : (item?.name || item.foodName || item.productId?.name || "Item")
+          const baseName = item?.name || item?.foodName || item?.productId?.name || "Item"
+          const name = pdfSafe(item?.variantName ? `${baseName} (${item.variantName})` : baseName) || "Item"
           const qty = Number(item?.quantity ?? item?.qty ?? 1)
           const price = Number(item?.price || 0)
           return [
@@ -1969,30 +1983,29 @@ export default function OrderTracking() {
           fontSize: 9,
           cellPadding: 8,
           textColor: [31, 41, 55],
+          overflow: "linebreak",
         },
         columnStyles: {
-          0: { cellWidth: 280 },
-          1: { halign: "center", cellWidth: 55 },
+          0: { cellWidth: "auto" },
+          1: { halign: "center", cellWidth: 45 },
           2: { halign: "right", cellWidth: 90 },
           3: { halign: "right", cellWidth: 90 },
         },
       })
 
       y = (doc.lastAutoTable?.finalY || y) + 24
-      const totalsXLabel = pageWidth - margin - 180
+      const totalsXLabel = pageWidth - margin - 200
       const totalsXValue = pageWidth - margin
-      const totals = [
-        ["Subtotal", formatInvoiceCurrency(order?.subtotal ?? order?.itemsPrice ?? order?.itemTotal ?? 0)],
-        ["Delivery Fee", formatInvoiceCurrency(order?.deliveryFee ?? order?.deliveryCharge ?? 0)],
-        ["Platform Fee", formatInvoiceCurrency(order?.platformFee ?? 0)],
-        ["Packaging Fee", formatInvoiceCurrency(order?.packagingFee ?? 0)],
-        ["GST & Taxes", formatInvoiceCurrency(order?.gst ?? order?.tax ?? order?.taxes ?? 0)],
-      ]
-
-      if (Number(order?.discount || order?.couponDiscount || 0) > 0) {
-        totals.push(["Discount", `- ${formatInvoiceCurrency(order?.discount || order?.couponDiscount || 0)}`])
+      const { rows: totalRows, discount: discountAmount, grandTotal } = buildInvoiceBreakdown(order)
+      const totals = totalRows.map(([label, value]) => [
+        label,
+        value < 0 ? `- ${formatInvoiceCurrency(Math.abs(value))}` : formatInvoiceCurrency(value),
+      ])
+      if (discountAmount > 0) {
+        totals.push(["Discount", `- ${formatInvoiceCurrency(discountAmount)}`])
       }
 
+      ensureSpace(totals.length * 16 + 60)
       doc.setFontSize(10)
       totals.forEach(([label, value]) => {
         doc.setFont("helvetica", "normal")
@@ -2007,16 +2020,21 @@ export default function OrderTracking() {
       doc.setFont("helvetica", "bold")
       doc.setFontSize(13)
       doc.text("Grand Total", totalsXLabel, y)
-      doc.text(formatInvoiceCurrency(order?.totalAmount || order?.total || 0), totalsXValue, y, { align: "right" })
+      doc.text(formatInvoiceCurrency(grandTotal), totalsXValue, y, { align: "right" })
 
-      const footerY = pageHeight - 72
-      doc.setDrawColor(229, 231, 235)
-      doc.line(margin, footerY - 18, pageWidth - margin, footerY - 18)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(9)
-      doc.setTextColor(107, 114, 128)
-      doc.text(`${INVOICE_BRAND_NAME} order support invoice`, margin, footerY)
-      doc.text("This is a system-generated invoice for your order.", pageWidth - margin, footerY, { align: "right" })
+      // Footer on every page
+      const pageCount = doc.getNumberOfPages()
+      for (let i = 1; i <= pageCount; i += 1) {
+        doc.setPage(i)
+        const footerY = pageHeight - 48
+        doc.setDrawColor(229, 231, 235)
+        doc.line(margin, footerY - 18, pageWidth - margin, footerY - 18)
+        doc.setFont("helvetica", "normal")
+        doc.setFontSize(9)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`${INVOICE_BRAND_NAME} order support invoice`, margin, footerY)
+        doc.text("This is a system-generated invoice for your order.", pageWidth - margin, footerY, { align: "right" })
+      }
 
       doc.save(`${INVOICE_BRAND_NAME}_Invoice_${order?.orderId || order?.id || Date.now()}.pdf`)
       toast.success("Invoice downloaded")
@@ -2166,7 +2184,7 @@ export default function OrderTracking() {
     'Preparing delivery address'
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-[#0a0a0a]">
+    <div className="bg-gray-100 dark:bg-[#0a0a0a]">
       {/* Order Confirmed Modal */}
       <AnimatePresence>
         {false && showConfirmation && (
@@ -2367,7 +2385,7 @@ export default function OrderTracking() {
       )}
 
       {/* Scrollable Content */}
-      <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6 pb-24 md:pb-32">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6 pb-2 md:pb-6">
 
 
         {customerDeliveryOtp && orderStatus !== 'delivered' && orderStatus !== 'cancelled' && (

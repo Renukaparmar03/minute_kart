@@ -41,7 +41,7 @@ import {
   getQuickCheckoutPath,
   getQuickOrderDetailPath,
 } from "../utils/routes";
-import { resolveQuickImageUrl } from "../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../utils/image";
 import { publicGetOnce, userAPI } from "@food/api";
 
 const DEFAULT_QUICK_BILLING_SETTINGS = {
@@ -319,7 +319,7 @@ const CartPage = () => {
           const formattedProds = dbProds.map(p => ({
             ...p,
             id: p._id || p.id,
-            image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            image: p.mainImage || p.image || QUICK_IMAGE_FALLBACK,
             price: p.salePrice || p.price,
             originalPrice: p.price,
             weight: p.weight || p.unit || "1 unit",
@@ -888,11 +888,11 @@ const CartPage = () => {
                   {/* Left: Product Image */}
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800">
                     <img
-                      src={resolveQuickImageUrl(item.mainImage || item.image) || item.mainImage || item.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop"}
+                      src={resolveQuickImageUrl(item.mainImage || item.image) || item.mainImage || item.image || QUICK_IMAGE_FALLBACK}
                       alt={item.name}
                       className="h-full w-full object-contain p-1 dark:mix-blend-normal"
                       onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop";
+                        e.currentTarget.src = QUICK_IMAGE_FALLBACK;
                       }}
                     />
                   </div>

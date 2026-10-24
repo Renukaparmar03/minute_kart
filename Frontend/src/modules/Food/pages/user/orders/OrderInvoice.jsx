@@ -13,6 +13,7 @@ import { customerApi } from "@/modules/quickCommerce/user/services/customerApi"
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 import { toast } from "sonner"
+import { pdfSafe, buildInvoiceBreakdown } from "@food/utils/invoiceUtils"
 
 export default function OrderInvoice() {
   const companyName = useCompanyName() || "Minutekart"
@@ -95,13 +96,9 @@ export default function OrderInvoice() {
   // Safe pricing derivations
   const orderIdDisplay = order?.orderId || order?.id || order?._id || orderId || "N/A"
   const items = Array.isArray(order?.items) ? order.items : []
-  const subtotal = Number(order?.subtotal ?? order?.itemTotal ?? order?.itemsPrice ?? 0)
-  const deliveryFee = Number(order?.deliveryFee ?? order?.deliveryCharge ?? 0)
-  const taxes = Number(order?.gst ?? order?.tax ?? order?.taxes ?? 0)
-  const platformFee = Number(order?.platformFee ?? 0)
-  const packagingFee = Number(order?.packagingFee ?? 0)
-  const discount = Number(order?.discount ?? order?.couponDiscount ?? 0)
-  const grandTotal = Number(order?.totalAmount ?? order?.total ?? order?.payableAmount ?? order?.grandTotal ?? 0)
+  const { rows: breakdownRows, discount, grandTotal } = buildInvoiceBreakdown(order)
+  const breakdownDisplay = [...breakdownRows, ...(discount > 0 ? [["Discount", -discount]] : [])]
+  const money = (v) => `${v < 0 ? "- " : ""}Rs. ${Math.abs(v).toFixed(2)}`
   
   const paymentMethod = String(
     order?.paymentMethod?.type ||
@@ -144,15 +141,15 @@ export default function OrderInvoice() {
       doc.setTextColor(255, 255, 255)
       doc.setFont("helvetica", "bold")
       doc.setFontSize(22)
-      doc.text(companyName, margin, 48)
+      doc.text(pdfSafe(companyName), margin, 48)
 
       doc.setFontSize(10)
       doc.setFont("helvetica", "normal")
       doc.text("Tax Invoice & Order Receipt", margin, 68)
 
       doc.text("Order Invoice", pageWidth - margin, 48, { align: "right" })
-      doc.text(`Invoice Ref: INV-${orderIdDisplay}`, pageWidth - margin, 68, { align: "right" })
-      doc.text(`Date: ${formatDate(order?.createdAt)}`, pageWidth - margin, 86, { align: "right" })
+      doc.text(pdfSafe(`Invoice Ref: INV-${orderIdDisplay}`), pageWidth - margin, 68, { align: "right" })
+      doc.text(pdfSafe(`Date: ${formatDate(order?.createdAt)}`), pageWidth - margin, 86, { align: "right" })
 
       // Billing & Order Snapshot
       y = 140
@@ -160,7 +157,7 @@ export default function OrderInvoice() {
       doc.setFont("helvetica", "bold")
       doc.setFontSize(11)
       doc.text("Billed To", margin, y)
-      doc.text("Order Details", pageWidth / 2 + 10, y)
+      doc.text("Order Details", margin + (pageWidth - margin * 2 - 24) / 2 + 24, y)
 
       doc.setFont("helvetica", "normal")
       doc.setFontSize(10)
@@ -169,26 +166,30 @@ export default function OrderInvoice() {
         customerName,
         customerPhone ? `Phone: ${customerPhone}` : "",
         addressText,
-      ].filter(Boolean)
+      ].map(pdfSafe).filter(Boolean)
 
       const snapshotLines = [
         `Order ID: ${orderIdDisplay}`,
         `Status: ${String(order?.status || "COMPLETED").toUpperCase()}`,
         `Payment: ${paymentMethod}`,
-        `Store / Restaurant: ${order?.restaurant || companyName}`,
-      ]
+        `Store / Restaurant: ${order?.restaurant || order?.restaurantName || companyName}`,
+      ].map(pdfSafe)
+
+      const colGap = 24
+      const colWidth = (pageWidth - margin * 2 - colGap) / 2
+      const rightColX = margin + colWidth + colGap
 
       let billedY = y + 16
       billedToLines.forEach((line) => {
-        const lines = doc.splitTextToSize(line, pageWidth / 2 - 60)
+        const lines = doc.splitTextToSize(line, colWidth)
         doc.text(lines, margin, billedY)
         billedY += lines.length * 13
       })
 
       let snapshotY = y + 16
       snapshotLines.forEach((line) => {
-        const lines = doc.splitTextToSize(line, pageWidth / 2 - 60)
-        doc.text(lines, pageWidth / 2 + 10, snapshotY)
+        const lines = doc.splitTextToSize(line, colWidth)
+        doc.text(lines, rightColX, snapshotY)
         snapshotY += lines.length * 13
       })
 
@@ -201,11 +202,11 @@ export default function OrderInvoice() {
       autoTable(doc, {
         startY: y,
         margin: { left: margin, right: margin },
+        tableWidth: pageWidth - margin * 2,
         head: [["Item Description", "Qty", "Price", "Total"]],
         body: items.map((item) => {
-          const name = item?.variantName
-            ? `${item?.name || item?.foodName || "Item"} (${item.variantName})`
-            : item?.name || item?.foodName || "Item"
+          const baseName = item?.name || item?.foodName || "Item"
+          const name = pdfSafe(item?.variantName ? `${baseName} (${item.variantName})` : baseName) || "Item"
           const qty = Number(item?.quantity ?? item?.qty ?? 1)
           const price = Number(item?.price ?? 0)
           return [
@@ -226,10 +227,11 @@ export default function OrderInvoice() {
           fontSize: 9,
           cellPadding: 7,
           textColor: [31, 41, 55],
+          overflow: "linebreak",
         },
         columnStyles: {
-          0: { cellWidth: 280 },
-          1: { halign: "center", cellWidth: 50 },
+          0: { cellWidth: "auto" },
+          1: { halign: "center", cellWidth: 45 },
           2: { halign: "right", cellWidth: 90 },
           3: { halign: "right", cellWidth: 90 },
         },
@@ -240,15 +242,13 @@ export default function OrderInvoice() {
       // Totals
       const totalsXLabel = pageWidth - margin - 180
       const totalsXValue = pageWidth - margin
-      const totals = [
-        ["Subtotal", `Rs. ${subtotal.toFixed(2)}`],
-        ["Delivery Fee", `Rs. ${deliveryFee.toFixed(2)}`],
-      ]
+      const totals = breakdownDisplay.map(([label, value]) => [label, money(value)])
 
-      if (platformFee > 0) totals.push(["Platform Fee", `Rs. ${platformFee.toFixed(2)}`])
-      if (packagingFee > 0) totals.push(["Packaging Fee", `Rs. ${packagingFee.toFixed(2)}`])
-      if (taxes > 0) totals.push(["GST & Taxes", `Rs. ${taxes.toFixed(2)}`])
-      if (discount > 0) totals.push(["Discount", `- Rs. ${discount.toFixed(2)}`])
+      if (y + totals.length * 15 + 60 > pageHeight - 80) {
+        doc.addPage()
+        y = margin
+        doc.setTextColor(17, 24, 39)
+      }
 
       doc.setFontSize(10)
       totals.forEach(([label, value]) => {
@@ -264,7 +264,7 @@ export default function OrderInvoice() {
       doc.setFont("helvetica", "bold")
       doc.setFontSize(12)
       doc.text("Total Paid", totalsXLabel, y)
-      doc.text(`Rs. ${grandTotal.toFixed(2)}`, totalsXValue, y, { align: "right" })
+      doc.text(money(grandTotal), totalsXValue, y, { align: "right" })
 
       // Footer
       const footerY = pageHeight - 50
@@ -273,7 +273,7 @@ export default function OrderInvoice() {
       doc.setFont("helvetica", "normal")
       doc.setFontSize(8)
       doc.setTextColor(107, 114, 128)
-      doc.text(`${companyName} — System generated order tax invoice`, margin, footerY)
+      doc.text(pdfSafe(`${companyName} - System generated order tax invoice`), margin, footerY)
       doc.text("Thank you for ordering with us!", pageWidth - margin, footerY, { align: "right" })
 
       doc.save(`${companyName}_Invoice_${orderIdDisplay}.pdf`)
@@ -463,38 +463,17 @@ export default function OrderInvoice() {
               {/* Totals Section */}
               <div className="flex justify-end mb-8">
                 <div className="w-full sm:w-72 space-y-2 text-xs sm:text-sm">
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>Subtotal:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>Delivery Fee:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">₹{deliveryFee.toFixed(2)}</span>
-                  </div>
-                  {platformFee > 0 && (
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Platform Fee:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">₹{platformFee.toFixed(2)}</span>
+                  {breakdownDisplay.map(([label, value]) => (
+                    <div
+                      key={label}
+                      className={`flex justify-between ${label === "Discount" ? "text-emerald-600 font-medium" : "text-gray-600 dark:text-gray-400"}`}
+                    >
+                      <span>{label}:</span>
+                      <span className={label === "Discount" ? "" : "font-medium text-gray-900 dark:text-white"}>
+                        {value < 0 ? "- " : ""}₹{Math.abs(value).toFixed(2)}
+                      </span>
                     </div>
-                  )}
-                  {packagingFee > 0 && (
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Packaging Fee:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">₹{packagingFee.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {taxes > 0 && (
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>GST & Taxes:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">₹{taxes.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {discount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-medium">
-                      <span>Discount:</span>
-                      <span>- ₹{discount.toFixed(2)}</span>
-                    </div>
-                  )}
+                  ))}
                   <div className="border-t-2 border-gray-900 dark:border-white pt-2.5 mt-2 flex justify-between text-base font-extrabold text-gray-900 dark:text-white">
                     <span>Total Paid:</span>
                     <span>₹{grandTotal.toFixed(2)}</span>

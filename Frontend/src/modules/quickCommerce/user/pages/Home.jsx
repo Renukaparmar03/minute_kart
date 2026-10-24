@@ -65,7 +65,7 @@ import QuickLaunchSplash from "../components/QuickLaunchSplash";
 import SectionRenderer from "../components/experience/SectionRenderer";
 import ExperienceBannerCarousel from "../components/experience/ExperienceBannerCarousel";
 import { useLocation } from "../context/LocationContext";
-import { resolveQuickImageUrl } from "../utils/image";
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from "../utils/image";
 import { getCloudinarySrcSet } from "@/shared/utils/cloudinaryUtils";
 import { useQuickHomeData } from "../hooks/useQuickHomeData";
 import {
@@ -430,7 +430,7 @@ const getQuickCategoryImage = (category = {}) => {
 
   return (
     resolveQuickImageUrl(candidate) ||
-    "https://cdn-icons-png.flaticon.com/128/2321/2321831.png"
+    QUICK_IMAGE_FALLBACK
   );
 };
 

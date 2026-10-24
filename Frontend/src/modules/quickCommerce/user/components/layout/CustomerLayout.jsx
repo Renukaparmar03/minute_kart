@@ -29,6 +29,8 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
     const hideFooterMessageRoutes = ['/profile', '/profile/edit'];
     const showFooterMessage = showBottomNav && !hideFooterMessageRoutes.includes(path) && !matchesRoutePrefix('/category') && !matchesRoutePrefix('/categories');
 
+    const isOrdersPage = matchesRoutePrefix('/orders');
+
     const finalShowBottomNavMobile = showBottomNav && !isProductDetailOpen;
     const finalShowFooterMessageMobile = showFooterMessage && !isProductDetailOpen;
 
@@ -43,12 +45,12 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
             <DeliveredOrderReviewPopup />
 
             <div className="hidden md:block">
-                <Footer />
+                {!isOrdersPage && <Footer />}
             </div>
 
             {/* Mobile Footer Message logic */}
             <div className="md:hidden">
-                {finalShowFooterMessageMobile && <MobileFooterMessage />}
+                {finalShowFooterMessageMobile && <MobileFooterMessage compact={isOrdersPage} />}
             </div>
 
             {/* Bottom Nav logic */}

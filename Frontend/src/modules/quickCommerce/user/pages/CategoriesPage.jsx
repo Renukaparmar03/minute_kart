@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { customerApi } from '../services/customerApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { resolveQuickImageUrl, QUICK_IMAGE_FALLBACK, handleQuickImageError } from '../utils/image';
 
 const COLORS = [
     "#FDF2F2", "#F2F9F2", "#F2F2FD", "#FDFDF2",
@@ -14,7 +15,8 @@ const CategoryCard = ({ category }) => {
         <div className="flex flex-col items-center group w-full cursor-pointer h-full">
             <div className="w-full aspect-square bg-[#F5F7FA] dark:bg-card rounded-[16px] md:rounded-[20px] shadow-sm flex items-center justify-center p-3 md:p-4 mb-2 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md border border-transparent dark:border-border">
                 <img
-                    src={category.image}
+                    src={resolveQuickImageUrl(category.image) || QUICK_IMAGE_FALLBACK}
+                    onError={handleQuickImageError}
                     alt={category.name}
                     className="w-full h-full object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
@@ -60,7 +62,7 @@ const CategoriesPage = () => {
                             categories: subs.map((cat, cIdx) => ({
                                 id: cat._id || `${idx}-${cIdx}`,
                                 name: cat.name,
-                                image: cat.image || "https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-1_9.png",
+                                image: cat.image || "",
                                 color: COLORS[(idx + cIdx) % COLORS.length]
                             }))
                         };

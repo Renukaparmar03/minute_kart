@@ -654,7 +654,6 @@ export default function Home() {
             headerImages={landing.headerImages}
             quickThemeColor={quickThemeColor}
             hideExtras={hideExtras}
-            disableSticky={showStickyCategories}
             bannerComponent={
               <div className="h-[130px] sm:h-36 md:h-44 mt-3 relative z-10 w-full bg-transparent" />
             }
@@ -1096,11 +1095,11 @@ export default function Home() {
       <AnimatePresence>
         {showStickyCategories && (
           <motion.div
-            initial={{ y: -120, opacity: 0 }}
+            initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -120, opacity: 0 }}
+            exit={{ y: -60, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="md:hidden fixed top-0 left-0 right-0 z-[150] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-4 pb-4 flex flex-col gap-2"
+            className="md:hidden fixed top-[68px] left-0 right-0 z-[90] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-2 pb-2 flex flex-col gap-2"
           >
             {/* Category horizontal rail */}
             <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
