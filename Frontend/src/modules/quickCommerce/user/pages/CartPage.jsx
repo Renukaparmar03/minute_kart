@@ -489,9 +489,14 @@ const CartPage = () => {
     setIsPlacingOrder(true);
     try {
       const orderData = {
+        // Keep the "::variant" part of the id (and send name/weight as a fallback) so the backend
+        // charges the selected variant's price instead of the base product's.
         items: cart.map(item => ({
-          productId: String(item.id || item._id).split("::")[0],
+          productId: String(item.productId || item.itemId || item.id || item._id || ""),
           quantity: Math.max(1, Number(item.quantity || 1)),
+          variantSku: item.variantSku || item.variantId || undefined,
+          name: item.name || undefined,
+          weight: item.weight || undefined,
         })),
         address: {
           street: selectedAddress.street || selectedAddress.address || "",

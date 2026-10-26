@@ -18,6 +18,8 @@ import { useServiceability } from "@/modules/common/hooks/useServiceability"
 import { useZone } from "@food/hooks/useZone"
 import { useLocation as useAppLocation } from "@food/hooks/useLocation"
 import { useBootstrapCurrentLocation } from "@shared/utils/currentLocationBootstrap"
+import OutOfZoneScreen from "@shared/components/OutOfZoneScreen"
+import { useQuickZoneStatus } from "@/modules/quickCommerce/user/hooks/useQuickZoneStatus"
 
 // Create SearchOverlay context with default value
 const SearchOverlayContext = createContext({
@@ -135,14 +137,17 @@ export default function UserLayout({ children }) {
 
   const { isModuleEnabled } = useServiceability(activeTab);
   const { location: appLocation } = useAppLocation();
-  const { isOutOfService } = useZone(appLocation);
-  
+  const { isOutOfService: isFoodOutOfService } = useZone(appLocation);
+  const { isOutOfService: isQuickOutOfService } = useQuickZoneStatus(appLocation);
+  const isOutOfService = activeTab === 'quick' ? isQuickOutOfService : isFoodOutOfService;
+
   const hideExtras = !isModuleEnabled || isOutOfService;
 
-  // Block the food app with the "not operating in this zone" screen, except on the address
+  // Block food / quick with the "not operating in this zone" screen, except on the address
   // selector so the user can pick another location.
   const isAddressSelectorRoute = /\/address-selector\/?$/.test(location.pathname)
-  const showOutOfZoneScreen = activeTab === 'food' && isOutOfService && !isAddressSelectorRoute
+  const showOutOfZoneScreen =
+    (activeTab === 'food' || activeTab === 'quick') && isOutOfService && !isAddressSelectorRoute
   const navigate = useNavigate()
   const handleChangeLocation = () => {
     const currentPath = `${location.pathname || ""}${location.search || ""}${location.hash || ""}` || "/food/user"
@@ -208,26 +213,7 @@ export default function UserLayout({ children }) {
                     {showFoodBottomNav && <DesktopNavbar showLogo={!isUnder250} hideExtras={hideExtras} />}
                   </div>
                   <LocationPrompt />
-                  {showOutOfZoneScreen && (
-                    <div className="fixed inset-0 z-[1000] bg-[#eaf6ea] flex justify-center">
-                      <div className="relative h-full w-full max-w-md">
-                        <img
-                          src="/assets/outeofzone.png"
-                          alt="We are currently not operating in this zone"
-                          className="h-full w-full object-cover object-top"
-                        />
-                        <div className="absolute inset-x-0 bottom-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-black/40 to-transparent">
-                          <button
-                            type="button"
-                            onClick={handleChangeLocation}
-                            className="w-full rounded-xl bg-[#DC021B] py-3.5 text-base font-bold text-white shadow-lg active:scale-[0.98] transition-transform"
-                          >
-                            Change your location
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {showOutOfZoneScreen && <OutOfZoneScreen onChangeLocation={handleChangeLocation} />}
                   <main className={showFoodBottomNav ? "md:pt-40" : ""}>
                     {children || <Outlet />}
                   </main>
