@@ -1,23 +1,42 @@
 // Full-screen "we are not operating in this zone" screen shown when the user's location
 // is outside every zone the admin has created.
+const BANNER_SRC = '/assets/outeofzone.png'
+
 export default function OutOfZoneScreen({ onChangeLocation }) {
   return (
-    <div className="fixed inset-0 z-[1000] bg-[#eaf6ea] flex justify-center">
-      <div className="relative h-full w-full max-w-md">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-[#eaf6ea]">
+      {/* Blurred copy of the banner fills the space left around the full (uncropped) banner */}
+      <img
+        src={BANNER_SRC}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-60"
+      />
+      {/* Box keeps the banner's 899x1600 ratio and fits inside the viewport, so all four edges show */}
+      <div
+        className="relative aspect-899/1600 @container"
+        style={{ width: 'min(100vw, 28rem, calc(100dvh * 899 / 1600))' }}
+      >
         <img
-          src="/assets/outeofzone.png"
+          src={BANNER_SRC}
           alt="We are currently not operating in this zone"
-          className="h-full w-full object-cover object-top"
+          className="h-full w-full object-contain"
         />
-        <div className="absolute inset-x-0 bottom-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-black/40 to-transparent">
-          <button
-            type="button"
-            onClick={onChangeLocation}
-            className="w-full rounded-xl bg-[#DC021B] py-3.5 text-base font-bold text-white shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Change your location
-          </button>
-        </div>
+        {/* Covers the button drawn in the banner */}
+        <button
+          type="button"
+          onClick={onChangeLocation}
+          className="absolute left-[22%] right-[22%] top-[91.6%] h-[5.8%] flex items-center justify-center gap-[0.5em] rounded-full border-2 border-white/80 bg-linear-to-b from-[#FFA31A] via-[#FF8A00] to-[#F26B00] px-[0.8em] font-bold text-white shadow-[0_4px_12px_rgba(242,107,0,0.45),inset_0_2px_0_rgba(255,255,255,0.35)] active:scale-[0.97] transition-transform"
+          style={{ fontSize: '3.3cqw' }}
+        >
+          <svg viewBox="0 0 24 24" className="h-[1.3em] w-[1.3em] shrink-0" fill="currentColor" aria-hidden="true">
+            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+          </svg>
+          <span className="whitespace-nowrap">Change your location</span>
+          <svg viewBox="0 0 24 24" className="h-[1.1em] w-[1.1em] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
       </div>
     </div>
   )
