@@ -125,13 +125,23 @@ const normalizeDeliveryAddress = (address) => {
 };
 
 // Cart line ids carry variant._id, id, sku or name (see VariantSelectorSheet), so match on any of them.
-const findVariant = (product, variantKey) => {
-  if (!variantKey || !Array.isArray(product?.variants)) return null;
-  const key = String(variantKey);
-  return (
-    product.variants.find(
+// Falls back to the variant name/weight the client sent (cart names look like "Product (50ml)").
+const findVariant = (product, variantKey, hints = {}) => {
+  if (!Array.isArray(product?.variants) || product.variants.length === 0) return null;
+  if (variantKey) {
+    const key = String(variantKey);
+    const byKey = product.variants.find(
       (v) => String(v.sku || '') === key || String(v._id || '') === key || String(v.id || '') === key || String(v.name || '') === key
-    ) || null
+    );
+    if (byKey) return byKey;
+  }
+  const label = String(hints.weight || '').trim().toLowerCase();
+  const name = String(hints.name || '').trim().toLowerCase();
+  return (
+    product.variants.find((v) => {
+      const vName = String(v.name || '').trim().toLowerCase();
+      return vName && ((label && label === vName) || (name && name.endsWith(`(${vName})`)));
+    }) || null
   );
 };
 
@@ -145,6 +155,8 @@ const normalizeRequestedItems = (items) => {
       return {
         productId: parentId,
         variantSku: variantSku || item?.variantSku || null,
+        name: item?.name ? String(item.name) : '',
+        weight: item?.weight ? String(item.weight) : '',
         quantity: Math.max(1, Number(item?.quantity || 1)),
       };
     })
@@ -248,7 +260,7 @@ export const placeOrder = async (req, res) => {
         const product = productMap[String(item.productId)];
         if (!product) return null;
         
-        const variant = findVariant(product, item.variantSku);
+        const variant = findVariant(product, item.variantSku, item);
           
         const unitPrice = variant
           ? (Number(variant.salePrice || 0) > 0 ? Number(variant.salePrice) : Number(variant.price || 0))
@@ -285,7 +297,7 @@ export const placeOrder = async (req, res) => {
           const product = fallbackProductMap[String(item.productId)];
           if (!product) return null;
           
-          const variant = findVariant(product, item.variantSku);
+          const variant = findVariant(product, item.variantSku, item);
             
           const unitPrice = variant
             ? (Number(variant.salePrice || 0) > 0 ? Number(variant.salePrice) : Number(variant.price || 0))

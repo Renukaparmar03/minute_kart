@@ -757,6 +757,19 @@ const CheckoutPage = () => {
       }))
       .filter((item) => item.productId);
 
+  // Order payload also carries the variant name/weight so the backend can still resolve the variant
+  // (and its price) if the cart line id lost its "::variant" part.
+  const getCheckoutOrderItems = () =>
+    cart
+      .map((item) => ({
+        productId: getCheckoutProductId(item),
+        quantity: Math.max(1, Number(item.quantity || 1)),
+        variantSku: item?.variantSku || item?.variantId || undefined,
+        name: item?.name || undefined,
+        weight: item?.weight || undefined,
+      }))
+      .filter((item) => item.productId);
+
   const syncVisibleCartToBackend = async () => {
     const cartItemsForSync = getCheckoutCartItemsForSync();
 
@@ -1711,7 +1724,7 @@ const CheckoutPage = () => {
       }
 
       const orderData = {
-        items: getCheckoutCartItemsForSync(),
+        items: getCheckoutOrderItems(),
         address: buildAddressForOrder(),
         paymentMode: selectedPayment === "cash" ? "COD" : selectedPayment === "wallet" ? "WALLET" : "ONLINE",
         discountTotal: discountAmount,
