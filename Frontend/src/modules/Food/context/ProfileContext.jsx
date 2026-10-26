@@ -70,7 +70,17 @@ export function ProfileProvider({ children }) {
   
   const [loading, setLoading] = useState(true)
 
-  const [addresses, setAddresses] = useState([])
+  // Start from the last known list so saved addresses show instantly while the API refreshes them.
+  const [addresses, setAddresses] = useState(() => {
+    if (!hasUserSession) return []
+    try {
+      const saved = JSON.parse(localStorage.getItem("userAddresses") || "[]")
+      return Array.isArray(saved) ? dedupeAddressesByLabel(saved) : []
+    } catch {
+      return []
+    }
+  })
+  const [addressesLoaded, setAddressesLoaded] = useState(false)
 
   const [paymentMethods, setPaymentMethods] = useState(() => {
     if (!hasUserSession) return []
@@ -112,10 +122,11 @@ export function ProfileProvider({ children }) {
   }, [userProfile, isAuthenticated])
 
   useEffect(() => {
-    if (addresses.length > 0 || isAuthenticated) {
+    // Don't overwrite the cached list with the initial empty state before the API has answered.
+    if (addresses.length > 0 || (isAuthenticated && addressesLoaded)) {
       localStorage.setItem("userAddresses", JSON.stringify(addresses))
     }
-  }, [addresses, isAuthenticated])
+  }, [addresses, isAuthenticated, addressesLoaded])
 
   useEffect(() => {
     if (paymentMethods.length > 0 || isAuthenticated) {
@@ -162,21 +173,25 @@ export function ProfileProvider({ children }) {
         return
       }
 
-      try {
-        setLoading(true)
-        
-        // Fetch user profile
-        const response = await authAPI.getCurrentUser()
-        const userData = response?.data?.data?.user || response?.data?.user || response?.data
-        
-        if (userData) {
-          setUserProfile(userData)
-          // Update localStorage
-          localStorage.setItem("user_user", JSON.stringify(userData))
-          localStorage.setItem("userProfile", JSON.stringify(userData))
-        }
+      setLoading(true)
 
-        // Fetch addresses
+      // Profile and addresses are independent, so fetch them in parallel; a failure in one must not hide the other.
+      const profileTask = (async () => {
+        try {
+          const response = await authAPI.getCurrentUser()
+          const userData = response?.data?.data?.user || response?.data?.user || response?.data
+          if (userData) {
+            setUserProfile(userData)
+            localStorage.setItem("user_user", JSON.stringify(userData))
+            localStorage.setItem("userProfile", JSON.stringify(userData))
+          }
+        } catch (error) {
+          // Keep the profile from localStorage
+          debugError("Error fetching user profile:", error)
+        }
+      })()
+
+      const addressesTask = (async () => {
         try {
           const addressesResponse = await userAPI.getAddresses()
           const addressesData = addressesResponse?.data?.data?.addresses || addressesResponse?.data?.addresses || []
@@ -184,32 +199,15 @@ export function ProfileProvider({ children }) {
           setAddresses(normalizedAddresses)
           localStorage.setItem("userAddresses", JSON.stringify(normalizedAddresses))
         } catch (addressError) {
+          // Keep the addresses already in state (seeded from localStorage)
           debugError("Error fetching addresses:", addressError)
-          // Try to load from localStorage as fallback
-          const saved = localStorage.getItem("userAddresses")
-          if (saved) {
-            try {
-              setAddresses(dedupeAddressesByLabel(JSON.parse(saved)))
-            } catch (e) {
-              debugError("Error parsing saved addresses:", e)
-            }
-          }
+        } finally {
+          setAddressesLoaded(true)
         }
-      } catch (error) {
-        // Silently handle error - use existing profile from localStorage
-        debugError("Error fetching user profile:", error)
-        // Try to load from localStorage as fallback
-        const saved = localStorage.getItem("userAddresses")
-        if (saved) {
-          try {
-            setAddresses(dedupeAddressesByLabel(JSON.parse(saved)))
-          } catch (e) {
-            debugError("Error parsing saved addresses:", e)
-          }
-        }
-      } finally {
-        setLoading(false)
-      }
+      })()
+
+      await Promise.all([profileTask, addressesTask])
+      setLoading(false)
     }
 
     fetchUserProfile()

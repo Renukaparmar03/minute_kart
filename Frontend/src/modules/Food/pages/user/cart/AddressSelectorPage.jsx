@@ -102,7 +102,7 @@ export default function AddressSelectorPage() {
   const routerLocation = useRouterLocation()
   const goBack = useAppBackNavigation()
   const { location, loading, requestLocation } = useGeoLocation()
-  const { addresses = [], addAddress, updateAddress, deleteAddress, setDefaultAddress, userProfile } = useProfile()
+  const { addresses = [], addAddress, updateAddress, deleteAddress, setDefaultAddress, userProfile, loading: profileLoading } = useProfile()
   const [editingAddressId, setEditingAddressId] = useState(null)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [mapPosition, setMapPosition] = useState([22.7196, 75.8577]) // Default Indore coordinates [lat, lng]
@@ -946,7 +946,9 @@ export default function AddressSelectorPage() {
           </div>
 
           <div className="space-y-4">
-            {addresses.length === 0 ? (
+            {addresses.length === 0 && profileLoading ? (
+              <div className="text-center py-10 text-gray-500 text-sm">Loading saved addresses...</div>
+            ) : addresses.length === 0 ? (
               <div className="text-center py-10 opacity-50">
                 <MapPin className="h-12 w-12 mx-auto mb-2 text-gray-400" />
                 <p>No addresses saved yet</p>

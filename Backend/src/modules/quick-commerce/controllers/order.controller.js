@@ -124,6 +124,17 @@ const normalizeDeliveryAddress = (address) => {
   };
 };
 
+// Cart line ids carry variant._id, id, sku or name (see VariantSelectorSheet), so match on any of them.
+const findVariant = (product, variantKey) => {
+  if (!variantKey || !Array.isArray(product?.variants)) return null;
+  const key = String(variantKey);
+  return (
+    product.variants.find(
+      (v) => String(v.sku || '') === key || String(v._id || '') === key || String(v.id || '') === key || String(v.name || '') === key
+    ) || null
+  );
+};
+
 const normalizeRequestedItems = (items) => {
   if (!Array.isArray(items)) return [];
 
@@ -237,9 +248,7 @@ export const placeOrder = async (req, res) => {
         const product = productMap[String(item.productId)];
         if (!product) return null;
         
-        const variant = item.variantSku && Array.isArray(product.variants)
-          ? product.variants.find((v) => v.sku === item.variantSku)
-          : null;
+        const variant = findVariant(product, item.variantSku);
           
         const unitPrice = variant
           ? (Number(variant.salePrice || 0) > 0 ? Number(variant.salePrice) : Number(variant.price || 0))
@@ -275,9 +284,7 @@ export const placeOrder = async (req, res) => {
           const product = fallbackProductMap[String(item.productId)];
           if (!product) return null;
           
-          const variant = item.variantSku && Array.isArray(product.variants)
-            ? product.variants.find((v) => v.sku === item.variantSku)
-            : null;
+          const variant = findVariant(product, item.variantSku);
             
           const unitPrice = variant
             ? (Number(variant.salePrice || 0) > 0 ? Number(variant.salePrice) : Number(variant.price || 0))

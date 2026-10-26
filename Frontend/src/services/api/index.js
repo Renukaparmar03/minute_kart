@@ -2246,27 +2246,19 @@ export const userAPI = {
     }),
   /** GET /food/user/addresses (Bearer USER). Deduped + short-cached. */
   getAddresses: (() => {
+    const CACHE_TTL_MS = 30000;
     let inFlight = null;
     let memCache = null;
+    let memCacheAt = 0;
     const fn = () => {
-      if (memCache) return Promise.resolve(memCache);
-      try {
-        const local = localStorage.getItem("api_addresses_cache");
-        if (local) {
-          const parsed = JSON.parse(local);
-          memCache = parsed;
-          return Promise.resolve(parsed);
-        }
-      } catch (e) {}
+      if (memCache && Date.now() - memCacheAt < CACHE_TTL_MS) return Promise.resolve(memCache);
 
       if (!inFlight) {
         inFlight = apiClient
           .get("/food/user/addresses", { contextModule: "user" })
           .then((res) => {
             memCache = res;
-            try {
-              localStorage.setItem("api_addresses_cache", JSON.stringify(res));
-            } catch (e) {}
+            memCacheAt = Date.now();
             return res;
           })
           .finally(() => {
@@ -2278,6 +2270,7 @@ export const userAPI = {
     fn.invalidateCache = () => {
       inFlight = null;
       memCache = null;
+      memCacheAt = 0;
       try { localStorage.removeItem("api_addresses_cache"); } catch (e) {}
     };
     return fn;
