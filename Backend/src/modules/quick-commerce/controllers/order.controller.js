@@ -858,7 +858,7 @@ export const cancelOrder = async (req, res) => {
       order.payment.status = 'failed';
     }
 
-    await order.save();
+    await order.save({ validateModifiedOnly: true });
 
     await SellerOrder.updateMany(
       {
@@ -889,6 +889,7 @@ export const cancelOrder = async (req, res) => {
     logger.error(`Quick cancelOrder failed: ${error?.message || error}`);
     return res.status(500).json({
       success: false,
+      message: error?.message || 'Failed to cancel quick order',
       error: error?.message || 'Failed to cancel quick order',
     });
   }
