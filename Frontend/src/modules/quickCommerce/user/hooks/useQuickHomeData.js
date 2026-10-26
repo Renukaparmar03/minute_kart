@@ -127,6 +127,29 @@ let globalQuickHomeCache = {
 };
 
 const CACHE_EXPIRY_MS = 5 * 1000; // 5 seconds
+const FETCH_DEBOUNCE_MS = 200;
+
+// Retry transient failures (cold start, network blip) so the user never has to refresh by hand.
+const withRetry = async (fn, attempts = 3) => {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 600 * (i + 1)));
+    }
+  }
+  throw lastError;
+};
+
+// ~11m precision: GPS jitter must not trigger a refetch that throws away in-flight results.
+const buildLocationKey = (location) => {
+  const lat = Number(location?.latitude);
+  const lng = Number(location?.longitude);
+  const zone = location?.zoneId || location?.zone?._id || "";
+  return `${Number.isFinite(lat) ? lat.toFixed(4) : "x"}_${Number.isFinite(lng) ? lng.toFixed(4) : "x"}_${zone}`;
+};
 
 export const useQuickHomeData = ({ currentLocation }) => {
   const hasValidCache = globalQuickHomeCache.data && (Date.now() - globalQuickHomeCache.lastFetched < CACHE_EXPIRY_MS);
@@ -148,6 +171,10 @@ export const useQuickHomeData = ({ currentLocation }) => {
   const [categoryProducts, setCategoryProducts] = useState(null); // null = use global products
 
   const fetchDataSeqRef = useRef(0);
+  // fetchData reads the latest location from here so it only re-runs when the (rounded) key changes.
+  const locationRef = useRef(currentLocation);
+  locationRef.current = currentLocation;
+  const locationKey = buildLocationKey(currentLocation);
 
   // Persist activeCategory selection in sessionStorage and global cache
   useEffect(() => {
@@ -178,10 +205,13 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
   const fetchData = useCallback(async () => {
     const seq = ++fetchDataSeqRef.current;
-    const currentLocationKey = `${currentLocation?.latitude}_${currentLocation?.longitude}_${currentLocation?.zoneId || currentLocation?.zone?._id}`;
+    const currentLocation = locationRef.current;
+    const currentLocationKey = locationKey;
     
     // Use cache if strictly valid and location key matches
     if (globalQuickHomeCache.data && globalQuickHomeCache.locationKey === currentLocationKey && (Date.now() - globalQuickHomeCache.lastFetched < CACHE_EXPIRY_MS)) {
+       setIsLoading(false);
+       setIsBootstrapped(true);
        return;
     }
 
@@ -213,18 +243,27 @@ export const useQuickHomeData = ({ currentLocation }) => {
       };
 
       let pendingTasks = 6;
+      let hadFailure = false;
+      const markFailed = (error) => {
+        hadFailure = true;
+        console.error(error);
+      };
       const checkDone = () => {
         pendingTasks--;
         if (pendingTasks <= 0 && seq === fetchDataSeqRef.current) {
-          globalQuickHomeCache.data = newDataCache;
-          globalQuickHomeCache.locationKey = currentLocationKey;
-          globalQuickHomeCache.lastFetched = Date.now();
+          // Never cache a partial/failed load, otherwise a remount would show it as fresh data.
+          if (!hadFailure) {
+            globalQuickHomeCache.data = newDataCache;
+            globalQuickHomeCache.locationKey = currentLocationKey;
+            globalQuickHomeCache.lastFetched = Date.now();
+          }
           setIsLoading(false);
+          setIsBootstrapped(true);
         }
       };
 
       // 1. Categories (Fastest, unblocks header)
-      customerApi.getCategories().then(catRes => {
+      withRetry(() => customerApi.getCategories()).then(catRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (catRes?.data?.success) {
           const dbCats = catRes.data.results || catRes.data.result || [];
@@ -281,10 +320,10 @@ export const useQuickHomeData = ({ currentLocation }) => {
           newDataCache.quickCategories = formattedQuickCats;
         }
         setIsBootstrapped(true); // Unblock the UI skeleton!
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
       // 2. Products (Filtered by user zone/location)
-      customerApi.getProducts(productParams).then(prodRes => {
+      withRetry(() => customerApi.getProducts(productParams)).then(prodRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (prodRes?.data?.success) {
           const rawResult = prodRes.data.result;
@@ -298,10 +337,10 @@ export const useQuickHomeData = ({ currentLocation }) => {
           setProducts(formattedProds);
           newDataCache.products = formattedProds;
         }
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
       // 3. Experience Sections
-      customerApi.getExperienceSections({ pageType: "home", ...productParams }).then(expRes => {
+      withRetry(() => customerApi.getExperienceSections({ pageType: "home", ...productParams })).then(expRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (expRes?.data?.success) {
           const raw = expRes.data.result || expRes.data.results || expRes.data;
@@ -309,19 +348,19 @@ export const useQuickHomeData = ({ currentLocation }) => {
           setExperienceSections(sections);
           newDataCache.experienceSections = sections;
         }
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
       // 4. Offer Sections
-      customerApi.getOfferSections(productParams).then(sectionsRes => {
+      withRetry(() => customerApi.getOfferSections(productParams)).then(sectionsRes => {
         if (seq !== fetchDataSeqRef.current) return;
         const sectionsList = sectionsRes?.data?.results || sectionsRes?.data?.result || sectionsRes?.data;
         const offerSecs = Array.isArray(sectionsList) ? sectionsList : [];
         setOfferSections(offerSecs);
         newDataCache.offerSections = offerSecs;
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
       // 5. Hero Config
-      customerApi.getHeroConfig({ pageType: "home" }).then(heroRes => {
+      withRetry(() => customerApi.getHeroConfig({ pageType: "home" })).then(heroRes => {
         if (seq !== fetchDataSeqRef.current) return;
         if (heroRes?.data?.success) {
           const payload = heroRes.data.result || heroRes.data.results || heroRes.data;
@@ -331,25 +370,27 @@ export const useQuickHomeData = ({ currentLocation }) => {
           setHeroConfig(config);
           newDataCache.heroConfig = config;
         }
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
       // 6. Best Seller Sections
-      customerApi.getBestSellerSections(productParams).then(bestRes => {
+      withRetry(() => customerApi.getBestSellerSections(productParams)).then(bestRes => {
         if (seq !== fetchDataSeqRef.current) return;
         const sectionsList = bestRes?.data?.results || bestRes?.data?.result || bestRes?.data;
         const bestSecs = Array.isArray(sectionsList) ? sectionsList : [];
         setBestSellerSections(bestSecs);
         newDataCache.bestSellerSections = bestSecs;
-      }).catch(console.error).finally(checkDone);
+      }).catch(markFailed).finally(checkDone);
 
     } catch (error) {
       console.error("Error fetching quick home data:", error);
       setIsLoading(false);
     }
-  }, [currentLocation, getQuickCategoryImage]);
+  }, [locationKey, getQuickCategoryImage]);
 
   useEffect(() => {
-    fetchData();
+    // Debounce: location is restored from cache, then updated by GPS/Food within moments of app open.
+    const timer = setTimeout(fetchData, FETCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
   }, [fetchData]);
 
   // Fetch header-specific sections

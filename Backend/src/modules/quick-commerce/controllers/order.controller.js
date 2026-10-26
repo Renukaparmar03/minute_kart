@@ -258,7 +258,8 @@ export const placeOrder = async (req, res) => {
 
         return {
           productId: product._id,
-          variantSku: item.variantSku || null,
+          // Store the variant's real sku (not the _id/name the cart sent) so stock reservation matches it.
+          variantSku: variant ? (variant.sku || null) : (item.variantSku || null),
           sellerId: product.sellerId || null,
           name: name,
           image: product.image || product.mainImage || '',
@@ -294,7 +295,8 @@ export const placeOrder = async (req, res) => {
 
           return {
             productId: product._id,
-            variantSku: item.variantSku || null,
+            // Store the variant's real sku (not the _id/name the cart sent) so stock reservation matches it.
+          variantSku: variant ? (variant.sku || null) : (item.variantSku || null),
             sellerId: product.sellerId || null,
             name: name,
             image: product.image || product.mainImage || '',
