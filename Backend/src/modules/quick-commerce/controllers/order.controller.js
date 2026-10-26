@@ -215,8 +215,11 @@ export const placeOrder = async (req, res) => {
 
     const cart = await QuickCart.findOne(idQuery).lean();
     const requestedItems = normalizeRequestedItems(req.body?.items);
+    // Items sent by the client are what the user sees on screen; the saved cart can hold stale items.
     const sourceItems =
-      Array.isArray(cart?.items) && cart.items.length > 0 ? cart.items : requestedItems;
+      requestedItems.length > 0
+        ? requestedItems
+        : Array.isArray(cart?.items) ? cart.items : [];
 
     if (sourceItems.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
