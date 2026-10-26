@@ -374,11 +374,10 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
   const removeFromCart = async (productId) => {
     const resolvedProductId = normalizeProductId(productId);
     if (!resolvedProductId) return;
-    const targetBaseId = resolvedProductId.split("::")[0];
     setCart((prev) =>
       prev.filter((item) => {
         const id = getProductId(item);
-        return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+        return id !== resolvedProductId;
       }),
     );
     try {
@@ -388,7 +387,7 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
         if (Array.isArray(parsed)) {
           const remaining = parsed.filter((item) => {
             const id = getProductId(item);
-            return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+            return id !== resolvedProductId;
           });
           if (remaining.length > 0) {
             localStorage.setItem("cart", JSON.stringify(remaining));
@@ -415,10 +414,9 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
   const updateQuantity = async (productId, delta) => {
     const resolvedProductId = normalizeProductId(productId);
     if (!resolvedProductId) return;
-    const targetBaseId = resolvedProductId.split("::")[0];
     const currentItem = cart.find((item) => {
       const id = getProductId(item);
-      return id === resolvedProductId || id.split("::")[0] === targetBaseId;
+      return id === resolvedProductId;
     });
     if (!currentItem) return;
     const stock = Number(currentItem.stock ?? Infinity);
@@ -431,7 +429,7 @@ const useStandaloneQuickCart = (isBridged = false, navigate, location) => {
     setCart((prev) =>
       prev.map((item) => {
         const id = getProductId(item);
-        return id === resolvedProductId || id.split("::")[0] === targetBaseId
+        return id === resolvedProductId
           ? { ...item, quantity: newQty }
           : item;
       }),
@@ -566,10 +564,9 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = async (productId) => {
       const resolvedProductId = normalizeProductId(productId);
       if (!resolvedProductId) return;
-      const targetBaseId = resolvedProductId.split("::")[0];
       const nextQuickItems = quickItemsFromFoodCart.filter((item) => {
         const id = getProductId(item);
-        return id !== resolvedProductId && id.split("::")[0] !== targetBaseId;
+        return id !== resolvedProductId;
       });
       persistQuickCartSnapshot(nextQuickItems);
       foodCart.removeFromCart(resolvedProductId);
@@ -586,12 +583,11 @@ export const CartProvider = ({ children }) => {
     const updateQuantity = async (productId, delta) => {
       const resolvedProductId = normalizeProductId(productId);
       if (!resolvedProductId) return;
-      const targetBaseId = resolvedProductId.split("::")[0];
       const currentItem =
         foodCart.getCartItem(resolvedProductId, "", "quick") ||
         quickItemsFromFoodCart.find((item) => {
           const id = getProductId(item);
-          return id === resolvedProductId || id.split("::")[0] === targetBaseId;
+          return id === resolvedProductId;
         });
       if (!currentItem) return;
       const nextQuantity = Math.max(0, (currentItem.quantity || 0) + delta);
@@ -601,7 +597,7 @@ export const CartProvider = ({ children }) => {
       }
       const nextQuickItems = quickItemsFromFoodCart.map((item) => {
         const id = getProductId(item);
-        if (id === resolvedProductId || id.split("::")[0] === targetBaseId) {
+        if (id === resolvedProductId) {
           return { ...item, quantity: nextQuantity };
         }
         return item;

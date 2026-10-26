@@ -78,7 +78,7 @@ function RestaurantDetailsContent() {
   const [searchParams] = useSearchParams()
   const showOnlyUnder250 = searchParams.get('under250') === 'true'
   const targetDishId = useMemo(() => String(searchParams.get('dish') || '').trim(), [searchParams])
-  const { addToCart, updateQuantity, removeFromCart, getCartItem, cart } = useCart()
+  const { addToCart, updateQuantity, removeFromCart, getCartItem, getCartItemQuantity, decreaseVariantQuantity, cart } = useCart()
   const { vegMode, addDishFavorite, removeDishFavorite, isDishFavorite, getDishFavorites, getFavorites, addFavorite, removeFavorite, isFavorite } = useProfile()
   const { location: userLocation } = useLocation() // Get user's current location
   const { zoneId, zone, loading: loadingZone, isOutOfService } = useZone(userLocation) // Get user's zone for zone-based filtering
@@ -121,7 +121,15 @@ function RestaurantDetailsContent() {
   }
 
   const getDishQuantity = (item, preferredVariantId = "") => {
-    const variant = getVariantForDish(item, preferredVariantId)
+    if (preferredVariantId) {
+      const variant = getVariantForDish(item, preferredVariantId)
+      const lineItemId = getLineItemIdForDish(item, variant)
+      return quantities[lineItemId] || 0
+    }
+    if (hasFoodVariants(item)) {
+      return getCartItemQuantity(item)
+    }
+    const variant = getVariantForDish(item)
     const lineItemId = getLineItemIdForDish(item, variant)
     return quantities[lineItemId] || 0
   }
