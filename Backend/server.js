@@ -87,6 +87,11 @@ const startServer = async () => {
             console.log(`🌐 [URL] http://localhost:${config.port}`);
         });
 
+        // Must exceed the reverse proxy / load balancer idle timeout (nginx 60s, ALB 60s),
+        // otherwise the proxy reuses a connection Node already closed and returns 502/503.
+        server.keepAliveTimeout = 65000;
+        server.headersTimeout = 66000;
+
         // Schedulers (expireOffers, fssai, milkPlan) have been moved to scheduler-server.js
 
         process.on('SIGINT', () => gracefulShutdown('SIGINT'));
@@ -129,11 +134,9 @@ const startServer = async () => {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (err) => {
-            logger.error(`Unhandled Rejection: ${err?.message || err}`);
-            if (config.nodeEnv === 'production') {
-                if (server) server.close(() => process.exit(1));
-                else process.exit(1);
-            }
+            // Log only: exiting here drops every in-flight request and the proxy answers 502/503
+            // until the process manager restarts the app. A stray rejection should not take the API down.
+            logger.error(`Unhandled Rejection: ${err?.stack || err?.message || err}`);
         });
 
         process.on('uncaughtException', (err) => {

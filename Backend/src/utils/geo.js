@@ -57,7 +57,9 @@ export const getMatchingSellerIdsForLocation = async ({ lat, lng, zoneId }, { Qu
   let activeZoneCoords = null;
   let hasValidCoords = false;
 
-  if (!targetZoneId && lat !== undefined && lng !== undefined && lat !== null && lng !== null && lat !== '' && lng !== '') {
+  // Coordinates are the source of truth: a client-supplied zoneId can be stale or come from
+  // another module (e.g. a Food zone id after switching from Food), which would match no sellers.
+  if (lat !== undefined && lng !== undefined && lat !== null && lng !== null && lat !== '' && lng !== '') {
     const latNum = Number(lat);
     const lngNum = Number(lng);
     if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
@@ -67,6 +69,8 @@ export const getMatchingSellerIdsForLocation = async ({ lat, lng, zoneId }, { Qu
       if (matchedZone) {
         targetZoneId = String(matchedZone._id);
         activeZoneCoords = matchedZone.coordinates;
+      } else {
+        targetZoneId = null;
       }
     }
   }

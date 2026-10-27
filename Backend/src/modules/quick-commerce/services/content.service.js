@@ -203,7 +203,9 @@ export const hydrateSectionsList = async (sections = [], { matchingSellerIds = n
 
   // --- Category Tree Logic (Optimized) ---
   const getCategoryTreeInfo = async () => {
-    if (cache.categories.data && !isExpired(cache.categories.expiry)) {
+    // categories.data is also filled by the plain category listing (without treeInfo),
+    // so a data hit alone is not enough - returning undefined here crashed the process.
+    if (cache.categories.data && cache.categories.treeInfo && !isExpired(cache.categories.expiry)) {
       return cache.categories.treeInfo;
     }
     const allCategories = await QuickCategory.find(normalizeStatusQuery()).lean();

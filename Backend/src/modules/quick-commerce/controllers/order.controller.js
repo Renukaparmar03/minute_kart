@@ -347,32 +347,32 @@ export const placeOrder = async (req, res) => {
 
     // Validate zone constraint
     const customerCoords = deliveryAddress?.location?.coordinates;
-    if (customerCoords && customerCoords.length === 2) {
-      const custLng = customerCoords[0];
-      const custLat = customerCoords[1];
+    const custLng = Number(customerCoords?.[0]);
+    const custLat = Number(customerCoords?.[1]);
+    if (!Number.isFinite(custLat) || !Number.isFinite(custLng)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Delivery address location is required to place an order. Please select a valid address.',
+      });
+    }
 
-      for (const product of products) {
-        const seller = sellers.find((s) => String(s._id) === String(product.sellerId));
-        if (seller && seller.shopInfo?.zoneId) {
-          let zone = null;
-          if (seller.shopInfo.zoneSource === 'food') {
-            zone = await FoodZone.findById(seller.shopInfo.zoneId).lean();
-          } else {
-            zone = await QuickZone.findById(seller.shopInfo.zoneId).lean();
-          }
+    // Customer must be inside the zone of every seller in the cart (fail closed).
+    for (const sellerId of sellerIds) {
+      const seller = sellers.find((s) => String(s._id) === sellerId);
+      const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
+      const outOfZone = () => res.status(400).json({
+        success: false,
+        message: `Delivery address is outside of ${brandedName}'s service zone. You can only order from stores in your zone.`,
+      });
 
-          if (zone && zone.coordinates && zone.coordinates.length >= 3) {
-            const isInside = isPointInPolygon(custLat, custLng, zone.coordinates);
-            if (!isInside) {
-              const brandedName = seller.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
-              return res.status(400).json({
-                success: false,
-                message: `Delivery address is outside of ${brandedName}'s service zone. Please choose a different address.`,
-              });
-            }
-          }
-        }
-      }
+      const zoneId = seller?.shopInfo?.zoneId || seller?.zoneId;
+      if (!zoneId) return outOfZone();
+
+      const zone = seller?.shopInfo?.zoneSource === 'food'
+        ? await FoodZone.findById(zoneId).lean()
+        : await QuickZone.findById(zoneId).lean();
+
+      if (!zone || !isPointInPolygon(custLat, custLng, zone.coordinates)) return outOfZone();
     }
 
     const pickupPoints = sellers.map((seller) => {

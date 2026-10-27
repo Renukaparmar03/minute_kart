@@ -264,11 +264,13 @@ export const clearCart = async (req, res) => {
     return res.status(400).json({ success: false, message: 'sessionId or userId is required' });
   }
 
+  // items is already in $set; keeping it in $setOnInsert makes Mongo reject the update with a path conflict.
+  const { items: _items, ...insertDoc } = buildCartInsertDoc(idQuery);
   await QuickCart.findOneAndUpdate(
     idQuery,
     {
       $set: { items: [] },
-      $setOnInsert: buildCartInsertDoc(idQuery),
+      $setOnInsert: insertDoc,
     },
     { upsert: true, new: true }
   );
