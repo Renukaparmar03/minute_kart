@@ -7,7 +7,14 @@ module.exports = {
       exec_mode: 'cluster',
       autorestart: true,
       watch: false,
-      max_memory_restart: '500M',
+      // 500M was too low for this app: pm2 kept killing workers mid-request, which nginx reports as 502.
+      // Keep it below the box's RAM / instance count so a real leak still gets recycled.
+      max_memory_restart: '1G',
+      // Let in-flight requests finish before a worker is stopped (server.js shutdown timeout is 10s).
+      kill_timeout: 12000,
+      min_uptime: '20s',
+      max_restarts: 20,
+      exp_backoff_restart_delay: 200,
       merge_logs: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       env: {

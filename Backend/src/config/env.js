@@ -6,7 +6,9 @@ export const config = {
     // Basic server config
     port: process.env.PORT || 5000,
     host: process.env.HOST || '0.0.0.0',
-    nodeEnv: process.env.NODE_ENV || 'development',
+    // Normalised: every check in the codebase compares against lowercase 'production',
+    // so NODE_ENV=Production silently ran production servers in non-production mode.
+    nodeEnv: String(process.env.NODE_ENV || 'development').trim().toLowerCase(),
 
     // Database
     mongodbUri: process.env.MONGO_URI || process.env.MONGODB_URI,

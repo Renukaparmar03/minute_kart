@@ -8,6 +8,9 @@ const DraggableModuleSwitcher = () => {
     const location = useLocation();
     const pathname = location.pathname;
 
+    // Hidden on the quick order tracking page (/quick/orders/:id)
+    if (/^\/quick\/orders\/[^/]+/.test(pathname)) return null;
+
     let targetPath = "/food/user";
     let targetName = "Food";
     let themeColor = "text-red-600";

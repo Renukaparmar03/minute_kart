@@ -21,7 +21,8 @@ import {
   trimPolylineFromDistanceAlongRoute,
 } from '@food/utils/liveTrackingPolyline';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Navigation, Info, Circle, Utensils, Home } from 'lucide-react';
+import { Play, Navigation, Info, Circle, Utensils, Home, Store } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const LIBRARIES = ['geometry', 'places'];
 
@@ -100,6 +101,7 @@ const DeliveryTrackingMap = ({
   order = null,
   onEtaUpdate = null
 }) => {
+  const isQuickOrder = useLocation().pathname.startsWith('/quick');
   const [map, setMap] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
   const [directions, setDirections] = useState(null);
@@ -606,10 +608,14 @@ const DeliveryTrackingMap = ({
           {!isAccepted ? (
             <div className="relative -translate-x-1/2 -translate-y-1/2 group z-20">
               <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow-2xl border-2 border-white overflow-hidden">
-                <StoreAvatar
-                  src={getStoreImage(order)}
-                  fallback={<Utensils className="w-5 h-5 text-white" />}
-                />
+                {isQuickOrder ? (
+                  <Store className="w-5 h-5 text-white" />
+                ) : (
+                  <StoreAvatar
+                    src={getStoreImage(order)}
+                    fallback={<Utensils className="w-5 h-5 text-white" />}
+                  />
+                )}
               </div>
             </div>
           ) : (
