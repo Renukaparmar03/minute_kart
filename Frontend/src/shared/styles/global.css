@@ -47,6 +47,17 @@
   --sidebar-accent-foreground: oklch(0.3 0.08 60);
   --sidebar-border: oklch(0.9 0.02 85);
   --sidebar-ring: oklch(0.7 0.15 85);
+
+  /* Safe Area Insets for Mobile App & WebViews */
+  --safe-area-top: max(2.75rem, env(safe-area-inset-top, 2.75rem));
+  --safe-area-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+@media (min-width: 768px) {
+  :root {
+    --safe-area-top: 0px;
+    --safe-area-bottom: 0px;
+  }
 }
 
 @theme inline {
@@ -241,6 +252,16 @@
   .scrollbar-hide::-webkit-scrollbar,
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Safe Area Header Utility for Mobile Status Bar */
+  .safe-top-padding {
+    padding-top: max(2.75rem, env(safe-area-inset-top, 2.75rem));
+  }
+  @media (min-width: 768px) {
+    .safe-top-padding {
+      padding-top: 0px;
+    }
   }
 
   .content-auto {

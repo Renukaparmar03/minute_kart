@@ -2144,7 +2144,7 @@ export default function Cart() {
 
   if (cart.length === 0 && !showOrderSuccess && !showPlacingOrder) {
     return (
-      <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 py-6">
+      <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-6 pb-6">
         <div className="mx-auto max-w-md">
           <div className="mb-5 flex items-center gap-3">
             <button
@@ -2185,7 +2185,7 @@ export default function Cart() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-slate-50 dark:bg-[#0a0a0a]">
       {/* Header - Sticky at top */}
-      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] pt-[max(2.5rem,env(safe-area-inset-top))] md:pt-0">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button

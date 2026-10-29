@@ -752,7 +752,7 @@ const CartPage = () => {
     }
 
     return (
-      <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 py-6">
+      <div className="min-h-screen bg-[#f7f7f7] dark:bg-neutral-950 px-4 pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-6 pb-6">
         <div className="mx-auto max-w-md">
           <div className="mb-5 flex items-center gap-3">
             <button
@@ -790,7 +790,7 @@ const CartPage = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-neutral-950 pb-36 md:pb-40">
       {/* Sticky Full-width Header */}
-      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] pt-[max(2.5rem,env(safe-area-inset-top))] md:pt-0">
         <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between">
           {/* Left: Back Button & Title */}
           <div className="flex items-center gap-3">

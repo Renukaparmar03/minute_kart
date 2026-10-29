@@ -447,7 +447,7 @@ export default function UserOrderDetails() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 pb-24 font-sans relative">
       {/* Header */}
-      <div className="bg-white dark:bg-neutral-900 p-4 flex items-center sticky top-0 z-20 shadow-sm dark:border-b dark:border-neutral-800">
+      <div className="bg-white dark:bg-neutral-900 px-4 pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-4 pb-4 flex items-center sticky top-0 z-20 shadow-sm dark:border-b dark:border-neutral-800">
         <div className="flex items-center gap-3">
           <button
             type="button"

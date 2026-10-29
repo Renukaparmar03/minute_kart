@@ -467,7 +467,7 @@ export default function HomeHeader({
 
 
 
-      <div className={cn("flex items-center justify-between px-5 relative z-10", isFood ? "pt-5 mb-2" : "pt-3 mb-0")}>
+      <div className={cn("flex items-center justify-between px-5 relative z-10", isFood ? "mb-2" : "mb-0")} style={{ paddingTop: isFood ? "max(2.75rem, env(safe-area-inset-top, 2.75rem))" : "max(2.5rem, env(safe-area-inset-top, 2.5rem))" }}>
         <button
           type="button"
           className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none pr-2"
@@ -774,13 +774,13 @@ export default function HomeHeader({
       */}
 
       <div className={cn("relative z-10 pb-0 px-3 overflow-visible", isFood ? "pt-3" : "pt-0")}>
-        {isFood && (isSticky && !disableSticky) && <div className="h-[46px] mb-2" />}
+        {isFood && (isSticky && !disableSticky) && <div className="h-[96px] mb-2" />}
         {isFood && !hideExtras && (
           <div 
             className={cn("flex items-center gap-2 mb-2", 
               (isSticky && !disableSticky) ? "fixed top-0 left-0 right-0 z-[100] px-4 py-2 pb-3 shadow-md backdrop-blur-xl border-b border-black/5 dark:border-white/5" : "relative w-full px-0"
             )}
-            style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.85) : "transparent" }}
+            style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.85) : "transparent", ...((isSticky && !disableSticky) ? { paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" } : {}) }}
           >
             <div
               className="flex-1 rounded-full h-[48px] flex items-center px-4 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"

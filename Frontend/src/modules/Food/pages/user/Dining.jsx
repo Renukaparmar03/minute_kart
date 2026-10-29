@@ -469,7 +469,7 @@ export default function Dining() {
       {/* Sticky Header Wrapper */}
       <div className="sticky top-0 z-40 w-full bg-white dark:bg-[#0a0a0a] shadow-sm md:hidden">
         {/* Navbar Section */}
-        <div className="relative z-20 pt-2 sm:pt-3 lg:pt-4">
+        <div className="relative z-20" style={{ paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" }}>
           <PageNavbar
             textColor="dark"
             zIndex={20}

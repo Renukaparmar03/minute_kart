@@ -2040,7 +2040,7 @@ function RestaurantDetailsContent() {
         }`}
     >
       {/* Header - Back, Search, Menu */}
-      <div className="px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-4 md:pt-6 pb-6 relative z-20 bg-white dark:bg-[#1a1a1a]">
+      <div className="px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-6 pb-6 relative z-20 bg-white dark:bg-[#1a1a1a]">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Button
             variant="outline"

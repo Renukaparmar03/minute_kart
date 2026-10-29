@@ -146,7 +146,7 @@ export default function Wallet() {
 
   return (
     <AnimatedPage className="min-h-screen bg-white dark:bg-[#0a0a0a]">
-      <div className="bg-white dark:bg-[#1a1a1a] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-[#1a1a1a] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-0">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 px-4 sm:px-6 md:px-8 lg:px-10 py-4 md:py-5">
             <button
