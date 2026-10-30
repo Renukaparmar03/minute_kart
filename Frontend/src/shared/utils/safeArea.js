@@ -37,7 +37,6 @@ export function initSafeAreaInsets() {
       const cssTopInset = parseFloat(computed.paddingTop) || 0
       document.body.removeChild(probe)
 
-<<<<<<< HEAD
       const userAgent = navigator.userAgent || ''
       const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
       const isAndroid = /Android/i.test(userAgent)
@@ -70,16 +69,6 @@ export function initSafeAreaInsets() {
 
       document.documentElement.style.setProperty('--safe-area-bottom', `${Math.round(finalBottom)}px`)
       document.documentElement.style.setProperty('--safe-area-top', `${Math.round(cssTopInset)}px`)
-=======
-      // Auto-adjust bottom inset:
-      // Cap at 20px max so it never floats excessively high on devices reporting large insets,
-      // while providing optimal clearance on devices with bottom navigation/gesture indicators.
-      const clampedBottom = Math.min(Math.max(Math.round(cssBottomInset), 0), 20)
-      const clampedTop = Math.max(Math.round(cssTopInset), 0)
-
-      document.documentElement.style.setProperty('--safe-area-bottom', `${clampedBottom}px`)
-      document.documentElement.style.setProperty('--safe-area-top', `${clampedTop}px`)
->>>>>>> a9cff500f993b32d5e6e90ffe59cd7406bf002a0
     } catch (e) {
       document.documentElement.style.setProperty('--safe-area-bottom', '0px')
       document.documentElement.style.setProperty('--safe-area-top', '0px')
