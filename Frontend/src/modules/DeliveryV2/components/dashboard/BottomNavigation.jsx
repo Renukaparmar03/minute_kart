@@ -48,7 +48,12 @@ export default function BottomNavigation({ currentTab = 'home', onTabChange }) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5ECE8] shadow-[0_-4px_16px_rgba(0,0,0,0.04)] z-50 py-2.5 px-4">
+    <div 
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5ECE8] shadow-[0_-4px_16px_rgba(0,0,0,0.04)] z-50 pt-2.5 px-4"
+      style={{
+        paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+      }}
+    >
       <div className="max-w-md mx-auto flex items-center justify-between">
         {navItems.map((item) => {
           const Icon = item.icon;

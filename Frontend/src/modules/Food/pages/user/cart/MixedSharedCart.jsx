@@ -364,7 +364,12 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-28">
+    <div 
+      className="min-h-screen overflow-x-hidden bg-slate-50 pb-28"
+      style={{
+        paddingBottom: "calc(7rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
+      }}
+    >
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <button
           type="button"

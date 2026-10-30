@@ -57,10 +57,12 @@ const MiniCart = ({
                     id="mini-cart-target"
                     className={cn(
                         "fixed z-[100] pointer-events-auto",
-                        isProductDetailPage ? "bottom-[84px] md:bottom-[92px]" : "bottom-[84px]",
                         "left-0 right-0 px-4 flex justify-center w-full max-w-full",
                         className,
                     )}
+                    style={{
+                        bottom: `calc(${isProductDetailPage ? '84px' : '75px'} + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))`
+                    }}
                 >
                     <motion.div
                         initial={{ y: 50, opacity: 0, scale: 0.95 }}

@@ -42,7 +42,12 @@ export default function BottomNavigation() {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-      <div className="relative bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-lg">
+      <div 
+        className="relative bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-lg"
+        style={{
+          paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+        }}
+      >
         <div className="flex items-center justify-around h-auto px-2 sm:px-4">
           {/* Home */}
           <Link

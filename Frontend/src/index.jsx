@@ -4,6 +4,10 @@ import { Toaster } from 'sonner'
 import App from './app/App.jsx'
 import { isModuleAuthenticated } from './modules/Food/utils/auth.js'
 import './shared/styles/global.css'
+import { initSafeAreaInsets } from './shared/utils/safeArea'
+
+// Initialize safe area insets for mobile navigation bars and system overlays
+initSafeAreaInsets()
 
 const NATIVE_LAST_ROUTE_KEY = 'native_last_route'
 

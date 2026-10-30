@@ -67,7 +67,12 @@ const BottomNav = () => {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 bg-white dark:bg-card m-0 p-0 mb-0 pb-0 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+        <div 
+            className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 bg-white dark:bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
+            style={{
+                paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+            }}
+        >
             <DraggableModuleSwitcher />
             <div className="border-t border-gray-100 dark:border-border flex items-center justify-between h-[58px] px-0 m-0">
                 {items.map((item, index) => {
