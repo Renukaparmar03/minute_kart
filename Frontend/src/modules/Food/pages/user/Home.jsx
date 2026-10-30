@@ -442,7 +442,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerWidth >= 768) {
+      if (window.innerWidth >= 768 || activeTab !== "food" || hideExtras) {
         setShowStickyCategories(false);
         return;
       }
@@ -465,7 +465,7 @@ export default function Home() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [activeTab, hideExtras]);
 
 
   // Prevent body scroll when popups are open
@@ -634,10 +634,10 @@ export default function Home() {
     <div 
       className="relative min-h-screen bg-white dark:bg-[#0a0a0a] pb-16 md:pb-6 overflow-x-clip"
       style={{
-        paddingBottom: "calc(4rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
+        paddingBottom: "calc(4.25rem + var(--safe-area-bottom, 0px))"
       }}
     >
-      <div className="md:hidden relative overflow-x-clip z-[50]">
+      <div className="md:hidden relative overflow-x-clip z-[100]">
         {!state.isBootstrapped ? (
           <div className="px-4 pt-6 pb-4">
             <div className="h-10 w-48 bg-slate-100 animate-pulse rounded-xl mb-6" />
@@ -1098,13 +1098,16 @@ export default function Home() {
 
       {/* Sticky Categories & Filters Header */}
       <AnimatePresence>
-        {showStickyCategories && (
+        {activeTab === "food" && !hideExtras && showStickyCategories && (
           <motion.div
-            initial={{ y: -60, opacity: 0 }}
+            initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -60, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="md:hidden fixed top-[68px] left-0 right-0 z-[90] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-2 pb-2 flex flex-col gap-2"
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            style={{
+              top: "calc(max(2.75rem, env(safe-area-inset-top, 2.75rem)) + 61px)",
+            }}
+            className="md:hidden fixed left-0 right-0 z-[90] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-2 pb-2 flex flex-col gap-2"
           >
             {/* Category horizontal rail */}
             <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>

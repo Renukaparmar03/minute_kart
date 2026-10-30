@@ -37,8 +37,14 @@ export function initSafeAreaInsets() {
       const cssTopInset = parseFloat(computed.paddingTop) || 0
       document.body.removeChild(probe)
 
-      document.documentElement.style.setProperty('--safe-area-bottom', `${Math.round(cssBottomInset)}px`)
-      document.documentElement.style.setProperty('--safe-area-top', `${Math.round(cssTopInset)}px`)
+      // Auto-adjust bottom inset:
+      // Cap at 20px max so it never floats excessively high on devices reporting large insets,
+      // while providing optimal clearance on devices with bottom navigation/gesture indicators.
+      const clampedBottom = Math.min(Math.max(Math.round(cssBottomInset), 0), 20)
+      const clampedTop = Math.max(Math.round(cssTopInset), 0)
+
+      document.documentElement.style.setProperty('--safe-area-bottom', `${clampedBottom}px`)
+      document.documentElement.style.setProperty('--safe-area-top', `${clampedTop}px`)
     } catch (e) {
       document.documentElement.style.setProperty('--safe-area-bottom', '0px')
       document.documentElement.style.setProperty('--safe-area-top', '0px')
