@@ -218,7 +218,7 @@ export default function UserLayout({ children }) {
                     className={showFoodBottomNav ? "md:pt-40" : ""}
                     style={
                       (showFoodBottomNav || showQuickBottomNav || showDudhwalaBottomNav)
-                        ? { paddingBottom: "max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px))" }
+                        ? { paddingBottom: "var(--safe-area-bottom, 0px)" }
                         : undefined
                     }
                   >

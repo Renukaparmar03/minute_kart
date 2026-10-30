@@ -780,7 +780,7 @@ export default function HomeHeader({
             className={cn("flex items-center gap-2 mb-2", 
               (isSticky && !disableSticky) ? "fixed top-0 left-0 right-0 z-[100] px-4 py-2 pb-3 shadow-md backdrop-blur-xl border-b border-black/5 dark:border-white/5" : "relative w-full px-0"
             )}
-            style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.85) : "transparent", ...((isSticky && !disableSticky) ? { paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" } : {}) }}
+            style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.98) : "transparent", ...((isSticky && !disableSticky) ? { paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" } : {}) }}
           >
             <div
               className="flex-1 rounded-full h-[48px] flex items-center px-4 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"
