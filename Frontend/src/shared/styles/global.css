@@ -50,8 +50,8 @@
 
   /* Safe Area Insets for Mobile App & WebViews */
   --safe-area-top: max(2.75rem, env(safe-area-inset-top, 2.75rem));
-  --safe-area-bottom: clamp(0px, env(safe-area-inset-bottom, 0px), 20px);
-  --bottom-nav-safe: clamp(0px, env(safe-area-inset-bottom, 0px), 20px);
+  --safe-area-bottom: 0px;
+  --bottom-nav-safe: var(--safe-area-bottom, 0px);
 }
 
 @media (min-width: 768px) {

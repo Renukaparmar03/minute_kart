@@ -37,14 +37,38 @@ export function initSafeAreaInsets() {
       const cssTopInset = parseFloat(computed.paddingTop) || 0
       document.body.removeChild(probe)
 
-      // Auto-adjust bottom inset:
-      // Cap at 20px max so it never floats excessively high on devices reporting large insets,
-      // while providing optimal clearance on devices with bottom navigation/gesture indicators.
-      const clampedBottom = Math.min(Math.max(Math.round(cssBottomInset), 0), 20)
-      const clampedTop = Math.max(Math.round(cssTopInset), 0)
+      const userAgent = navigator.userAgent || ''
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      const isAndroid = /Android/i.test(userAgent)
 
-      document.documentElement.style.setProperty('--safe-area-bottom', `${clampedBottom}px`)
-      document.documentElement.style.setProperty('--safe-area-top', `${clampedTop}px`)
+      let finalBottom = 0
+
+      if (isIOS) {
+        // iOS: Native env is always accurate
+        finalBottom = Math.min(cssBottomInset, 34)
+      } else if (isAndroid) {
+        // Android Intelligent Detection:
+        // If screen.height - innerHeight is significant (>= 60px), Android OS has
+        // already placed the webview above the navigation bar. No extra padding needed.
+        const screenDiff = window.screen.height - window.innerHeight
+
+        if (screenDiff >= 60) {
+          // Viewport is already above system navigation bar -> 0px extra padding
+          finalBottom = 0
+        } else {
+          // Viewport is in edge-to-edge/immersive mode and overlaps system bar
+          if (cssBottomInset > 0) {
+            finalBottom = Math.min(cssBottomInset, 20)
+          } else {
+            finalBottom = 16
+          }
+        }
+      } else {
+        finalBottom = Math.min(cssBottomInset, 20)
+      }
+
+      document.documentElement.style.setProperty('--safe-area-bottom', `${Math.round(finalBottom)}px`)
+      document.documentElement.style.setProperty('--safe-area-top', `${Math.round(cssTopInset)}px`)
     } catch (e) {
       document.documentElement.style.setProperty('--safe-area-bottom', '0px')
       document.documentElement.style.setProperty('--safe-area-top', '0px')
