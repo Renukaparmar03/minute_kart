@@ -39,7 +39,7 @@ const BottomNav = ({ navItems }) => {
                 "bottom-0 left-0 right-0 min-h-[4rem] h-auto bg-white border-t border-gray-100 px-2 pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
             )}
             style={{
-                paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+                paddingBottom: "max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px))"
             }}
         >
             {primaryItems.map((item) => (

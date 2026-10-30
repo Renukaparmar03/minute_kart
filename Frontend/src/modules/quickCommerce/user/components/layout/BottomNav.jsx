@@ -70,7 +70,7 @@ const BottomNav = () => {
         <div 
             className="fixed bottom-0 left-0 right-0 z-[500] md:hidden transition-all duration-300 bg-white dark:bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
             style={{
-                paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+                paddingBottom: "max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px))"
             }}
         >
             <DraggableModuleSwitcher />

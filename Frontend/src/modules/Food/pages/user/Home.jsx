@@ -632,9 +632,9 @@ export default function Home() {
   // --- Render ---
   return (
     <div 
-      className="relative min-h-screen bg-white dark:bg-[#0a0a0a] pb-24 md:pb-6 overflow-x-clip"
+      className="relative min-h-screen bg-white dark:bg-[#0a0a0a] pb-16 md:pb-6 overflow-x-clip"
       style={{
-        paddingBottom: "calc(5.5rem + max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0px)))"
+        paddingBottom: "calc(4rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
       }}
     >
       <div className="md:hidden relative overflow-x-clip z-[50]">

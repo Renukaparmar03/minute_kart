@@ -110,10 +110,10 @@ export default function BottomNavigation() {
     <div 
       className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50"
       style={{
-        paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+        paddingBottom: "max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px))"
       }}
     >
-      <div className="flex items-center justify-around pt-2 px-4">
+      <div className="flex items-center justify-around py-2 px-4">
 
         {/* Feed */}
         <button

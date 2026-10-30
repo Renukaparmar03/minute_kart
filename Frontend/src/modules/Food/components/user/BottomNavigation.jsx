@@ -76,9 +76,9 @@ export default function BottomNavigation() {
         className={`md:hidden fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
       >
         <div 
-          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-3 pt-2 flex items-center justify-between gap-1 w-full"
+          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-3 pt-1.5 flex items-center justify-between gap-1 w-full"
           style={{
-            paddingBottom: "max(var(--safe-area-bottom, 0.75rem), env(safe-area-inset-bottom, 0.75rem), 0.75rem)"
+            paddingBottom: "calc(0.375rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
           }}
         >
         {/* Delivery Tab */}

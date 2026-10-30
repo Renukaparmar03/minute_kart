@@ -7,10 +7,10 @@ export default function OutOfZoneScreen({ onChangeLocation }) {
     <div 
       className="fixed inset-0 z-[1000] flex flex-col items-center justify-center overflow-hidden bg-[#eaf6ea]"
       style={{
-        paddingTop: "max(12px, env(safe-area-inset-top, 12px))",
-        paddingBottom: "max(var(--safe-area-bottom, 3.25rem), env(safe-area-inset-bottom, 3.25rem), 3.25rem)",
-        paddingLeft: "max(12px, env(safe-area-inset-left, 12px))",
-        paddingRight: "max(12px, env(safe-area-inset-right, 12px))",
+        paddingTop: "max(8px, env(safe-area-inset-top, 0px))",
+        paddingBottom: "max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px), 8px)",
+        paddingLeft: "max(8px, env(safe-area-inset-left, 0px))",
+        paddingRight: "max(8px, env(safe-area-inset-right, 0px))",
       }}
     >
       {/* Blurred copy of the banner fills the space beside the banner on wide screens */}

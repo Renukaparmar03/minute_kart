@@ -43,7 +43,7 @@ const DraggableModuleSwitcher = () => {
             dragMomentum={false}
             whileDrag={{ scale: 1.05 }}
             className="fixed z-[501] cursor-grab active:cursor-grabbing"
-            style={{ bottom: "calc(75px + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))", left: '16px' }} 
+            style={{ bottom: "calc(70px + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))", left: '16px' }} 
         >
             <div 
                 onClick={() => navigate(targetPath, { replace: true })}
