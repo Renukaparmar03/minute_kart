@@ -59,7 +59,7 @@ export default function DesktopNavbar({ showLogo = true, hideExtras = false }) {
             ? location.pathname.replace(/\/+$/, "")
             : location.pathname
     const profileSource = new URLSearchParams(location.search).get("from")
-    const isQuick = normalizedPath === "/quick" || normalizedPath.startsWith("/quick/")
+    const isQuick = normalizedPath === "/quick" || normalizedPath.startsWith("/quick/") || normalizedPath === "/food/quick"
     const isBakery = location.pathname.startsWith("/food/user/bakery") || location.pathname.startsWith("/food/bakery")
     const isDudhwala = location.pathname.startsWith("/dudhwala")
     const isUnder250 = location.pathname === "/food/user/under-250" || location.pathname === "/food/under-250"

@@ -129,7 +129,7 @@ export default function UserLayout({ children }) {
 
   // Determine active tab based on route for serviceability check
   let activeTab = 'food';
-  if (location.pathname === '/quick' || location.pathname.startsWith('/quick/')) {
+  if (location.pathname === '/quick' || location.pathname.startsWith('/quick/') || location.pathname === '/food/quick') {
     activeTab = 'quick';
   } else if (location.pathname === '/dudhwala' || location.pathname.startsWith('/dudhwala/')) {
     activeTab = 'milk';

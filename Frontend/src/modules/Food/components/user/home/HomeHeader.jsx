@@ -773,7 +773,7 @@ export default function HomeHeader({
       </div>
       */}
 
-      <div className={cn("relative z-10 pb-0 px-3 overflow-visible", isFood ? "pt-3" : "pt-0")}>
+      <div className={cn("relative z-10 pb-0 px-3 overflow-visible", isFood ? "pt-3.5" : "pt-0")}>
         {isFood && (isSticky && !disableSticky) && <div className="h-[96px] mb-2" />}
         {isFood && !hideExtras && (
           <div 

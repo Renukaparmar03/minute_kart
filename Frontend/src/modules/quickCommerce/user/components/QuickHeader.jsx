@@ -419,7 +419,7 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
         </div>
 
         {/* Search Bar (MOBILE ONLY) */}
-        <div className="relative z-10 mt-[1.5px] flex items-center gap-2 md:hidden">
+        <div className="relative z-10 mt-2 flex items-center gap-2 md:hidden">
           <motion.div
             onClick={handleSearchClick}
             whileTap={{ scale: 0.98 }}

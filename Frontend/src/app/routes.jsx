@@ -179,6 +179,7 @@ const AppRoutes = () => {
 
         {/* Shared home entry so /food/user <-> /quick doesn't remount through different app trees */}
         <Route path="/food/user" element={<SharedFoodHomeRoute />} />
+        <Route path="/food/quick" element={<SharedFoodHomeRoute />} />
 
         {/* Food Module */}
         <Route path="/food/*" element={<FoodAppWrapper />} />

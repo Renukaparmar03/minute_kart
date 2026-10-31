@@ -689,9 +689,9 @@ const MainLocationHeader = ({
           {/* Top Search removed from here and moved to categories section below */}
 
           {showCategories && categories.length > 0 && (
-            <div className="relative z-10 space-y-1 pt-0 -mt-1.5">
+            <div className="relative z-10 space-y-1 pt-1 mt-1">
               {/* Compact Search Bar integrated into Categories Section */}
-              <div className="px-2 md:px-0 md:max-w-2xl md:mx-auto py-1">
+              <div className="px-2 md:px-0 md:max-w-2xl md:mx-auto pt-1 pb-1">
                 <motion.div
                   onClick={handleSearchClick}
                   whileHover={{ scale: 1.01 }}
