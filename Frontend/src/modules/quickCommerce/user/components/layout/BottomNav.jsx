@@ -131,7 +131,7 @@ const BottomNav = () => {
                             {item.label && (
                                 <span
                                     className={cn(
-                                        "text-[10px] font-bold tracking-tight mt-0.5 transition-colors duration-300 leading-none",
+                                        "text-[10px] font-bold tracking-tight mt-[1px] transition-colors duration-300 leading-none",
                                         isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
                                     )}
                                 >
