@@ -42,6 +42,8 @@ const CategoryProductCard = ({ product }) => {
     const cardRef = React.useRef(null);
     const [showVariantsModal, setShowVariantsModal] = useState(false);
     const hasVariants = hasProductVariants(product);
+    const variantCount = Array.isArray(product.variants) ? product.variants.length : 0;
+    const showVariantHint = variantCount > 1;
     const outOfStock = isQuickProductOutOfStock(product);
 
     // Intercept card tap: capture rect, trigger hero expand, then navigate
@@ -194,9 +196,16 @@ const CategoryProductCard = ({ product }) => {
                         {product.name}
                     </h3>
 
-                    {/* Weight / Unit */}
-                    <div className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-0">
-                        {product.weight || "1 unit"}
+                    {/* Weight / Unit + variant hint */}
+                    <div className="flex items-center gap-1 mt-0">
+                        <span className="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                            {product.weight || "1 unit"}
+                        </span>
+                        {showVariantHint && (
+                            <span className="text-[9px] md:text-[10px] font-bold text-[#0c831f] bg-[#E5F7ED] dark:bg-emerald-950/40 dark:text-emerald-400 px-1 py-[1px] rounded-[4px] leading-none">
+                                {variantCount} options
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -1503,7 +1512,10 @@ const CategoryProductsPage = () => {
                     {isSearchOpen && (
                         <div className="fixed inset-0 z-[200] bg-white dark:bg-neutral-950 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
                             {/* Search Header */}
-                            <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-neutral-800 shadow-sm shrink-0">
+                            <div
+                                className="flex items-center gap-3 px-4 pb-3 border-b border-slate-100 dark:border-neutral-800 shadow-sm shrink-0"
+                                style={{ paddingTop: "calc(max(var(--safe-area-top, 0px), env(safe-area-inset-top, 0px), 0.75rem) + 0.75rem)" }}
+                            >
                                 <button
                                     onClick={() => {
                                         setIsSearchOpen(false);
