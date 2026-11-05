@@ -1466,8 +1466,6 @@ const CategoryProductsPage = () => {
 
     return (
         <div className="flex h-[100dvh] w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
-            <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col h-full overflow-hidden">
-        <div className="flex h-full w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 min-h-0 flex-col overflow-hidden">
                 {/* Header */}
                 <header className={cn(
@@ -1626,8 +1624,6 @@ const CategoryProductsPage = () => {
                         {/* Horizontal Filters Pill Bar (Remains Static) */}
                         <div className="relative bg-white dark:bg-neutral-900 mb-1.5 px-2 sm:px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
                             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-2.5">
-                        <div className="bg-white dark:bg-neutral-900 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
