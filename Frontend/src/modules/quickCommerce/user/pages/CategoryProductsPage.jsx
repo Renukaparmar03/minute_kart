@@ -1465,11 +1465,11 @@ const CategoryProductsPage = () => {
     };
 
     return (
-        <div className="flex h-screen w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
-            <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col h-full overflow-hidden">
+        <div className="flex h-full w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
+            <div className="mx-auto flex w-full max-w-[1920px] flex-1 min-h-0 flex-col overflow-hidden">
                 {/* Header */}
                 <header className={cn(
-                    "sticky top-0 z-[100] px-4 py-4 flex items-center justify-between border-b border-white/20 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md shrink-0",
+                    "relative shrink-0 z-20 px-4 py-3 flex items-center justify-between border-b border-white/20 shadow-sm",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
@@ -1507,7 +1507,7 @@ const CategoryProductsPage = () => {
                     </div>
                 </header>
 
-                <div className="flex flex-1 relative overflow-hidden h-full">
+                <div className="flex flex-1 min-h-0 relative overflow-hidden">
                     {/* Search Overlay */}
                     {isSearchOpen && (
                         <div className="fixed inset-0 z-[200] bg-white dark:bg-neutral-950 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
@@ -1620,10 +1620,10 @@ const CategoryProductsPage = () => {
                     </aside>
 
                     {/* Content Area */}
-                    <main className="flex-1 min-w-0 bg-white dark:bg-neutral-950 transition-colors flex flex-col h-full overflow-hidden">
+                    <main className="flex-1 min-w-0 bg-white dark:bg-neutral-950 transition-colors flex flex-col min-h-0 overflow-hidden">
                         {/* Horizontal Filters Pill Bar (Remains Static) */}
-                        <div className="bg-white dark:bg-neutral-900 mb-1.5 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5">
+                        <div className="bg-white dark:bg-neutral-900 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
@@ -1797,7 +1797,7 @@ const CategoryProductsPage = () => {
                         </div>
 
                         {/* Interactive Stacked Sliding Panels Viewport */}
-                        <div className="flex-1 relative overflow-hidden w-full bg-white dark:bg-neutral-950">
+                        <div className="flex-1 min-h-0 relative overflow-hidden w-full bg-white dark:bg-neutral-950">
                             <div 
                                 ref={animationContainerRef}
                                 className="w-full h-full relative"

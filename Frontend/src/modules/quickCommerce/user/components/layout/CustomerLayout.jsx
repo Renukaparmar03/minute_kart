@@ -30,6 +30,8 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
     const showFooterMessage = showBottomNav && !hideFooterMessageRoutes.includes(path) && !matchesRoutePrefix('/category') && !matchesRoutePrefix('/categories');
 
     const isOrdersPage = matchesRoutePrefix('/orders');
+    const isCategoryProductsPage = matchesRoutePrefix('/categories/') || matchesRoutePrefix('/category/');
+    const isFullHeight = fullHeight || isCategoryProductsPage;
 
     const finalShowBottomNavMobile = showBottomNav && !isProductDetailOpen;
     const finalShowFooterMessageMobile = showFooterMessage && !isProductDetailOpen;
@@ -37,8 +39,8 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
   return (
         <div className="quick-theme-scope min-h-screen bg-background flex flex-col font-sans">
             <main 
-                className={cn("flex-1 md:pb-0", !fullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0")}
-                style={!fullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
+                className={cn("flex-1 md:pb-0", !isFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0", isCategoryProductsPage && "h-[calc(100dvh-4rem)] md:h-screen overflow-hidden")}
+                style={!isFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
                     paddingBottom: "calc(4rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
                 } : undefined}
             >
