@@ -1469,40 +1469,40 @@ const CategoryProductsPage = () => {
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 min-h-0 flex-col overflow-hidden">
                 {/* Header */}
                 <header className={cn(
-                    "relative shrink-0 z-20 px-4 py-3 flex items-center justify-between border-b border-white/20 shadow-sm",
+                    "relative shrink-0 z-20 px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between gap-2 border-b border-white/20 shadow-sm",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
                         backgroundImage: `linear-gradient(180deg, ${headerTheme} 0%, ${headerTheme}F2 100%)`,
                     }}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-1 hover:bg-white/15 rounded-full transition-colors"
+                            className="p-1 hover:bg-white/15 rounded-full transition-colors shrink-0"
                         >
-                            <ChevronLeft size={24} className="text-white" />
+                            <ChevronLeft size={22} className="text-white" />
                         </button>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-[0.24em] text-white/75">
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.24em] text-white/75 truncate">
                                 Quick Category
                             </span>
-                            <h1 className="text-[18px] font-bold text-white tracking-tight">
+                            <h1 className="text-[15px] sm:text-[18px] font-bold text-white tracking-tight truncate">
                                 {category?.name || location.state?.categoryName || catId}
                             </h1>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
                         <button
                             onClick={() => setIsSearchOpen(true)}
-                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                            className="p-1.5 sm:p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
                         >
-                            <Search size={22} strokeWidth={2.5} className="text-white" />
+                            <Search size={20} strokeWidth={2.5} className="text-white" />
                         </button>
                         <button
                             onClick={handleShare}
-                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                            className="p-1.5 sm:p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
                         >
-                            <Share2 size={22} strokeWidth={2.5} className="text-white" />
+                            <Share2 size={20} strokeWidth={2.5} className="text-white" />
                         </button>
                     </div>
                 </header>
