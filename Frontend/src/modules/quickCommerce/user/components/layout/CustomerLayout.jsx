@@ -30,6 +30,8 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
     const showFooterMessage = showBottomNav && !hideFooterMessageRoutes.includes(path) && !matchesRoutePrefix('/category') && !matchesRoutePrefix('/categories');
 
     const isOrdersPage = matchesRoutePrefix('/orders');
+    const isCategoryProductsPage = matchesRoutePrefix('/categories/') || matchesRoutePrefix('/category/');
+    const isFullHeight = fullHeight || isCategoryProductsPage;
 
     // Pages that fill the viewport and scroll internally must not get the layout's
     // bottom padding, otherwise the document itself scrolls and their sticky header
@@ -45,6 +47,8 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
             <main 
                 className={cn("flex-1 md:pb-0", !useFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0")}
                 style={!useFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
+                className={cn("flex-1 md:pb-0", !isFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0", isCategoryProductsPage && "h-[calc(100dvh-4rem)] md:h-screen overflow-hidden")}
+                style={!isFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
                     paddingBottom: "calc(4rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
                 } : undefined}
             >

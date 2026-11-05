@@ -78,6 +78,8 @@ export default function BottomNavigation() {
         <div 
           className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md flex items-center justify-between gap-1 w-full"
           style={{ padding: "0.125rem 0.875rem" }}
+          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-4 py-1.5 flex items-center justify-between gap-1 w-full"
+          style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom, 0px))" }}
         >
         {/* Delivery Tab */}
         <Link
