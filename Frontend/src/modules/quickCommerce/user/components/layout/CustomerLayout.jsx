@@ -31,14 +31,20 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
 
     const isOrdersPage = matchesRoutePrefix('/orders');
 
+    // Pages that fill the viewport and scroll internally must not get the layout's
+    // bottom padding, otherwise the document itself scrolls and their sticky header
+    // starts covering the content underneath it.
+    const isSelfScrollingRoute = /^\/categories\/[^/]+$/.test(path);
+    const useFullHeight = fullHeight || isSelfScrollingRoute;
+
     const finalShowBottomNavMobile = showBottomNav && !isProductDetailOpen;
     const finalShowFooterMessageMobile = showFooterMessage && !isProductDetailOpen;
 
   return (
         <div className="quick-theme-scope min-h-screen bg-background flex flex-col font-sans">
             <main 
-                className={cn("flex-1 md:pb-0", !fullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0")}
-                style={!fullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
+                className={cn("flex-1 md:pb-0", !useFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) && "pb-16 md:pb-0", isOrdersPage && "md:pb-0")}
+                style={!useFullHeight && !(isOrdersPage && finalShowFooterMessageMobile) ? {
                     paddingBottom: "calc(4rem + max(var(--safe-area-bottom, 0px), env(safe-area-inset-bottom, 0px)))"
                 } : undefined}
             >

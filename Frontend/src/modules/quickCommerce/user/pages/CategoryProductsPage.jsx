@@ -1465,7 +1465,7 @@ const CategoryProductsPage = () => {
     };
 
     return (
-        <div className="flex h-screen w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
+        <div className="flex h-[100dvh] w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col h-full overflow-hidden">
                 {/* Header */}
                 <header className={cn(
@@ -1622,13 +1622,13 @@ const CategoryProductsPage = () => {
                     {/* Content Area */}
                     <main className="flex-1 min-w-0 bg-white dark:bg-neutral-950 transition-colors flex flex-col h-full overflow-hidden">
                         {/* Horizontal Filters Pill Bar (Remains Static) */}
-                        <div className="bg-white dark:bg-neutral-900 mb-1.5 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5">
+                        <div className="relative bg-white dark:bg-neutral-900 mb-1.5 px-2 sm:px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-2.5">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1643,7 +1643,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'sort' ? null : 'sort')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'sort' || selectedSort !== 'default'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1660,7 +1660,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'type' ? null : 'type')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'type' || selectedType !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1676,7 +1676,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'price' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
