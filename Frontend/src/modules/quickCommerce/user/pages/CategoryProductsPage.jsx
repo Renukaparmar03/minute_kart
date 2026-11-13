@@ -1465,44 +1465,44 @@ const CategoryProductsPage = () => {
     };
 
     return (
-        <div className="flex h-full w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
+        <div className="flex h-[100dvh] w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 min-h-0 flex-col overflow-hidden">
                 {/* Header */}
                 <header className={cn(
-                    "relative shrink-0 z-20 px-4 py-3 flex items-center justify-between border-b border-white/20 shadow-sm",
+                    "relative shrink-0 z-20 px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between gap-2 border-b border-white/20 shadow-sm",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
                         backgroundImage: `linear-gradient(180deg, ${headerTheme} 0%, ${headerTheme}F2 100%)`,
                     }}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-1 hover:bg-white/15 rounded-full transition-colors"
+                            className="p-1 hover:bg-white/15 rounded-full transition-colors shrink-0"
                         >
-                            <ChevronLeft size={24} className="text-white" />
+                            <ChevronLeft size={22} className="text-white" />
                         </button>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-[0.24em] text-white/75">
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] sm:tracking-[0.24em] text-white/75 truncate">
                                 Quick Category
                             </span>
-                            <h1 className="text-[18px] font-bold text-white tracking-tight">
+                            <h1 className="text-[15px] sm:text-[18px] font-bold text-white tracking-tight truncate">
                                 {category?.name || location.state?.categoryName || catId}
                             </h1>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
                         <button
                             onClick={() => setIsSearchOpen(true)}
-                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                            className="p-1.5 sm:p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
                         >
-                            <Search size={22} strokeWidth={2.5} className="text-white" />
+                            <Search size={20} strokeWidth={2.5} className="text-white" />
                         </button>
                         <button
                             onClick={handleShare}
-                            className="p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
+                            className="p-1.5 sm:p-2 hover:bg-white/15 rounded-full transition-colors active:scale-95"
                         >
-                            <Share2 size={22} strokeWidth={2.5} className="text-white" />
+                            <Share2 size={20} strokeWidth={2.5} className="text-white" />
                         </button>
                     </div>
                 </header>
@@ -1622,13 +1622,13 @@ const CategoryProductsPage = () => {
                     {/* Content Area */}
                     <main className="flex-1 min-w-0 bg-white dark:bg-neutral-950 transition-colors flex flex-col min-h-0 overflow-hidden">
                         {/* Horizontal Filters Pill Bar (Remains Static) */}
-                        <div className="bg-white dark:bg-neutral-900 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+                        <div className="relative bg-white dark:bg-neutral-900 mb-1.5 px-2 sm:px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-2.5">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1643,7 +1643,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'sort' ? null : 'sort')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'sort' || selectedSort !== 'default'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1660,7 +1660,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'type' ? null : 'type')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'type' || selectedType !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
@@ -1676,7 +1676,7 @@ const CategoryProductsPage = () => {
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
+                                        "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 border rounded-[10px] text-[11px] sm:text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'price' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
                                             : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"

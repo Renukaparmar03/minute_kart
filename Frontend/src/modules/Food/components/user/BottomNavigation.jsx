@@ -75,15 +75,17 @@ export default function BottomNavigation() {
       <div 
         className={`md:hidden fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
       >
-        <div 
-          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-4 py-1.5 flex items-center justify-between gap-1 w-full"
+        <div
+          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-3 py-1.5 flex items-center justify-center gap-1.5 w-full"
           style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom, 0px))" }}
         >
+        {/* Nav Tabs Group */}
+        <div className="flex items-center gap-0">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
           replace
-          className={`flex flex-col items-center justify-center gap-0 px-3 py-1.5 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-0 px-1.5 py-1.5 rounded-full transition-all duration-200 ${
             isDelivery
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
@@ -99,7 +101,7 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/under-250"
           replace
-          className={`flex flex-col items-center justify-center gap-0 px-3 py-1.5 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-0 px-1.5 py-1.5 rounded-full transition-all duration-200 ${
             isUnder250
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
@@ -115,7 +117,7 @@ export default function BottomNavigation() {
         <Link
           to="/food/user/cart"
           replace
-          className={`flex flex-col items-center justify-center gap-0 px-3 py-1.5 rounded-full transition-all duration-200 ${
+          className={`flex flex-col items-center justify-center gap-0 px-1.5 py-1.5 rounded-full transition-all duration-200 ${
             isCart
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
@@ -126,6 +128,7 @@ export default function BottomNavigation() {
             Cart
           </span>
         </Link>
+        </div>
 
         {/* Minutemart Link Button */}
         <Link
