@@ -8,7 +8,7 @@ import { initSafeAreaInsets } from './shared/utils/safeArea'
 
 // Initialize safe area insets for mobile navigation bars and system overlays
 initSafeAreaInsets()
-
+                         
 const NATIVE_LAST_ROUTE_KEY = 'native_last_route'
 
 // ─── Quick-spicy Food Module Initialization ───────────────────────────────────
@@ -137,8 +137,6 @@ window.addEventListener('unhandledrejection', (event) => {
     return
   }
 })
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { AppProviders } from './app/providers.jsx'
 
