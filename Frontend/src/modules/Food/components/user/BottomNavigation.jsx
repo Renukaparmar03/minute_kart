@@ -76,8 +76,8 @@ export default function BottomNavigation() {
         className={`md:hidden fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
       >
         <div
-          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md px-0 m-0 h-[58px] flex items-center justify-between w-full"
-          style={{ padding: "0.125rem", paddingBottom: "max(0.125rem, env(safe-area-inset-bottom, 0px))" }}
+          className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md p-0 m-0 h-[58px] flex items-center justify-between w-full"
+          style={{ padding: 0, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
         {/* Nav Tabs Group */}
         <div className="flex items-center justify-between flex-1 h-full">
