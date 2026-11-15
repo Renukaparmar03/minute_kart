@@ -77,7 +77,7 @@ export default function BottomNavigation() {
       >
         <div
           className="bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-md p-0 m-0 h-[58px] flex items-center justify-between w-full"
-          style={{ padding: 0, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          style={{ padding: 0 }}
         >
         {/* Nav Tabs Group */}
         <div className="flex items-center justify-between flex-1 h-full">
