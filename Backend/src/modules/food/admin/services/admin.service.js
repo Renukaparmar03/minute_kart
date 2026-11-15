@@ -1369,12 +1369,6 @@ export async function getCustomerById(id) {
 
 export async function updateCustomerStatus(id, isActive) {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) return null;
-    const customerObjectId = new mongoose.Types.ObjectId(id);
-    const hasFoodOrders = await FoodOrder.exists({
-        userId: customerObjectId,
-        orderType: { $in: FOOD_CUSTOMER_ORDER_TYPES },
-    });
-    if (!hasFoodOrders) return null;
 
     const updatedDoc = await FoodUser.findByIdAndUpdate(
         id,
