@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import {
@@ -235,6 +236,24 @@ export default function HomeHeader({
       else if (latest <= 120 && isSticky) setIsSticky(false);
     });
   }, [scrollY, isSticky]);
+
+  // Publish the pinned search bar's real height so the sticky category bar (Home.jsx)
+  // sits right below it instead of relying on a hardcoded offset.
+  const searchBarRef = useRef(null);
+  const isPinned = isSticky && !disableSticky && activeTab === "food" && !hideExtras;
+  useEffect(() => {
+    const el = searchBarRef.current;
+    const root = document.documentElement;
+    if (!isPinned || !el) return undefined;
+    const publish = () => root.style.setProperty("--food-sticky-header-h", `${el.offsetHeight}px`);
+    publish();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(publish) : null;
+    observer?.observe(el);
+    return () => {
+      observer?.disconnect();
+      root.style.removeProperty("--food-sticky-header-h");
+    };
+  }, [isPinned]);
 
   const [notifications, setNotifications] = useState(() => {
     if (typeof window === "undefined") return [];
@@ -774,13 +793,16 @@ export default function HomeHeader({
       */}
 
       <div className={cn("relative z-10 pb-0 px-3 overflow-visible", isFood ? "pt-3.5" : "pt-0")}>
-        {isFood && (isSticky && !disableSticky) && <div className="h-[96px] mb-2" />}
-        {isFood && !hideExtras && (
+        {/* Keeps the same space the bar takes in the flow, so content doesn't jump when it pins */}
+        {isFood && !hideExtras && isPinned && <div className="h-[48px] mb-2" />}
+        {isFood && !hideExtras && (() => {
+          const searchBar = (
           <div 
+            ref={searchBarRef}
             className={cn("flex items-center gap-2 mb-2", 
-              (isSticky && !disableSticky) ? "fixed top-0 left-0 right-0 z-[100] px-4 py-2 pb-3 shadow-md backdrop-blur-xl border-b border-black/5 dark:border-white/5" : "relative w-full px-0"
+              isPinned ? "fixed top-0 left-0 right-0 z-[100] px-4 py-2 pb-3 shadow-md backdrop-blur-xl border-b border-black/5 dark:border-white/5 md:hidden" : "relative w-full px-0"
             )}
-            style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.98) : "transparent", ...((isSticky && !disableSticky) ? { paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" } : {}) }}
+            style={{ backgroundColor: isPinned ? withAlpha(theme.accent, 0.98) : "transparent", ...(isPinned ? { paddingTop: "max(2.75rem, env(safe-area-inset-top, 2.75rem))" } : {}) }}
           >
             <div
               className="flex-1 rounded-full h-[48px] flex items-center px-4 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"
@@ -832,7 +854,11 @@ export default function HomeHeader({
               </div>
             </div>
           </div>
-        )}
+          );
+          // Pinned bar is portalled to <body>: an ancestor with a transform / filter (page or
+          // header animations) would otherwise make "fixed" relative to it and push it off the top.
+          return isPinned && typeof document !== "undefined" ? createPortal(searchBar, document.body) : searchBar;
+        })()}
       </div>
 
       {isFood && bannerComponent && (

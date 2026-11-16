@@ -35,8 +35,9 @@ export const authMiddleware = (req, res, next) => {
             role: decoded.role
         };
         if (decoded.role === 'USER') {
-            FoodUser.findById(decoded.userId).select('isActive').lean().then((doc) => {
+            FoodUser.findById(decoded.userId).select('isActive isDeleted').lean().then((doc) => {
                 if (!doc || doc.isActive === false) return sendError(res, 401, 'User account is deactivated');
+                if (doc.isDeleted) return sendError(res, 401, 'User account is deleted');
                 next();
             }).catch(() => sendError(res, 401, 'Authentication failed'));
             return;
