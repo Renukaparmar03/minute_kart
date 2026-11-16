@@ -28,6 +28,9 @@ const ROLES = {
   SELLER: "SELLER",
 };
 
+// JWT purpose for the restore / create-new choice after logging in to a deleted account
+const DELETED_ACCOUNT_CHOICE = "deleted_account_choice";
+
 const getResolvedUserWalletBalance = async (userId, fallbackBalance = 0) => {
   const wallet = await FoodUserWallet.findOne({ userId })
     .select("balance")
@@ -66,6 +69,75 @@ export const verifyUserOtpAndLogin = async (
     throw new AuthError(result.reason || "OTP verification failed");
   }
 
+  const existing = await FoodUser.findOne({ phone })
+    .select("_id name isActive isDeleted deletedAt")
+    .lean();
+
+  // Soft-deleted account: let the user choose to restore it or start a new one.
+  // The OTP is already consumed, so hand back a short-lived token for that choice.
+  if (existing?.isDeleted && existing.isActive !== false) {
+    const jwt = await import("jsonwebtoken");
+    const accountChoiceToken = jwt.default.sign(
+      { purpose: DELETED_ACCOUNT_CHOICE, userId: String(existing._id), phone },
+      config.jwtAccessSecret,
+      { expiresIn: "10m" },
+    );
+    return {
+      requiresAccountChoice: true,
+      accountChoiceToken,
+      deletedAccount: {
+        name: existing.name || "",
+        deletedAt: existing.deletedAt || null,
+      },
+    };
+  }
+
+  return completeUserLogin(phone, ref, fcmToken, platform, name);
+};
+
+/**
+ * Finish login for a phone whose account was soft-deleted.
+ * action "restore" brings the old account back; "new" frees the phone for a fresh account
+ * while the old one (and its orders) stays in the database for reports/settlements.
+ */
+export const resolveDeletedUserAccount = async (
+  accountChoiceToken,
+  action,
+  ref,
+  fcmToken,
+  platform,
+  name,
+) => {
+  const jwt = await import("jsonwebtoken");
+  let payload;
+  try {
+    payload = jwt.default.verify(accountChoiceToken, config.jwtAccessSecret);
+  } catch {
+    throw new AuthError("Session expired. Please login again.");
+  }
+  if (payload?.purpose !== DELETED_ACCOUNT_CHOICE || !payload.userId || !payload.phone) {
+    throw new AuthError("Invalid account choice token");
+  }
+
+  const oldUser = await FoodUser.findOne({ _id: payload.userId, phone: payload.phone });
+  if (!oldUser || !oldUser.isDeleted) {
+    throw new AuthError("Session expired. Please login again.");
+  }
+
+  if (action === "restore") {
+    oldUser.isDeleted = false;
+    oldUser.deletedAt = null;
+    await oldUser.save();
+  } else {
+    oldUser.originalPhone = payload.phone;
+    oldUser.phone = `${payload.phone}_deleted_${Date.now()}`;
+    await oldUser.save();
+  }
+
+  return completeUserLogin(payload.phone, ref, fcmToken, platform, name);
+};
+
+const completeUserLogin = async (phone, ref, fcmToken, platform, name) => {
   let userDoc = await FoodUser.findOne({ phone });
   
   // Ensure user exists and mark as verified on successful OTP.
@@ -961,9 +1033,14 @@ export const deleteAccount = async (userId, role) => {
 
   switch (role) {
     case ROLES.USER: {
+      // Soft delete: keep the record (orders, payments and settlements reference it).
+      // isActive stays as-is; it is reserved for admin deactivation.
       const userProfile = await FoodUser.findById(id);
       if (!userProfile) throw new AuthError("User not found");
-      userProfile.isActive = false;
+      userProfile.isDeleted = true;
+      userProfile.deletedAt = new Date();
+      userProfile.fcmTokens = [];
+      userProfile.fcmTokenMobile = [];
       await userProfile.save();
       break;
     }
@@ -1000,7 +1077,10 @@ export const deleteAccount = async (userId, role) => {
   // Force logout globally by deleting all refresh tokens
   await FoodRefreshToken.deleteMany({ userId: id });
 
-  return { success: true, message: "Account successfully deactivated" };
+  return {
+    success: true,
+    message: role === ROLES.USER ? "Account deleted successfully" : "Account successfully deactivated",
+  };
 };
 
 export const refreshAccessToken = async (token) => {
@@ -1023,9 +1103,12 @@ export const refreshAccessToken = async (token) => {
 
   // If deactivated user or admin, do not issue fresh access tokens (forces logout on client)
   if (payload?.role === "USER") {
-    const u = await FoodUser.findById(payload.userId).select("isActive").lean();
+    const u = await FoodUser.findById(payload.userId).select("isActive isDeleted").lean();
     if (!u || u.isActive === false) {
       throw new AuthError("User account is deactivated");
+    }
+    if (u.isDeleted) {
+      throw new AuthError("User account is deleted");
     }
   } else if (payload?.role === "ADMIN") {
     const a = await FoodAdmin.findById(payload.userId).select("isActive").lean();

@@ -1105,7 +1105,8 @@ export default function Home() {
             exit={{ y: -20, opacity: 0 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
-              top: "calc(max(2.75rem, env(safe-area-inset-top, 2.75rem)) + 61px)",
+              // Height of the pinned search bar, published by HomeHeader
+              top: "var(--food-sticky-header-h, calc(max(2.75rem, env(safe-area-inset-top, 2.75rem)) + 61px))",
             }}
             className="md:hidden fixed left-0 right-0 z-[90] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-2 pb-2 flex flex-col gap-2"
           >

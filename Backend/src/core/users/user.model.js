@@ -180,6 +180,17 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        deletedAt: {
+            type: Date,
+            default: null
+        },
+        // Set when the user chose "create new account" after deleting this one: the phone
+        // is freed for the new account and kept here so orders/reports still resolve it.
+        originalPhone: {
+            type: String,
+            default: null,
+            trim: true
+        },
         addresses: {
             type: [userAddressSchema],
             default: []

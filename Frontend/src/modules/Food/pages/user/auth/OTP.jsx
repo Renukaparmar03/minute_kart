@@ -4,8 +4,9 @@ import { ArrowLeft, Loader2 } from "lucide-react"
 import AnimatedPage from "@food/components/user/AnimatedPage"
 import { Input } from "@food/components/ui/input"
 import { Button } from "@food/components/ui/button"
-import { authAPI } from "@food/api"
+import { authAPI, userAPI } from "@food/api"
 import { setAuthData as setUserAuthData } from "@food/utils/auth"
+import DeletedAccountChoiceModal from "@shared/components/DeletedAccountChoiceModal"
 
 export default function OTP() {
   const navigate = useNavigate()
@@ -23,6 +24,11 @@ export default function OTP() {
   const [contactType, setContactType] = useState("phone")
   const [deviceToken, setDeviceToken] = useState(null)
   const [activePlatform, setActivePlatform] = useState("web")
+  // Set when the number belongs to a deleted account: { token, deletedAccount }
+  const [accountChoice, setAccountChoice] = useState(null)
+  const [accountChoiceLoading, setAccountChoiceLoading] = useState(null)
+  // Tokens from restoring / re-creating a deleted account, held while we ask for the name
+  const [resolvedAuth, setResolvedAuth] = useState(null)
   const inputRefs = useRef([])
   const submittingRef = useRef(false)
 
@@ -221,6 +227,11 @@ export default function OTP() {
       )
       const data = response?.data?.data || response?.data || {}
 
+      if (data.requiresAccountChoice) {
+        setAccountChoice({ token: data.accountChoiceToken, deletedAccount: data.deletedAccount })
+        return
+      }
+
       const accessToken = data.accessToken
       const refreshToken = data.refreshToken ?? null
       const user = data.user
@@ -280,6 +291,55 @@ export default function OTP() {
     }
   }
 
+  const finishLogin = (accessToken, user, refreshToken) => {
+    sessionStorage.removeItem("userAuthData")
+    setUserAuthData("user", accessToken, user, refreshToken)
+    window.dispatchEvent(new Event("userAuthChanged"))
+    setSuccess(true)
+    setTimeout(() => {
+      navigate("/food/user")
+    }, 500)
+  }
+
+  const handleAccountChoice = async (action) => {
+    if (!accountChoice || accountChoiceLoading) return
+    setAccountChoiceLoading(action)
+    setError("")
+    try {
+      const response = await authAPI.resolveDeletedAccount(
+        accountChoice.token,
+        action,
+        authData?.referralCode || null,
+        deviceToken,
+        activePlatform
+      )
+      const data = response?.data?.data || response?.data || {}
+      const { accessToken, user } = data
+      const refreshToken = data.refreshToken ?? null
+      if (!accessToken || !user || !refreshToken) {
+        throw new Error("Invalid response from server")
+      }
+      setAccountChoice(null)
+
+      const hasName = user.name && String(user.name).trim().length > 0 && String(user.name).toLowerCase() !== "null"
+      if (data.isNewUser === true || !hasName) {
+        setResolvedAuth({ accessToken, user, refreshToken })
+        setShowNameInput(true)
+        return
+      }
+      finishLogin(accessToken, user, refreshToken)
+    } catch (err) {
+      setAccountChoice(null)
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Something went wrong. Please request a new OTP."
+      )
+    } finally {
+      setAccountChoiceLoading(null)
+    }
+  }
+
   const handleSubmitName = async () => {
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -289,6 +349,33 @@ export default function OTP() {
 
     if (trimmedName.length < 2) {
       setNameError("Name must be at least 2 characters")
+      return
+    }
+
+    // Logged in through the deleted-account choice: the OTP is spent, so save the name on the profile
+    if (resolvedAuth) {
+      setIsLoading(true)
+      setError("")
+      setNameError("")
+      try {
+        // Profile update needs the new token
+        setUserAuthData("user", resolvedAuth.accessToken, resolvedAuth.user, resolvedAuth.refreshToken)
+        const response = await userAPI.updateProfile({ name: trimmedName })
+        const updatedUser =
+          response?.data?.data?.user ||
+          response?.data?.user ||
+          response?.data?.data ||
+          { ...resolvedAuth.user, name: trimmedName }
+        finishLogin(resolvedAuth.accessToken, updatedUser, resolvedAuth.refreshToken)
+      } catch (err) {
+        setError(
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save your name. Please try again."
+        )
+      } finally {
+        setIsLoading(false)
+      }
       return
     }
 
@@ -563,6 +650,14 @@ export default function OTP() {
             </p>
         </div>
       </div>
+      {accountChoice && (
+        <DeletedAccountChoiceModal
+          deletedAccount={accountChoice.deletedAccount}
+          loadingAction={accountChoiceLoading}
+          onRestore={() => handleAccountChoice("restore")}
+          onCreateNew={() => handleAccountChoice("new")}
+        />
+      )}
     </AnimatedPage>
   )
 }
