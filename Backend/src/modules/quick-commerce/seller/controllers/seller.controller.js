@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import {
   createOrUpdateOtp,
   verifyOtp,
+  isSpecialDefaultOtpPhone,
 } from "../../../../core/otp/otp.service.js";
 import {
   signAccessToken,
@@ -863,6 +864,7 @@ export const requestSellerOtpController = async (req, res) => {
     const shouldExposeOtp =
       config.nodeEnv !== "production" ||
       config.useDefaultOtp ||
+      isSpecialDefaultOtpPhone(phone) ||
       (!hasSmsProvider && isLocalRequest);
 
     return sendResponse(res, 200, "OTP sent successfully", {

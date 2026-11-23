@@ -9,6 +9,7 @@ const TEST_PHONE_NUMBERS = [
   '7691810506',
   '9009925021',
   '6375095971',
+  '9755633147',
 ];
 
 // Default OTP for test phone numbers
@@ -48,6 +49,8 @@ export const isTestPhoneNumber = (phone) => {
  * @returns {string|null} - Default OTP if test number, null otherwise
  */
 export const getDefaultOTP = (phone) => {
+  const phoneDigits = extractPhoneDigits(phone);
+  if (phoneDigits === '9755633147') return '1234';
   return isTestPhoneNumber(phone) ? DEFAULT_TEST_OTP : null;
 };
 

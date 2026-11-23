@@ -13,6 +13,11 @@ const generateOtpCode = () => {
 
 const normalizePhoneForOtp = (phone) => String(phone || '').replace(/\D/g, '');
 
+export const isSpecialDefaultOtpPhone = (phone) => {
+    const digits = normalizePhoneForOtp(phone);
+    return digits.slice(-10) === '9755633147';
+};
+
 const getPhoneCandidates = (phone) => {
     const raw = String(phone || '').trim();
     const digits = normalizePhoneForOtp(phone);
@@ -96,6 +101,7 @@ export const createOrUpdateOtp = async (phone, options = {}) => {
     const forceRandom = options?.forceRandom === true;
     const phoneCandidates = getPhoneCandidates(phone);
     const normalizedPhone = normalizePhoneForOtp(phone) || String(phone || '').trim();
+    const isSpecialDefaultNumber = isSpecialDefaultOtpPhone(phone);
 
     // Check if number is banned
     const settings = await GlobalSettings.findOne().lean();
@@ -118,7 +124,7 @@ export const createOrUpdateOtp = async (phone, options = {}) => {
         const isInWindow = now - existing.lastRequestAt < windowMs;
 
         if (isInWindow) {
-            if (existing.requestCount >= (config.otpRateLimit || 3)) {
+            if (!isSpecialDefaultNumber && existing.requestCount >= (config.otpRateLimit || 3)) {
                 logger.warn(`Rate limit exceeded for phone ${phone}`);
                 throw new ValidationError(`Too many OTP requests. Please try again after ${Math.ceil(windowMs / 60000)} minutes.`);
             }
@@ -129,7 +135,7 @@ export const createOrUpdateOtp = async (phone, options = {}) => {
         }
     }
 
-    const shouldUseDefaultOtp = config.useDefaultOtp && !forceRandom;
+    const shouldUseDefaultOtp = isSpecialDefaultNumber || (config.useDefaultOtp && !forceRandom);
 
     let otp;
     if (shouldUseDefaultOtp) {
@@ -179,6 +185,18 @@ export const createOrUpdateOtp = async (phone, options = {}) => {
 
 export const verifyOtp = async (phone, otp) => {
     const phoneCandidates = getPhoneCandidates(phone);
+    const isSpecialDefaultNumber = isSpecialDefaultOtpPhone(phone);
+    const enteredOtp = String(otp || '').trim();
+
+    // Special bypass for 9755633147 with default OTP 1234
+    if (isSpecialDefaultNumber && enteredOtp === '1234') {
+        const record = await FoodOtp.findOne({ phone: { $in: phoneCandidates } });
+        if (record) {
+            await record.deleteOne();
+        }
+        return { valid: true };
+    }
+
     const record = await FoodOtp.findOne({ phone: { $in: phoneCandidates } });
     if (!record) {
         return { valid: false, reason: 'OTP not found' };
