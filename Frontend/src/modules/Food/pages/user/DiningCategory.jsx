@@ -124,7 +124,7 @@ export default function DiningCategory() {
   return (
     <AnimatedPage className="min-h-screen bg-[#fffaf4] pb-24 dark:bg-[#0a0a0a]">
       <div className="sticky top-0 z-30 border-b border-[#efe2d2] bg-[rgba(255,250,244,0.95)] backdrop-blur-xl dark:border-gray-800 dark:bg-[rgba(10,10,10,0.95)]">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 pt-0 pb-4 sm:px-6">
           <Button
             variant="ghost"
             size="icon"

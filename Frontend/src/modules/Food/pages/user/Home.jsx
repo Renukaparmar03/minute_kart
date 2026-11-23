@@ -639,7 +639,7 @@ export default function Home() {
     >
       <div className="md:hidden relative overflow-x-clip z-[100]">
         {!state.isBootstrapped ? (
-          <div className="px-4 pt-6 pb-4">
+          <div className="px-4 pt-0 pb-4">
             <div className="h-10 w-48 bg-slate-100 animate-pulse rounded-xl mb-6" />
             <div className="h-14 w-full bg-slate-100 animate-pulse rounded-2xl" />
           </div>
@@ -1106,7 +1106,7 @@ export default function Home() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
               // Height of the pinned search bar, published by HomeHeader
-              top: "var(--food-sticky-header-h, calc(max(2.75rem, env(safe-area-inset-top, 2.75rem)) + 61px))",
+              top: "var(--food-sticky-header-h, 61px)",
             }}
             className="md:hidden fixed left-0 right-0 z-[90] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-2 pb-2 flex flex-col gap-2"
           >

@@ -268,7 +268,7 @@ export default function DiningRestaurantDetails() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/18 to-black/0" />
 
-          <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-3 pt-3">
+          <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-3 pt-0">
             <button
               onClick={handleBack}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[#51586a]/75 text-white backdrop-blur-md"
@@ -359,7 +359,7 @@ export default function DiningRestaurantDetails() {
       </section>
 
       <div className="sticky top-0 z-30 border-b border-[#ececf3] bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-md px-3 pb-3 pt-3">
+        <div className="mx-auto max-w-md px-3 pb-3 pt-0">
           <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {topTabs.map((tab) => (
               <button

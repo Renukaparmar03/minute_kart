@@ -312,7 +312,7 @@ export default function OrderInvoice() {
   }
 
   return (
-    <AnimatedPage className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] p-3 sm:p-6 lg:p-8">
+    <AnimatedPage className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] px-3 pt-0 pb-3 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
       {/* Inline Print Styles */}
       <style>{`
         @media print {

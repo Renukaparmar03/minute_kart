@@ -42,7 +42,7 @@ export default function TableBookingSuccess() {
     const formattedDate = new Date(booking.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 
     return (
-        <AnimatedPage className="bg-white min-h-screen flex flex-col items-center justify-center p-6 pb-24">
+        <AnimatedPage className="bg-white min-h-screen flex flex-col items-center justify-center px-6 pt-0 pb-6 pb-24">
             <motion.div
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

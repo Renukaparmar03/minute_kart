@@ -113,7 +113,7 @@ export default function TableBookingConfirmation() {
     return (
         <AnimatedPage className="bg-slate-50 min-h-screen pb-24">
             {/* Header */}
-            <div className="bg-[#DC021B] text-white px-4 py-4 sticky top-0 z-50 shadow-md">
+            <div className="bg-[#DC021B] text-white px-4 pt-0 pb-4 sticky top-0 z-50 shadow-md">
                 <div className="flex items-center gap-3">
                     <button onClick={goBack} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                         <ArrowLeft className="w-6 h-6" />

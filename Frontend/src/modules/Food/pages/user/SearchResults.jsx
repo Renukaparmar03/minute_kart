@@ -785,10 +785,10 @@ export default function SearchResults() {
   return (
     <div className={`min-h-screen bg-white dark:bg-[#0a0a0a] ${shouldShowGrayscale ? 'grayscale opacity-75' : ''}`}>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-[#1a1a1a] shadow-sm pt-[max(2.75rem,env(safe-area-inset-top))] md:pt-0">
+      <div className="sticky top-0 z-20 bg-white dark:bg-[#1a1a1a] shadow-sm pt-0 md:pt-0">
         <div className="max-w-7xl mx-auto">
           {/* Search Bar with Back Button */}
-          <div className="flex items-center gap-2 px-3 sm:px-4 md:px-6 lg:px-8 py-3 md:py-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2 px-3 sm:px-4 md:px-6 lg:px-8 pt-0 pb-3 md:pb-4 border-b border-gray-100 dark:border-gray-800">
             <button
               onClick={() => navigate('/user')}
               className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors flex-shrink-0"

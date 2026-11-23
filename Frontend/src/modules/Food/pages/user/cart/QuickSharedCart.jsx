@@ -378,7 +378,7 @@ export default function QuickSharedCart({ initialAddress = null, addressMode = "
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-28">
-      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-0 pb-6 md:px-6">
         <button
           type="button"
           onClick={() => navigate("/quick")}
