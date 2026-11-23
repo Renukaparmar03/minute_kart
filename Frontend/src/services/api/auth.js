@@ -8,6 +8,7 @@ import apiClient from "./axios.js";
 const AUTH = {
   USER_REQUEST_OTP: "/food/auth/user/request-otp",
   USER_VERIFY_OTP: "/food/auth/user/verify-otp",
+  USER_RESOLVE_DELETED_ACCOUNT: "/food/auth/user/resolve-deleted-account",
   ADMIN_LOGIN: "/food/auth/admin/login",
   RESTAURANT_REQUEST_OTP: "/food/auth/restaurant/request-otp",
   RESTAURANT_VERIFY_OTP: "/food/auth/restaurant/verify-otp",
@@ -99,6 +100,31 @@ export function verifyUserOtp(
     otp: otpStr,
     ...(refValue ? { ref: refValue } : {}),
     ...(name ? { name } : {}),
+    ...(fcmToken ? { fcmToken, platform } : {}),
+  });
+}
+
+/**
+ * Finish login for a soft-deleted account after verify-otp returned requiresAccountChoice.
+ * Backend returns { accessToken, refreshToken, user, isNewUser } like verify-otp.
+ * @param {string} accountChoiceToken - From the verify-otp response
+ * @param {"restore"|"new"} action - Restore the old account or create a new one
+ */
+export function resolveDeletedUserAccount(
+  accountChoiceToken,
+  action,
+  ref,
+  fcmToken = null,
+  platform = "web",
+) {
+  if (!accountChoiceToken) {
+    return Promise.reject(new Error("Session expired. Please login again."));
+  }
+  const refValue = typeof ref === "string" ? ref.trim() : "";
+  return apiClient.post(AUTH.USER_RESOLVE_DELETED_ACCOUNT, {
+    accountChoiceToken,
+    action,
+    ...(refValue ? { ref: refValue } : {}),
     ...(fcmToken ? { fcmToken, platform } : {}),
   });
 }

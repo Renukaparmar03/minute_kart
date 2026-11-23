@@ -75,18 +75,42 @@ const mapSharedAddress = (addr = {}, idx = 0, profile = {}) => {
   };
 };
 
+// Older builds persisted a hardcoded Indore address as the user's location. Drop it so
+// those users see the "not operating in this zone" screen until they pick a real location.
+const LEGACY_DEFAULT_LAT = 22.711140989838025;
+const LEGACY_DEFAULT_LNG = 75.9001552518043;
+
+const clearLegacyDefaultLocation = () => {
+  if (typeof window === "undefined") return;
+  for (const key of ["userLocation", STORAGE_KEY]) {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(key) || "null");
+      if (
+        Number(parsed?.latitude) === LEGACY_DEFAULT_LAT &&
+        Number(parsed?.longitude) === LEGACY_DEFAULT_LNG
+      ) {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }
+};
+
+clearLegacyDefaultLocation();
+
 export const LocationProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
-  // Default location (used until we can resolve a better one)
+  // No location until the user picks one or we get their current location
   const [currentLocation, setCurrentLocation] = useState(() => {
     const defaultLoc = {
-      name: "214, Rajshri Palace Colony, Pipliyahana, Indore, Madhya Pradesh 452018, India",
+      name: "",
       time: "12-15 mins",
-      city: "Indore",
-      state: "Madhya Pradesh",
-      pincode: "452018",
-      latitude: 22.711140989838025,
-      longitude: 75.9001552518043,
+      city: "",
+      state: "",
+      pincode: "",
+      latitude: null,
+      longitude: null,
     };
 
     if (typeof window === "undefined") return defaultLoc;
@@ -101,9 +125,9 @@ export const LocationProvider = ({ children }) => {
             return {
               name: parsed.formattedAddress || parsed.address,
               time: "12-15 mins",
-              city: parsed.city || "Indore",
-              state: parsed.state || "Madhya Pradesh",
-              pincode: parsed.postalCode || parsed.zipCode || "452018",
+              city: parsed.city || "",
+              state: parsed.state || "",
+              pincode: parsed.postalCode || parsed.zipCode || "",
               latitude: parsed.latitude || defaultLoc.latitude,
               longitude: parsed.longitude || defaultLoc.longitude,
             };
@@ -133,9 +157,9 @@ export const LocationProvider = ({ children }) => {
               return {
                 name: addressString || defaultAddr.formattedAddress || defaultAddr.address || "",
                 time: "12-15 mins",
-                city: defaultAddr.city || "Indore",
-                state: defaultAddr.state || "Madhya Pradesh",
-                pincode: defaultAddr.zipCode || defaultAddr.postalCode || "452018",
+                city: defaultAddr.city || "",
+                state: defaultAddr.state || "",
+                pincode: defaultAddr.zipCode || defaultAddr.postalCode || "",
                 latitude: lat || defaultLoc.latitude,
                 longitude: lng || defaultLoc.longitude,
               };
@@ -279,9 +303,9 @@ export const LocationProvider = ({ children }) => {
           const fallbackFromCoords = (latitude, longitude) => ({
             name: `Lat ${Number(latitude).toFixed(5)}, Lng ${Number(longitude).toFixed(5)}`,
             time: "12-15 mins",
-            city: currentLocation?.city || "Indore",
-            state: currentLocation?.state || "Madhya Pradesh",
-            pincode: currentLocation?.pincode || "452018",
+            city: currentLocation?.city || "",
+            state: currentLocation?.state || "",
+            pincode: currentLocation?.pincode || "",
             latitude,
             longitude,
           });
@@ -505,12 +529,6 @@ export const LocationProvider = ({ children }) => {
             { persist: false, updateSavedHome: false },
           );
         }
-      } else {
-        // If no location is stored, persist the default one immediately
-        updateLocation(currentLocation, {
-          persist: true,
-          updateSavedHome: false,
-        });
       }
     } catch {
       // ignore parse errors

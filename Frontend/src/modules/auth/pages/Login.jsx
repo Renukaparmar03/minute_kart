@@ -7,6 +7,7 @@ import { authAPI, userAPI } from "@food/api"
 import { isModuleAuthenticated, setAuthData } from "@food/utils/auth"
 import { useAuth } from "@core/context/AuthContext"
 import zozomenLogo from "@/assets/zozomenLogo.png"
+import DeletedAccountChoiceModal from "@shared/components/DeletedAccountChoiceModal"
 import { loadBusinessSettings, getCachedSettings } from "@common/utils/businessSettings"
 
 export default function UnifiedOTPFastLogin() {
@@ -20,6 +21,9 @@ export default function UnifiedOTPFastLogin() {
   const [showNameInput, setShowNameInput] = useState(false)
   const [name, setName] = useState("")
   const [nameError, setNameError] = useState("")
+  // Set when the number belongs to a deleted account: { token, deletedAccount, fcmToken, platform }
+  const [accountChoice, setAccountChoice] = useState(null)
+  const [accountChoiceLoading, setAccountChoiceLoading] = useState(null)
   const location = useLocation()
   const navigate = useNavigate()
   const { login: globalLogin } = useAuth()
@@ -152,6 +156,62 @@ export default function UnifiedOTPFastLogin() {
     clearNameFlow()
   }
 
+  const completeLogin = (data, successMessage = "Login successful!") => {
+    const accessToken = data.accessToken
+    const refreshToken = data.refreshToken || null
+    const user = data.user
+
+    if (!accessToken || !user) {
+      throw new Error("Invalid response from server")
+    }
+
+    const hasName =
+      user.name &&
+      String(user.name).trim().length > 0 &&
+      String(user.name).toLowerCase() !== "null"
+    const needsName = data.isNewUser === true || !hasName
+
+    if (needsName) {
+      setAuthData("user", accessToken, user, refreshToken)
+      window.dispatchEvent(new Event("userAuthChanged"))
+      setShowNameInput(true)
+      return
+    }
+
+    setAuthData("user", accessToken, user, refreshToken)
+    globalLogin({ ...user, token: accessToken, role: 'customer' })
+    window.dispatchEvent(new Event("userAuthChanged"))
+    toast.success(successMessage)
+    navigate(redirectTo, { replace: true })
+  }
+
+  const handleAccountChoice = async (action) => {
+    if (!accountChoice || accountChoiceLoading) return
+    setAccountChoiceLoading(action)
+    try {
+      const response = await authAPI.resolveDeletedAccount(
+        accountChoice.token,
+        action,
+        referralCode,
+        accountChoice.fcmToken,
+        accountChoice.platform
+      )
+      const data = response?.data?.data || response?.data || {}
+      setAccountChoice(null)
+      completeLogin(data, action === "restore" ? "Account restored successfully!" : "New account created!")
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Something went wrong. Please try again."
+      toast.error(msg)
+      // Choice token expired or already used: start the login again
+      if (err?.response?.status === 401) {
+        setAccountChoice(null)
+        handleEditNumber()
+      }
+    } finally {
+      setAccountChoiceLoading(null)
+    }
+  }
+
   const handleVerifyOTP = async (e) => {
     e.preventDefault()
     const phone = normalizedPhone()
@@ -202,34 +262,18 @@ export default function UnifiedOTPFastLogin() {
         platform
       )
       const data = response?.data?.data || response?.data || {}
-      const accessToken = data.accessToken
-      const refreshToken = data.refreshToken || null
-      const user = data.user
 
-      if (!accessToken || !user) {
-        throw new Error("Invalid response from server")
-      }
-
-      const hasName =
-        user.name &&
-        String(user.name).trim().length > 0 &&
-        String(user.name).toLowerCase() !== "null"
-      const needsName = data.isNewUser === true || !hasName
-
-      if (needsName) {
-        setAuthData("user", accessToken, user, refreshToken)
-        window.dispatchEvent(new Event("userAuthChanged"))
-        setShowNameInput(true)
-        setLoading(false)
-        submitting.current = false
+      if (data.requiresAccountChoice) {
+        setAccountChoice({
+          token: data.accountChoiceToken,
+          deletedAccount: data.deletedAccount,
+          fcmToken,
+          platform,
+        })
         return
       }
 
-      setAuthData("user", accessToken, user, refreshToken)
-      globalLogin({ ...user, token: accessToken, role: 'customer' })
-      window.dispatchEvent(new Event("userAuthChanged"))
-      toast.success("Login successful!")
-      navigate(redirectTo, { replace: true })
+      completeLogin(data)
     } catch (err) {
       const status = err?.response?.status
       let msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || "Invalid OTP. Please try again."
@@ -325,6 +369,14 @@ export default function UnifiedOTPFastLogin() {
     <div
       className="min-h-[100dvh] bg-[#fafafa] flex flex-col relative font-sans overflow-y-auto overflow-x-hidden w-full pb-8"
     >
+      {accountChoice && (
+        <DeletedAccountChoiceModal
+          deletedAccount={accountChoice.deletedAccount}
+          loadingAction={accountChoiceLoading}
+          onRestore={() => handleAccountChoice("restore")}
+          onCreateNew={() => handleAccountChoice("new")}
+        />
+      )}
       {/* Top Red Section */}
       <div className="w-full flex flex-col shrink-0 z-10 drop-shadow-md">
         <div className="w-full relative overflow-hidden bg-[#b81724] pb-4">

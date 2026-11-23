@@ -136,10 +136,18 @@ export default function UserLayout({ children }) {
   }
 
   const { isModuleEnabled } = useServiceability(activeTab);
-  const { location: appLocation } = useAppLocation();
+  const { location: appLocation, loading: isLocationLoading } = useAppLocation();
   const { isOutOfService: isFoodOutOfService } = useZone(appLocation);
   const { isOutOfService: isQuickOutOfService } = useQuickZoneStatus(appLocation);
-  const isOutOfService = activeTab === 'quick' ? isQuickOutOfService : isFoodOutOfService;
+  // No location picked yet (and none found from cache / DB / GPS) -> treat as out of service
+  const hasLocation =
+    appLocation?.latitude != null &&
+    appLocation?.longitude != null &&
+    Number.isFinite(Number(appLocation.latitude)) &&
+    Number.isFinite(Number(appLocation.longitude))
+  const isMissingLocation = !isLocationLoading && !hasLocation
+  const isOutOfService =
+    isMissingLocation || (activeTab === 'quick' ? isQuickOutOfService : isFoodOutOfService);
 
   const hideExtras = !isModuleEnabled || isOutOfService;
 

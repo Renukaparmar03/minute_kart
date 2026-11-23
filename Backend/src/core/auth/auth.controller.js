@@ -1,6 +1,7 @@
 import {
   requestUserOtp,
   verifyUserOtpAndLogin,
+  resolveDeletedUserAccount,
   adminLogin,
   refreshAccessToken,
   requestRestaurantOtp,
@@ -19,6 +20,7 @@ import {
 } from "./auth.service.js";
 import { validateUserOtpRequestDto } from "../../dtos/auth/userOtpRequest.dto.js";
 import { validateUserOtpVerifyDto } from "../../dtos/auth/userOtpVerify.dto.js";
+import { validateDeletedAccountChoiceDto } from "../../dtos/auth/deletedAccountChoice.dto.js";
 import { validateAdminLoginDto } from "../../dtos/auth/adminLogin.dto.js";
 import { validateRestaurantOtpRequestDto } from "../../dtos/auth/restaurantOtpRequest.dto.js";
 import { validateRestaurantOtpVerifyDto } from "../../dtos/auth/restaurantOtpVerify.dto.js";
@@ -58,7 +60,33 @@ export const verifyUserOtpController = async (req, res, next) => {
       platform,
       name,
     );
-    return sendResponse(res, 200, "Login successful", result);
+    const message = result.requiresAccountChoice
+      ? "Account was deleted. Choose to restore it or create a new one."
+      : "Login successful";
+    return sendResponse(res, 200, message, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resolveDeletedAccountController = async (req, res, next) => {
+  try {
+    const { accountChoiceToken, action, ref, fcmToken, platform, name } =
+      validateDeletedAccountChoiceDto(req.body);
+    const result = await resolveDeletedUserAccount(
+      accountChoiceToken,
+      action,
+      ref,
+      fcmToken,
+      platform,
+      name,
+    );
+    return sendResponse(
+      res,
+      200,
+      action === "restore" ? "Account restored successfully" : "New account created",
+      result,
+    );
   } catch (error) {
     next(error);
   }

@@ -12,8 +12,15 @@ export default function UserLayout() {
   // Pick up the user's live location on app open so items match where they are
   useBootstrapCurrentLocation();
 
-  const { location: appLocation } = useAppLocation();
-  const { isOutOfService } = useQuickZoneStatus(appLocation);
+  const { location: appLocation, loading: isLocationLoading } = useAppLocation();
+  const { isOutOfService: isOutsideZones } = useQuickZoneStatus(appLocation);
+  // No location picked yet (and none found from cache / DB / GPS) -> treat as out of service
+  const hasLocation =
+    appLocation?.latitude != null &&
+    appLocation?.longitude != null &&
+    Number.isFinite(Number(appLocation.latitude)) &&
+    Number.isFinite(Number(appLocation.longitude));
+  const isOutOfService = (!isLocationLoading && !hasLocation) || isOutsideZones;
   // Leave the address pages usable so the user can switch to a serviceable location
   const isAddressRoute = /\/(addresses|address-selector)\/?$/.test(location.pathname);
 

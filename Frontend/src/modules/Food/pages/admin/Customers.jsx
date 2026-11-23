@@ -167,28 +167,29 @@ export default function Customers() {
   }, [userIdFromUrl, customers])
 
   const handleToggleStatus = async (customerId) => {
+    // Find customer
+    const customer = customers.find(c => String(c._id || c.id) === String(customerId))
+    if (!customer) return
+
+    const id = String(customer._id || customer.id)
+    const prevStatus = customer.status
+    const newStatus = !prevStatus
+    const setStatus = (status) => setCustomers(prev => prev.map(c =>
+      String(c._id || c.id) === id ? { ...c, status, isActive: status } : c
+    ))
+
+    // Optimistically update UI
+    setStatus(newStatus)
+
     try {
-      // Find customer
-      const customer = customers.find(c => (c._id || c.id) === customerId)
-      if (!customer) return
-
-      const newStatus = !customer.status
-
-      // Optimistically update UI
-      setCustomers(customers.map(c =>
-        c.id === customerId ? { ...c, status: newStatus } : c
-      ))
-
       // Call API to update user status
-      await adminAPI.updateCustomerStatus(customerId, newStatus)
+      await adminAPI.updateCustomerStatus(id, newStatus)
       toast.success(`User ${newStatus ? 'activated' : 'deactivated'} successfully`)
     } catch (error) {
       debugError('Error updating status:', error)
-      toast.error('Failed to update status')
+      toast.error(error?.response?.data?.message || 'Failed to update status')
       // Revert optimistic update
-      setCustomers(customers.map(c =>
-        c.id === customerId ? { ...c, status: !c.status } : c
-      ))
+      setStatus(prevStatus)
     }
   }
 
