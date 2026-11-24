@@ -163,7 +163,7 @@ export default function Notifications() {
 
   return (
     <AnimatedPage className="min-h-screen bg-white dark:bg-[#0a0a0a]">
-      <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-0 pb-4 sm:pb-6 md:pb-8">
+      <div className="max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-6 pb-4 sm:pb-6 md:pb-8">
         {/* Header */}
         <div className="flex items-center gap-3 sm:gap-4 mb-4 md:mb-6 lg:mb-8">
           <Link to="/user">

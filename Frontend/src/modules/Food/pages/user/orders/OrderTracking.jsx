@@ -2238,7 +2238,7 @@ export default function OrderTracking() {
         animate={{ opacity: 1 }}
       >
         {/* Navigation bar */}
-        <div className="flex items-center justify-between px-4 pt-0 pb-3">
+        <div className="flex items-center justify-between px-4 pt-6 pb-3">
           <Link to={backPath}>
             <motion.button
               className="w-10 h-10 flex items-center justify-center"

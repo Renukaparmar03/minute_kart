@@ -132,7 +132,7 @@ export default function CustomCakeRestaurants() {
 
   return (
     <AnimatedPage className="min-h-screen bg-gradient-to-b from-pink-50/20 dark:from-[#0a0a0a] via-white dark:via-[#0a0a0a] to-amber-50/10 dark:to-[#0a0a0a]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 pt-0 pb-24 md:pb-8 lg:pb-10 space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 pt-6 pb-24 md:pb-8 lg:pb-10 space-y-4 sm:space-y-6 lg:space-y-8">
         <ScrollReveal>
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 mb-4 lg:mb-6">
             <Link to="/food/user">

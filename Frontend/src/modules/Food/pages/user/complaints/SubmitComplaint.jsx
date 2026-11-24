@@ -166,7 +166,7 @@ export default function SubmitComplaint() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 pb-24">
       {/* Header */}
-      <div className="bg-white dark:bg-neutral-900 px-4 pt-0 pb-4 flex items-center sticky top-0 z-20 shadow-sm dark:border-b dark:border-neutral-800">
+      <div className="bg-white dark:bg-neutral-900 px-4 pt-6 pb-4 flex items-center sticky top-0 z-20 shadow-sm dark:border-b dark:border-neutral-800">
         <button
           type="button"
           onClick={goBack}

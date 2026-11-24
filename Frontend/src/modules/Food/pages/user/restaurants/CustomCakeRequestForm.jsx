@@ -182,7 +182,7 @@ export default function CustomCakeRequestForm() {
   return (
     <AnimatedPage className="min-h-screen bg-[#f8fafc] dark:bg-neutral-900 text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Header */}
-      <div className="px-4 pt-0 pb-4 sm:px-6 md:px-8 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-30">
+      <div className="px-4 pt-6 pb-4 sm:px-6 md:px-8 border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-30">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <Link to={`/food/user/restaurants/${bakery?.slug || restaurantId}`}>
             <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">

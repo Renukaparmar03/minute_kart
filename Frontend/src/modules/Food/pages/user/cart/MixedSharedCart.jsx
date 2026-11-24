@@ -370,7 +370,7 @@ export default function MixedSharedCart({ initialAddress = null, addressMode = "
         paddingBottom: "calc(7rem + var(--safe-area-bottom, 0px))"
       }}
     >
-      <div className="mx-auto max-w-6xl px-4 pt-0 pb-6 md:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-6 pb-6 md:px-6">
         <button
           type="button"
           onClick={() => navigate("/food/user")}

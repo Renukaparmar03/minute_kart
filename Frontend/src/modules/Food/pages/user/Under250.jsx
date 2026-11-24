@@ -1137,7 +1137,7 @@ export default function Under250() {
           : "bg-transparent"
           }`}
       >
-        <div className="relative z-50 pb-2" style={{ paddingTop: 0 }}>
+        <div className="relative z-50 pb-2" style={{ paddingTop: "1.5rem" }}>
           <PageNavbar textColor={hasScrolledPastBanner ? "black" : "white"} zIndex={20} showProfile={false} showLogo={false} />
         </div>
       </div>

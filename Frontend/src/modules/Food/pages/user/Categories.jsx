@@ -75,7 +75,7 @@ export default function Categories() {
   return (
     <div className="min-h-screen bg-white pb-10">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 pt-0 md:pt-0 pb-4 flex items-center gap-4">
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 pt-6 md:pt-6 pb-4 flex items-center gap-4">
         <button onClick={goBack} className="p-2 hover:bg-neutral-100 rounded-full transition-colors active:scale-95">
           <ArrowLeft className="h-6 w-6 text-neutral-800" />
         </button>

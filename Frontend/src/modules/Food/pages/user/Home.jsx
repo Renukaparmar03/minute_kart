@@ -639,7 +639,7 @@ export default function Home() {
     >
       <div className="md:hidden relative overflow-x-clip z-[100]">
         {!state.isBootstrapped ? (
-          <div className="px-4 pt-0 pb-4">
+          <div className="px-4 pt-6 pb-4">
             <div className="h-10 w-48 bg-slate-100 animate-pulse rounded-xl mb-6" />
             <div className="h-14 w-full bg-slate-100 animate-pulse rounded-2xl" />
           </div>

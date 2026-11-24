@@ -148,7 +148,7 @@ export default function Wallet() {
     <AnimatedPage className="min-h-screen bg-white dark:bg-[#0a0a0a]">
       <div className="bg-white dark:bg-[#1a1a1a] sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 pt-0 md:pt-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 px-4 sm:px-6 md:px-8 lg:px-10 pt-0 pb-4 md:pb-5">
+          <div className="flex items-center gap-3 px-4 sm:px-6 md:px-8 lg:px-10 pt-6 pb-4 md:pb-5">
             <button
               onClick={goBack}
               className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors flex-shrink-0"

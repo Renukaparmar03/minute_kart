@@ -104,7 +104,7 @@ const CategoriesPage = () => {
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-500">
-            <div className="max-w-[1400px] mx-auto px-4 pt-0 md:pt-0 pb-20">
+            <div className="max-w-[1400px] mx-auto px-4 pt-6 md:pt-6 pb-20">
                 <div className="flex items-center gap-3 mb-6">
                     <button
                         onClick={() => navigate('/quick')}

@@ -109,7 +109,7 @@ export default function About() {
 
   return (
     <AnimatedPage className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-[#0a0a0a] dark:to-[#1a1a1a]">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 pt-0 pb-6 md:pb-8">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-6 md:pb-8">
         {/* Header */}
         <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
           <Link to={profileHomePath}>

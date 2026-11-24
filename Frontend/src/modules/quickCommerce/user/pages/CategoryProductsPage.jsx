@@ -1469,7 +1469,7 @@ const CategoryProductsPage = () => {
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 min-h-0 flex-col overflow-hidden">
                 {/* Header */}
                 <header className={cn(
-                    "relative shrink-0 z-20 px-3 pt-0 pb-2 sm:px-4 sm:pb-3 flex items-center justify-between gap-2 border-b border-white/20 shadow-sm",
+                    "relative shrink-0 z-20 px-3 pt-6 pb-2 sm:px-4 sm:pb-3 flex items-center justify-between gap-2 border-b border-white/20 shadow-sm",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
@@ -1514,7 +1514,7 @@ const CategoryProductsPage = () => {
                             {/* Search Header */}
                             <div
                                 className="flex items-center gap-3 px-4 pb-3 border-b border-slate-100 dark:border-neutral-800 shadow-sm shrink-0"
-                                style={{ paddingTop: 0 }}
+                                style={{ paddingTop: "1.5rem" }}
                             >
                                 <button
                                     onClick={() => {

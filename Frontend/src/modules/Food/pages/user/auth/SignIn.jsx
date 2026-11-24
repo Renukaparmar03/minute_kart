@@ -112,7 +112,7 @@ export default function SignIn() {
   }
 
   return (
-    <AnimatedPage className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center px-4 pt-0 pb-4">
+    <AnimatedPage className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center px-4 pt-6 pb-4">
       {/* Background decoration (desktop only) */}
       <div className="fixed inset-0 z-0 hidden md:block opacity-40">
         <img src={loginBanner} alt="" className="w-full h-full object-cover blur-sm" />

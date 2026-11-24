@@ -88,7 +88,7 @@ export default function CollectionDetail() {
   }
 
   return (
-    <AnimatedPage className="min-h-screen bg-gradient-to-b from-yellow-50/30 via-white to-orange-50/20 px-4 pt-0 pb-4">
+    <AnimatedPage className="min-h-screen bg-gradient-to-b from-yellow-50/30 via-white to-orange-50/20 px-4 pt-6 pb-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <ScrollReveal>
           <div className="flex items-center justify-between mb-4">

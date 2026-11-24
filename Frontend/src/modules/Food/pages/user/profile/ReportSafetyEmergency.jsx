@@ -121,7 +121,7 @@ export default function ReportSafetyEmergency() {
 
   return (
     <AnimatedPage className="min-h-screen bg-[#f5f5f5] dark:bg-[#0a0a0a] pb-24 md:pb-0">
-      <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-0 pb-4 md:pb-6 lg:pb-8">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-4 md:pb-6 lg:pb-8">
         {/* Header */}
         <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6 lg:mb-8">
           <Link to="/user/profile">

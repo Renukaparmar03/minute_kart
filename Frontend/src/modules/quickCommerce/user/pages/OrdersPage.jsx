@@ -108,7 +108,7 @@ const OrdersPage = () => {
 
   return (
     <div className="bg-slate-50 dark:bg-background pb-2 transition-colors duration-500">
-      <div className="sticky top-0 z-30 mb-4 flex items-center gap-2 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/95 dark:bg-background/95 px-4 pb-3 pt-0 backdrop-blur-sm transition-colors">
+      <div className="sticky top-0 z-30 mb-4 flex items-center gap-2 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/95 dark:bg-background/95 px-4 pb-3 pt-6 backdrop-blur-sm transition-colors">
         <button
           onClick={() => navigate(-1)}
           className="-ml-1 flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-slate-200/70 dark:hover:bg-white/10"
