@@ -223,7 +223,7 @@ export default function UserLayout({ children }) {
                   <LocationPrompt />
                   {showOutOfZoneScreen && <OutOfZoneScreen onChangeLocation={handleChangeLocation} />}
                   <main 
-                    className={showFoodBottomNav ? "md:pt-40" : ""}
+                    className={showFoodBottomNav ? "pt-2 md:pt-40" : "pt-2"}
                     style={
                       (showFoodBottomNav || showQuickBottomNav || showDudhwalaBottomNav)
                         ? { paddingBottom: "var(--safe-area-bottom, 0px)" }
